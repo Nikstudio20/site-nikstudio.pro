@@ -13,10 +13,11 @@ const inter = Inter({
   display: "swap",
 });
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   try {
-    const post = await getBlogPost(params.slug);
-    
+    const { slug } = await params;  // <-- await здесь
+    const post = await getBlogPost(slug);
+
     return {
       title: `${post.title} | NIK Studio - Блог`,
       description: post.description,
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       openGraph: {
         title: `${post.title} | NIK Studio - Блог`,
         description: post.description,
-        url: `https://nikstudio.com/blog/${params.slug}`,
+        url: `https://nikstudio.com/blog/${slug}`,
         siteName: "NIK Studio",
         images: [
           {
@@ -44,20 +45,21 @@ export async function generateMetadata({ params }: { params: { slug: string } })
         images: ["https://nikstudio.com/images/blog-og.jpg"],
       },
       alternates: {
-        canonical: `https://nikstudio.com/blog/${params.slug}`
+        canonical: `https://nikstudio.com/blog/${slug}`
       },
       robots: {
         index: true,
-        follow: true
-      }
+        follow: true,
+      },
     };
   } catch (error) {
+    console.error("Ошибка при генерации метаданных:", error);
     return {
       title: "Blog Post | NIK Studio",
       description: "Blog post details",
     };
   }
-};
+}
 
 // Типы данных для блога
 interface BlogPostBlock {
@@ -87,50 +89,43 @@ interface ApiResponse {
 
 // Функция для формирования корректного URL изображения
 function getImageUrl(imagePath: string | null): string {
-  if (!imagePath) return '/images/blog/blog_img1.jpg';
-  
-  // Проверяем, начинается ли путь с http/https (абсолютный URL)
-  if (imagePath.startsWith('http')) {
+  if (!imagePath) return "/images/blog/blog_img1.jpg";
+
+  if (imagePath.startsWith("http")) {
     return imagePath;
   }
-  
-  // Если путь начинается с /storage/ - это загруженный через форму файл
-  if (imagePath.startsWith('/storage/')) {
+
+  if (imagePath.startsWith("/storage/")) {
     return `http://localhost:8000${imagePath}`;
   }
-  
-  // Для изображений, добавленных вручную через DBeaver (в public/images/blog)
-  if (imagePath.startsWith('/images/')) {
-    // Используем относительный путь для локальных изображений в Next.js
+
+  if (imagePath.startsWith("/images/")) {
     return imagePath;
   }
-  
-  // Для случаев, когда передан только имя файла без пути
+
   return `http://localhost:8000/storage/blog/${imagePath}`;
 }
 
 // Функция для загрузки поста с API
 async function getBlogPost(slug: string): Promise<BlogPost> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/blog-posts/${slug}`, {
-      cache: 'no-store', // Не кэшировать данные для получения актуальной информации
-    });
-    
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/blog-posts/${slug}`,
+      { cache: "no-store" }
+    );
+
     if (!res.ok) {
-      throw new Error('Failed to fetch blog post');
+      throw new Error("Failed to fetch blog post");
     }
-    
+
     const data: ApiResponse = await res.json();
-    
-    // Обрабатываем URL изображения
-    const postWithCorrectImageUrl = {
+
+    return {
       ...data.data,
-      image: getImageUrl(data.data.image)
+      image: getImageUrl(data.data.image),
     };
-    
-    return postWithCorrectImageUrl;
   } catch (error) {
-    console.error('Error fetching blog post:', error);
+    console.error("Error fetching blog post:", error);
     notFound();
   }
 }
@@ -138,47 +133,44 @@ async function getBlogPost(slug: string): Promise<BlogPost> {
 // Функция для загрузки всех постов блога с API
 async function getAllBlogPosts(): Promise<BlogPost[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/blog-posts`, {
-      cache: 'no-store', // Не кэшировать данные для получения актуальной информации
-    });
-    
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/blog-posts`,
+      { cache: "no-store" }
+    );
+
     if (!res.ok) {
-      throw new Error('Failed to fetch blog posts');
+      throw new Error("Failed to fetch blog posts");
     }
-    
+
     const data: BlogPosts = await res.json();
-    
-    // Обрабатываем URL изображений перед отображением
-    const postsWithCorrectImageUrls = data.data?.map(post => ({
-      ...post,
-      image: getImageUrl(post.image)
-    })) || [];
-    
-    return postsWithCorrectImageUrls;
+
+    return (
+      data.data?.map((post) => ({
+        ...post,
+        image: getImageUrl(post.image),
+      })) || []
+    );
   } catch (error) {
-    console.error('Error fetching blog posts:', error);
+    console.error("Error fetching blog posts:", error);
     return [];
   }
 }
 
-export default async function BlogPost({ params }: { params: { slug: string } }) {
-  // Получаем данные с API
-  const post = await getBlogPost(params.slug);
-  
-  // Получаем все посты для секции "Еще новости"
+// Сам компонент страницы, правильный тип props
+
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;  // <-- await и деструктуризация тут
+
+  const post = await getBlogPost(slug);
   const allPosts = await getAllBlogPosts();
-  
-  // Фильтруем, чтобы не показывать текущий пост, и берем первые 3
-  const relatedPosts = allPosts
-    .filter(relatedPost => relatedPost.slug !== params.slug)
-    .slice(0, 3);
-  
+
+  const relatedPosts = allPosts.filter((relatedPost) => relatedPost.slug !== slug).slice(0, 3);
+
   return (
     <main
       className={`relative flex flex-col min-h-screen bg-[#0E1011] max-w-[2560px] w-full mx-auto ${inter.variable}`}
     >
-      {/* Section Post */}
-      {/* Header Small */}
+      {/* Header */}
       <div className="absolute top-0 right-0 w-full lg:w-1/2 z-10">
         <Header_mini />
       </div>
@@ -216,7 +208,6 @@ export default async function BlogPost({ params }: { params: { slug: string } })
       {/* Main Content */}
       <div className="w-full lg:w-1/2 ml-auto">
         <div className="flex flex-col p-6 sm:p-12 lg:p-24 3xl:p-[120px] lg:py-[96px] 3xl:py-[120px] gap-16 lg:gap-[64px] 3xl:gap-[80px] -mt-[10px]">
-          {/* Blocks */}
           {post.blocks.map((block, index) => (
             <div key={index} className="flex flex-col gap-2 3xl:gap-4">
               <h2 className="text-white text-2xl sm:text-3xl lg:text-[48px] 3xl:text-[60px] font-bold uppercase leading-[130%] font-geometria">
@@ -232,7 +223,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         </div>
       </div>
 
-      {/* Section Related News */}
+      {/* Related News Section */}
       <div className="w-full">
         <div className="flex flex-col bg-[#181A1B] p-6 sm:p-12 lg:p-24 3xl:p-[120px] lg:pt-[150px] 3xl:pt-[200px] lg:pb-[96px] 3xl:pb-[120px] mt-[25px]">
           <h2 className="text-white text-6xl sm:text-8xl xl:text-[200px] 2xl:text-[280px] 3xl:text-[320px] font-bold uppercase leading-[100%] font-geometria">
@@ -244,14 +235,17 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         </div>
       </div>
 
-      {/* Section Blog Posts */}
+      {/* Related Posts Grid */}
       <div className="w-full">
         <div className="flex flex-col w-full">
           <div className="grid grid-cols-1 lg:grid-cols-3">
-            {/* Динамические блоки постов */}
             {relatedPosts.map((relatedPost, index) => (
               <Link key={index} href={`/blog/${relatedPost.slug}`} className="group h-full">
-                <article className={`${index % 2 === 0 ? 'bg-[#181A1B]' : 'bg-[#1F2122]'} transition-colors duration-300 group-hover:bg-white h-full flex flex-col`}>
+                <article
+                  className={`${
+                    index % 2 === 0 ? "bg-[#181A1B]" : "bg-[#1F2122]"
+                  } transition-colors duration-300 group-hover:bg-white h-full flex flex-col`}
+                >
                   <div className="relative w-full aspect-square overflow-hidden flex-shrink-0">
                     <Image
                       src={relatedPost.image || "/images/blog/blog_img1.jpg"}
@@ -281,8 +275,7 @@ export default async function BlogPost({ params }: { params: { slug: string } })
         </div>
       </div>
 
-      {/* Footer */}
       <Footer />
     </main>
   );
-} 
+}

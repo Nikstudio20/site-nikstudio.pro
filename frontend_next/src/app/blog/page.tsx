@@ -75,11 +75,10 @@ function getImageUrl(imagePath: string | null): string {
   return `http://localhost:8000/storage/blog/${imagePath}`;
 }
 
-// Функция для загрузки постов с API
 async function getBlogPosts(): Promise<BlogPost[]> {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/blog-posts`, {
-      cache: 'no-store', // Не кэшировать данные для получения актуальной информации
+      next: { revalidate: 60 },  // ISR: обновлять кэш раз в 60 секунд
     });
     
     if (!res.ok) {
@@ -88,13 +87,10 @@ async function getBlogPosts(): Promise<BlogPost[]> {
     
     const data: ApiResponse = await res.json();
     
-    // Обрабатываем URL изображений перед отображением
-    const postsWithCorrectImageUrls = data.data?.map(post => ({
+    return data.data?.map(post => ({
       ...post,
       image: getImageUrl(post.image)
     })) || [];
-    
-    return postsWithCorrectImageUrls;
   } catch (error) {
     console.error('Error fetching blog posts:', error);
     return [];

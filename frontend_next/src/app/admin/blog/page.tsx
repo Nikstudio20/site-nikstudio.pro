@@ -28,7 +28,7 @@ interface CreatePostResponse {
   status: string;
   message?: string;
   data?: BlogPost;
-  errors?: any;
+  errors?: Record<string, string[]>;
 }
 
 // API URL
@@ -178,9 +178,10 @@ export default function AdminBlogPageWrapper() {
       
       // Проверяем все поля formData перед отправкой
       console.log("FormData содержит:");
-      for (let [key, value] of formData.entries()) {
+      for (const [key, value] of formData.entries()) {
         console.log(`${key}: ${value instanceof File ? 'File: ' + value.name : value}`);
       }
+      
       
       // URL API-эндпоинта для создания поста (обновлен в соответствии с изменениями на бэкенде)
       const API_URL = `${API_BASE_URL}/blog-posts`;
