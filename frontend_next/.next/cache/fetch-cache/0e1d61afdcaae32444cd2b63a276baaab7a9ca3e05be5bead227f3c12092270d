@@ -1,0 +1,1 @@
+{"kind":"FETCH","data":{"headers":{"cache-control":"no-cache, private","connection":"close","content-type":"application/json","date":"Thu, 19 Jun 2025 16:26:40 GMT","host":"109.205.58.5:8000","vary":"Origin","x-powered-by":"PHP/8.3.22"},"body":"eyJzdGF0dXMiOiJzdWNjZXNzIiwiZGF0YSI6W119","status":200,"url":"http://109.205.58.5:8000/api/blog-posts"},"revalidate":60,"tags":[]}

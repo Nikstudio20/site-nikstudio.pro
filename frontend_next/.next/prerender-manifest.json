@@ -1,35 +1,6 @@
 {
   "version": 4,
   "routes": {
-    "/favicon.ico": {
-      "initialHeaders": {
-        "cache-control": "public, max-age=0, must-revalidate",
-        "content-type": "image/x-icon",
-        "x-next-cache-tags": "_N_T_/layout,_N_T_/favicon.ico/layout,_N_T_/favicon.ico/route,_N_T_/favicon.ico"
-      },
-      "experimentalBypassFor": [
-        {
-          "type": "header",
-          "key": "Next-Action"
-        },
-        {
-          "type": "header",
-          "key": "content-type",
-          "value": "multipart/form-data;.*"
-        }
-      ],
-      "initialRevalidateSeconds": false,
-      "srcRoute": "/favicon.ico",
-      "dataRoute": null,
-      "allowHeader": [
-        "host",
-        "x-matched-path",
-        "x-prerender-revalidate",
-        "x-prerender-revalidate-if-generated",
-        "x-next-revalidated-tags",
-        "x-next-revalidate-tag-token"
-      ]
-    },
     "/media": {
       "experimentalBypassFor": [
         {
@@ -54,7 +25,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/contact": {
+    "/about": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -67,8 +38,8 @@
         }
       ],
       "initialRevalidateSeconds": false,
-      "srcRoute": "/contact",
-      "dataRoute": "/contact.rsc",
+      "srcRoute": "/about",
+      "dataRoute": "/about.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -103,7 +74,7 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/about": {
+    "/contact": {
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -116,8 +87,8 @@
         }
       ],
       "initialRevalidateSeconds": false,
-      "srcRoute": "/about",
-      "dataRoute": "/about.rsc",
+      "srcRoute": "/contact",
+      "dataRoute": "/contact.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -127,7 +98,12 @@
         "x-next-revalidate-tag-token"
       ]
     },
-    "/admin/blog": {
+    "/favicon.ico": {
+      "initialHeaders": {
+        "cache-control": "public, max-age=0, must-revalidate",
+        "content-type": "image/x-icon",
+        "x-next-cache-tags": "_N_T_/layout,_N_T_/favicon.ico/layout,_N_T_/favicon.ico/route,_N_T_/favicon.ico"
+      },
       "experimentalBypassFor": [
         {
           "type": "header",
@@ -140,8 +116,8 @@
         }
       ],
       "initialRevalidateSeconds": false,
-      "srcRoute": "/admin/blog",
-      "dataRoute": "/admin/blog.rsc",
+      "srcRoute": "/favicon.ico",
+      "dataRoute": null,
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -199,6 +175,30 @@
         "x-next-revalidate-tag-token"
       ]
     },
+    "/admin/blog": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "Next-Action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/admin/blog",
+      "dataRoute": "/admin/blog.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/projects": {
       "experimentalBypassFor": [
         {
@@ -227,8 +227,8 @@
   "dynamicRoutes": {},
   "notFoundRoutes": [],
   "preview": {
-    "previewModeId": "04495631caad400b71ca2a8baf9a8fd5",
-    "previewModeSigningKey": "a10748cbfd3d94525740c7d52f332d4ed018ee15e42d3ca8eb53bdee877666a1",
-    "previewModeEncryptionKey": "697a69ce6b059aca94ad0fc878124c1ef29427cabb13a896fea6cbb92968bc84"
+    "previewModeId": "c9dceaf3433ba96bee1bb7272fd8db2a",
+    "previewModeSigningKey": "59dd402a933fd377426cfab1aaf3e5e1517d1dfc8f19c4b83c18a9dcb41a0446",
+    "previewModeEncryptionKey": "91b4cf83d8e29bd6ce561491cf0cfba356e9945365864031940c1a53baf6cb26"
   }
 }

@@ -96,21 +96,21 @@ function getImageUrl(imagePath: string | null): string {
   }
 
   if (imagePath.startsWith("/storage/")) {
-    return `http://localhost:8000${imagePath}`;
+    return `${process.env.NEXT_PUBLIC_API_URL}${imagePath}`;
   }
 
   if (imagePath.startsWith("/images/")) {
     return imagePath;
   }
 
-  return `http://localhost:8000/storage/blog/${imagePath}`;
+  return `${process.env.NEXT_PUBLIC_API_URL}/storage/blog/${imagePath}`;
 }
 
 // Функция для загрузки поста с API
 async function getBlogPost(slug: string): Promise<BlogPost> {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/blog-posts/${slug}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/blog-posts/${slug}`,
       { cache: "no-store" }
     );
 
@@ -134,7 +134,7 @@ async function getBlogPost(slug: string): Promise<BlogPost> {
 async function getAllBlogPosts(): Promise<BlogPost[]> {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/blog-posts`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/blog-posts`,
       { cache: "no-store" }
     );
 

@@ -32,7 +32,7 @@ interface CreatePostResponse {
 }
 
 // API URL
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 // Функция для формирования корректного URL изображения
 function getImageUrl(imagePath: string | null): string {
@@ -45,7 +45,7 @@ function getImageUrl(imagePath: string | null): string {
   
   // Если путь начинается с /storage/ - это загруженный через форму файл
   if (imagePath.startsWith('/storage/')) {
-    return `http://localhost:8000${imagePath}`;
+    return `${process.env.NEXT_PUBLIC_API_URL}${imagePath}`;
   }
   
   // Для изображений, добавленных вручную через DBeaver (в public/images/blog)
@@ -55,7 +55,7 @@ function getImageUrl(imagePath: string | null): string {
   }
   
   // Для случаев, когда передан только имя файла без пути
-  return `http://localhost:8000/storage/blog/${imagePath}`;
+  return `${process.env.NEXT_PUBLIC_API_URL}/storage/blog/${imagePath}`;
 }
 
 // Функция для загрузки постов с API

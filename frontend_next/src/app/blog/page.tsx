@@ -62,7 +62,7 @@ function getImageUrl(imagePath: string | null): string {
   
   // Если путь начинается с /storage/ - это загруженный через форму файл
   if (imagePath.startsWith('/storage/')) {
-    return `http://localhost:8000${imagePath}`;
+    return `${process.env.NEXT_PUBLIC_API_URL}${imagePath}`;
   }
   
   // Для изображений, добавленных вручную через DBeaver (в public/images/blog)
@@ -72,12 +72,12 @@ function getImageUrl(imagePath: string | null): string {
   }
   
   // Для случаев, когда передан только имя файла без пути
-  return `http://localhost:8000/storage/blog/${imagePath}`;
+  return `${process.env.NEXT_PUBLIC_API_URL}/storage/blog/${imagePath}`;
 }
 
 async function getBlogPosts(): Promise<BlogPost[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/blog-posts`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/blog-posts`, {
       next: { revalidate: 60 },  // ISR: обновлять кэш раз в 60 секунд
     });
     
