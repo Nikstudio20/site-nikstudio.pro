@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'https://nikstudio.com'],
+    'allowed_origins' => ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5173', 'https://nikstudio.com', 'http://109.205.58.5:3000'],
 
     'allowed_origins_patterns' => [],
 
