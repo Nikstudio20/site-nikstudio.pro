@@ -293,9 +293,19 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Projects Link Section */}
+      <section className="py-20 md:py-[76px] px-6 sm:px-12 lg:px-24 flex justify-center md:justify-start mt-3">
+        <Link 
+          href="/projects"
+          className="flex items-center justify-center w-[192px] h-[54px] text-center text-white border-2 border-white rounded-full font-inter font-semibold text-xl md:text-[22px] hover:bg-white hover:text-[#0E1011] transition-colors duration-300"
+        >
+          все проекты
+        </Link>
+      </section>
       
       {/* Services Section */}
-      <section className="w-full bg-[#0E1011] flex flex-col mt-1">
+      <section className="w-full bg-[#0E1011] flex flex-col mt-3">
         <div className="px-6 sm:px-12 lg:px-24 py-24 flex flex-col gap-24">
           {/* Header */}
           <div className="flex flex-col gap-24">
@@ -309,7 +319,7 @@ export default function Home() {
                 медиа
               </h2>
               
-              <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[80px] leading-tight max-w-[1400px] max-w-full-3xl">
+              <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[80px] leading-[120%] tracking-[-2px] max-w-[1400px] max-w-full-3xl">
                 Создаём проекты комплексно и выполняем отдельные задачи
               </p>
             </div>
@@ -598,7 +608,7 @@ export default function Home() {
       </section>
       
       {/* Testimonials Section */}
-      <section className="w-full bg-[#0E1011] pt-22">
+      <section className="w-full bg-[#0E1011] mt-29">
         {/* Header with padding */}
         <div className="px-6 sm:px-12 lg:px-24 mb-24">
           <div className="flex flex-col gap-24">

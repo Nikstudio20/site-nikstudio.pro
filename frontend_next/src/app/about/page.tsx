@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import { Metadata } from "next";
+import Link from "next/link";
 
 const inter = Inter({
   weight: ["400", "600"],
@@ -138,10 +139,20 @@ export default function About() {
                 </p>
               </div>
             </div>
+            <section className="py-20 md:py-[76px] px-6 sm:px-12 lg:px-24 flex justify-center md:justify-start -mt-35">
+              <Link 
+                href="/about"
+                className="flex items-center justify-center w-[281px] h-[54px] text-center text-white border-2 border-white rounded-full font-inter font-semibold text-xl md:text-[22px] hover:bg-white hover:text-[#0E1011] transition-colors duration-300"
+              >
+                Связаться
+              </Link>
+            </section>
           </div>
+          
         </div>
+        
       </section>
-
+      
       {/* Footer */}
       <Footer />
     </main>

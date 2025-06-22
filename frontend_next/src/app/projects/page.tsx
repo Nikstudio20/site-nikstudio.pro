@@ -14,7 +14,7 @@ export default function ProjectsPage() {
         <h1 className="text-[52px] sm:text-[96px] md:text-[96px] lg:text-[150px] xl:text-[200px] 2xl:text-[280px] 3xl:text-[320px] font-geometria font-extrabold uppercase text-white leading-none">
           проекты
         </h1>
-        <p className="text-white text-2xl sm:text-4xl lg:text-[80px] 3xl:text-[100px] font-inter font-semibold leading-[1.2] tracking-[-2.5%] max-w-[1400px] max-w-full-3xl mt-2 3xl:mt-4">
+        <p className="text-white text-2xl sm:text-4xl lg:text-[80px] 3xl:text-[100px] font-inter font-semibold leading-[120%] tracking-[-2px] max-w-[1400px] max-w-full-3xl mt-2 3xl:mt-4">
           Весь визуальный посыл в едином ключе создаёт сильный бренд и надежную репутацию
         </p>
       </section>

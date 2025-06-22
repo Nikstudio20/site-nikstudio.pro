@@ -194,3 +194,8 @@ body {
   }
 }
 
+.custom-swiper {
+  --swiper-navigation-color: white; /* Стрелки */
+  --swiper-pagination-color: white; /* Точки */
+}
+

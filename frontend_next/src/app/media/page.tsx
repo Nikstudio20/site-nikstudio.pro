@@ -5,6 +5,35 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useState, useRef } from "react";
 
+// Универсальный компонент для рендера изображения или видео
+function MediaRenderer({ src, alt, className }: { src: string, alt: string, className?: string }) {
+  const isVideo = src.match(/\.mp4($|\?)/i);
+  if (isVideo) {
+    return (
+      <a href={src} target="_blank" rel="noopener noreferrer">
+        <video
+          src={src}
+          className={className}
+          style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+      </a>
+    );
+  }
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      className={className}
+      fill
+      priority
+    />
+  );
+}
+
 export default function MediaPage() {
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -18,8 +47,28 @@ export default function MediaPage() {
       id: 1,
       title: "решения для выставок",
       description: "Комплексный подход к дизайну и визуализации вашего присутствия на выставке.",
-      mainImage: "/images/media/exhibit-display.png",
-      secondaryImage: "/images/media/exhibit-booth.png",
+      slides: [
+        {
+          mainImage: "/images/media/carousel_1/main_image_1.png",
+          secondaryImage: "/images/media/carousel_1/secondary_image_1.png"
+        },
+        {
+          mainImage: "/images/media/carousel_1/main_image_2.jpg",
+          secondaryImage: "/images/media/carousel_1/secondary_image_2.jpg"
+        },
+        {
+          mainImage: "/images/media/carousel_1/main_image_3.jpg",
+          secondaryImage: "/images/media/carousel_1/secondary_image_3.webp"
+        },
+        {
+          mainImage: "/images/media/carousel_1/main_image_4.webp",
+          secondaryImage: "/images/media/carousel_1/secondary_image_4.png"
+        },
+        {
+          mainImage: "/images/media/carousel_1/main_image_5.webp",
+          secondaryImage: "/images/media/carousel_1/secondary_image_5.jpg"
+        }
+      ],
       features: [
         {
           title: "Концепция и дизайн выставочных стендов",
@@ -49,8 +98,28 @@ export default function MediaPage() {
       id: 2,
       title: "Брендинг\nстратегия",
       description: "Создаём сильную визуальную идентичность, которая формирует запоминаемый образ компании и выделяет её на фоне конкурентов.",
-      mainImage: "/images/media/branding-main.png",
-      secondaryImage: "/images/media/branding-secondary.png",
+      slides: [
+        {
+          mainImage: "/images/media/carousel_2/main_image_1.png",
+          secondaryImage: "/images/media/carousel_2/secondary_image_1.png"
+        },
+        {
+          mainImage: "/images/media/carousel_2/main_image_2.webp",
+          secondaryImage: "/images/media/carousel_2/secondary_image_2.jpg"
+        },
+        {
+          mainImage: "/images/media/carousel_2/main_image_3.jpg",
+          secondaryImage: "/images/media/carousel_2/secondary_image_3.webp"
+        },
+        {
+          mainImage: "/images/media/carousel_2/main_image_4.jpg",
+          secondaryImage: "/images/media/carousel_2/secondary_image_4.jpeg"
+        },
+        {
+          mainImage: "/images/media/carousel_2/main_image_5.jpg",
+          secondaryImage: "/images/media/carousel_2/secondary_image_5.webp"
+        }
+      ],
       features: [
         {
           title: "Концепция и стратегия бренда",
@@ -90,8 +159,28 @@ export default function MediaPage() {
       id: 3,
       title: "дизайн\nполиграфия",
       description: "Фирменная печатная продукция для делового общения, выставок и POS. Всегда в срок и наивысшего качества",
-      mainImage: "/images/media/print-design-main.png",
-      secondaryImage: "/images/media/print-design-secondary.png",
+      slides: [
+        {
+          mainImage: "/images/media/carousel_3/main_image_1.png",
+          secondaryImage: "/images/media/carousel_3/secondary_image_1.png"
+        },
+        {
+          mainImage: "/images/media/carousel_3/main_image_2.jpg",
+          secondaryImage: "/images/media/carousel_3/secondary_image_2.jpg"
+        },
+        {
+          mainImage: "/images/media/carousel_3/main_image_3.jpg",
+          secondaryImage: "/images/media/carousel_3/secondary_image_3.jpg"
+        },
+        {
+          mainImage: "/images/media/carousel_3/main_image_4.jpg",
+          secondaryImage: "/images/media/carousel_3/secondary_image_4.webp"
+        },
+        {
+          mainImage: "/images/media/carousel_3/main_image_5.jpg",
+          secondaryImage: "/images/media/carousel_3/secondary_image_5.jpg"
+        }
+      ],
       features: [
         {
           title: "Дизайн печатной продукции",
@@ -120,8 +209,28 @@ export default function MediaPage() {
       id: 4,
       title: "фото",
       description: "Профессиональная фотосъёмка продукции и производства. Съёмка рабочего процесса и команды",
-      mainImage: "/images/media/photo-main.png",
-      secondaryImage: "/images/media/photo-secondary.png",
+      slides: [
+        {
+          mainImage: "/images/media/carousel_4/main_image_1.png",
+          secondaryImage: "/images/media/carousel_4/secondary_image_1.png"
+        },
+        {
+          mainImage: "/images/media/carousel_4/main_image_2.jpeg",
+          secondaryImage: "/images/media/carousel_4/secondary_image_2.jpg"
+        },
+        {
+          mainImage: "/images/media/carousel_4/main_image_3.jpeg",
+          secondaryImage: "/images/media/carousel_4/secondary_image_3.jpg"
+        },
+        {
+          mainImage: "/images/media/carousel_4/main_image_4.jpg",
+          secondaryImage: "/images/media/carousel_4/secondary_image_4.jpeg"
+        },
+        {
+          mainImage: "/images/media/carousel_4/main_image_5.webp",
+          secondaryImage: "/images/media/carousel_4/secondary_image_5.jpg"
+        }
+      ],
       features: [
         {
           title: "Особый технический взгляд на продукт и производство",
@@ -152,8 +261,28 @@ export default function MediaPage() {
       id: 5,
       title: "3d\nграфика",
       description: "Промышленная визуализация, которая работает на восприятие, продажи и доверие",
-      mainImage: "/images/media/3d-main.png",
-      secondaryImage: "/images/media/3d-secondary.png",
+      slides: [
+        {
+          mainImage: "/images/media/carousel_5/main_image_1.png",
+          secondaryImage: "/images/media/carousel_5/secondary_image_1.png"
+        },
+        {
+          mainImage: "/images/media/carousel_5/main_image_2.jpg",
+          secondaryImage: "/images/media/carousel_5/secondary_image_2.png"
+        },
+        {
+          mainImage: "/images/media/carousel_5/main_image_3.png",
+          secondaryImage: "/images/media/carousel_5/secondary_image_3.jpg"
+        },
+        {
+          mainImage: "/images/media/carousel_5/main_image_4.jpeg",
+          secondaryImage: "/images/media/carousel_5/secondary_image_4.jpg"
+        },
+        {
+          mainImage: "/images/media/carousel_5/main_image_5.webp",
+          secondaryImage: "/images/media/carousel_5/secondary_image_5.jpg"
+        }
+      ],
       features: [
         {
           title: "Понимаем суть — создаём смысл",
@@ -190,8 +319,28 @@ export default function MediaPage() {
       id: 6,
       title: "WEB\nсайты",
       description: "Мы создаём не просто сайт, а продуманный до деталей цифровой продукт, который работает на ваши цели.",
-      mainImage: "/images/media/web-main.png",
-      secondaryImage: "/images/media/web-secondary.png",
+      slides: [
+        {
+          mainImage: "/images/media/carousel_6/main_image_1.png",
+          secondaryImage: "/images/media/carousel_6/secondary_image_1.png"
+        },
+        {
+          mainImage: "/images/media/carousel_6/main_image_2.jpg",
+          secondaryImage: "/images/media/carousel_6/secondary_image_2.jpg"
+        },
+        {
+          mainImage: "/images/media/carousel_6/main_image_3.png",
+          secondaryImage: "/images/media/carousel_6/secondary_image_3.webp"
+        },
+        {
+          mainImage: "/images/media/carousel_6/main_image_4.jpg",
+          secondaryImage: "/images/media/carousel_6/secondary_image_4.jpg"
+        },
+        {
+          mainImage: "/images/media/carousel_6/main_image_5.jpg",
+          secondaryImage: "/images/media/carousel_6/secondary_image_5.png"
+        }
+      ],
       features: [
         {
           title: "Концепция дизайна: от смысла — к форме",
@@ -245,8 +394,28 @@ export default function MediaPage() {
       id: 7,
       title: "видео",
       description: "Покажем ваш продукт так, чтобы в него поверили и захотели.",
-      mainImage: "/images/media/video-main.png",
-      secondaryImage: "/images/media/video-secondary.png",
+      slides: [
+        {
+          mainImage: "/images/media/carousel_7/main_image_1.mp4",
+          secondaryImage: "/images/media/carousel_7/secondary_image_1.mp4"
+        },
+        {
+          mainImage: "/images/media/carousel_7/main_image_2.mp4",
+          secondaryImage: "/images/media/carousel_7/secondary_image_2.mp4"
+        },
+        {
+          mainImage: "/images/media/carousel_7/main_image_3.mp4",
+          secondaryImage: "/images/media/carousel_7/secondary_image_3.mp4"
+        },
+        {
+          mainImage: "/images/media/carousel_7/main_image_4.mp4",
+          secondaryImage: "/images/media/carousel_7/secondary_image_4.mp4"
+        },
+        {
+          mainImage: "/images/media/carousel_7/main_image_5.mp4",
+          secondaryImage: "/images/media/carousel_7/secondary_image_5.mp4"
+        }
+      ],
       features: [
         {
           title: "Сценарий — не формальность, а основа. Продумаем за вас и предложим лучший вариант.",
@@ -444,65 +613,116 @@ export default function MediaPage() {
       </section>
 
       {/* Services Sections */}
-      {mediaServices.map((service) => (
-        <section 
-          key={service.id} 
-          className={`bg-[#0e1011] w-full`}
-        >
-          {/* Image Grid */}
-          <div className="flex flex-col md:flex-row w-full gap-6 md:gap-6 mt-20">
-            <div className="w-full md:w-1/2 h-[500px] md:h-[750px] shrink-0 relative">
-              <Image
-                src={service.mainImage}
-                alt={service.title}
-                className="object-cover"
-                fill
-                priority
-              />
-            </div>
-            <div className="w-full h-[500px] md:h-[750px] relative">
-              <Image
-                src={service.secondaryImage}
-                alt={service.title}
-                className="object-cover"
-                fill
-                priority
-              />
-            </div>
-          </div>
+      {mediaServices.map((service) => {
+        const [currentSlide, setCurrentSlide] = useState(0);
+        const [isSlideTransitioning, setIsSlideTransitioning] = useState(false);
 
-          {/* Content Grid */}
-          <div className="flex flex-col md:flex-row w-full gap-6 md:gap-4 lg:gap-24 px-6 sm:px-12 lg:px-22 py-16 md:py-24 lg:py-[96px]">
-            <h2 className="text-white font-geometria font-bold text-5xl md:text-[128px] uppercase leading-none w-full md:w-1/2 whitespace-pre-line break-words">
-              {service.title}
-            </h2>
-            
-            <div className="flex flex-col gap-12 md:gap-20 flex-1">
-              <p className="text-white font-inter font-semibold text-2xl md:text-[36px] lg:text-[48px] leading-[130%] -tracking-[0.5px] w-full lg:max-w-[400px] xl:max-w-[992px] break-words">
-                {service.description}
-              </p>
+        const handlePrevSlide = () => {
+          if (isSlideTransitioning) return;
+          setIsSlideTransitioning(true);
+          setTimeout(() => {
+            setCurrentSlide((prev) => prev === 0 ? service.slides.length - 1 : prev - 1);
+            setTimeout(() => setIsSlideTransitioning(false), 50);
+          }, 450);
+        };
+        const handleNextSlide = () => {
+          if (isSlideTransitioning) return;
+          setIsSlideTransitioning(true);
+          setTimeout(() => {
+            setCurrentSlide((prev) => (prev + 1) % service.slides.length);
+            setTimeout(() => setIsSlideTransitioning(false), 50);
+          }, 450);
+        };
 
-              <div className="flex flex-col gap-12 md:gap-12">
-                {service.features.map((feature, index) => (
-                  <div key={index} className="flex flex-col">
-                    <h3 className="text-white font-inter font-semibold text-2xl md:text-[40px] mb-[16px] leading-[140%] -tracking-[1px]">
-                      {feature.title}
-                    </h3>
-                    {feature.description.map((paragraph, i) => (
-                      <p key={i} className="text-white/60 font-inter text-base md:text-[20px] leading-[180%]">
-                        {paragraph}
-                      </p>
-                    ))}
-                    {index < service.features.length - 1 && (
-                      <div className="h-[2px] bg-white/20 w-full mt-12"></div>
-                    )}
-                  </div>
-                ))}
+        return (
+          <section key={service.id} className={`bg-[#0e1011] w-full`}>
+            {/* Image Grid */}
+            <div className="flex flex-col md:flex-row w-full gap-6 md:gap-6 mt-20 relative">
+              <div className="w-full md:w-[39.55%] h-[500px] md:h-[750px] shrink-0 relative">
+                <div className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${isSlideTransitioning ? 'opacity-0' : 'opacity-100'}`}> 
+                  <MediaRenderer
+                    src={service.slides[currentSlide].mainImage}
+                    alt={service.title}
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+              <div className="w-full h-[500px] md:h-[750px] relative">
+                <div className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${isSlideTransitioning ? 'opacity-0' : 'opacity-100'}`}> 
+                  <MediaRenderer
+                    src={service.slides[currentSlide].secondaryImage}
+                    alt={service.title}
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+              <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between items-center pointer-events-none">
+                <button
+                  className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10 pointer-events-auto"
+                  onClick={handlePrevSlide}
+                  disabled={isSlideTransitioning}
+                  aria-label="Previous slide"
+                >
+                  <Image
+                    src="/images/media/arrow_left.svg"
+                    alt="Previous"
+                    width={21}
+                    height={21}
+                    className="[filter:invert(1)] group-hover:[filter:invert(0)]"
+                    draggable={false}
+                  />
+                </button>
+                <button
+                  className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10 pointer-events-auto"
+                  onClick={handleNextSlide}
+                  disabled={isSlideTransitioning}
+                  aria-label="Next slide"
+                >
+                  <Image
+                    src="/images/media/arrow_right.svg"
+                    alt="Next"
+                    width={21}
+                    height={21}
+                    className="[filter:invert(1)] group-hover:[filter:invert(0)]"
+                    draggable={false}
+                  />
+                </button>
               </div>
             </div>
-          </div>
-        </section>
-      ))}
+
+            {/* Content Grid */}
+            <div className="flex flex-col md:flex-row w-full gap-6 md:gap-4 lg:gap-24 px-6 sm:px-12 lg:px-22 py-16 md:py-24 lg:py-[96px]">
+              <h2 lang="ru" className="text-white font-geometria font-bold text-5xl md:text-[128px] uppercase leading-none w-full md:w-[39.55%] whitespace-normal hyphens-auto break-words">
+                {service.title}
+              </h2>
+              
+              <div className="flex flex-col gap-12 md:gap-20 flex-1 -ml-">
+                <p className="text-white font-inter font-semibold text-2xl md:text-[36px] lg:text-[48px] leading-[130%] -tracking-[0.5px] w-full lg:max-w-[400px] xl:max-w-[992px] break-words">
+                  {service.description}
+                </p>
+
+                <div className="flex flex-col gap-12 md:gap-12">
+                  {service.features.map((feature, index) => (
+                    <div key={index} className="flex flex-col">
+                      <h3 className="text-white font-inter font-semibold text-2xl md:text-[40px] mb-[16px] leading-[140%] -tracking-[1px]">
+                        {feature.title}
+                      </h3>
+                      {feature.description.map((paragraph, i) => (
+                        <p key={i} className="text-white/60 font-inter text-base md:text-[20px] leading-[180%]">
+                          {paragraph}
+                        </p>
+                      ))}
+                      {index < service.features.length - 1 && (
+                        <div className="h-[2px] bg-white/20 w-full mt-12"></div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })}
       <div className="h-[130px] bg-[#0e1011] w-auto"></div>
 
       {/* Projects Link Section */}
@@ -545,14 +765,14 @@ export default function MediaPage() {
               onMouseLeave={handleMouseLeave}
             >
               <div 
-                className={`absolute inset-0 transition-opacity duration-500 ease-in-out ${
+                className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${
                   isTransitioning ? 'opacity-0' : 'opacity-100'
                 }`}
               >
                 <Image 
                   src={currentTestimonial.image}
                   alt={`Testimonial from ${currentTestimonial.company}`} 
-                  className="object-cover transition-transform duration-700"
+                  className="object-cover transition-transform duration-300"
                   fill
                   priority
                   draggable={false}
@@ -601,7 +821,7 @@ export default function MediaPage() {
               />
               
               <div className="flex flex-col justify-center flex-grow">
-                <div className={`transition-all duration-500 ${
+                <div className={`transition-all duration-300 ${
                   isTransitioning ? 'opacity-0' : 'opacity-100'
                 }`}>
                   <span className="text-white/60 font-cabin text-xl md:text-[32px] block mb-7">{currentTestimonial.company}</span>

@@ -6,6 +6,107 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ContactForm from '@/components/ContactForm';
 import MediaCarousel, { MediaItem } from '@/components/MediaCarousel';
+import CarouselWithLightbox from '@/app/components/CarouselWithLightbox'
+
+// Данные для Branding Gallery
+const brandingImages = [
+  {
+    id: 1,
+    type: 'double',
+    items: [
+      {
+        type: 'image',
+        src: '/images/project_single/pattern_main.svg',
+        alt: 'ИКАР брендинг паттерн',
+      },
+      {
+        type: 'image',
+        src: '/images/project_single/logo_companies.jpg',
+        alt: 'ИКАР логотипы компаний',
+      },
+    ],
+  },
+  {
+    id: 2,
+    type: 'single',
+    items: [
+      {
+        type: 'image',
+        src: '/images/project_single/branding_image.jpg',
+        alt: 'ИКАР брендинг',
+      },
+    ],
+  },
+] as const
+
+
+// Данные для Photo Gallery
+const photoGalleryImages = [
+  {
+    id: 1,
+    type: 'double',
+    items: [
+      { type: 'image', src: '/images/project_single/photo_1.jpg', alt: 'ИКАР фото 1' },
+      { type: 'image', src: '/images/project_single/photo_2.jpg', alt: 'ИКАР фото 2' },
+    ],
+  },
+  {
+    id: 2,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/photo_3.jpg', alt: 'ИКАР фото 3' },
+    ],
+  },
+  {
+    id: 3,
+    type: 'double',
+    items: [
+      { type: 'image', src: '/images/project_single/photo_4.jpg', alt: 'ИКАР фото 4' },
+      { type: 'image', src: '/images/project_single/photo_5.jpg', alt: 'ИКАР фото 5' },
+    ],
+  },
+  {
+    id: 4,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/photo_6.jpg', alt: 'ИКАР фото 6' },
+    ],
+  },
+] as const
+
+const threeDGalleryImages = [
+  {
+    id: 1,
+    type: 'double',
+    items: [
+      {
+        type: 'image',
+        src: '/images/project_single/3d_1.jpg',
+        alt: 'ИКАР 3D графика 1',
+      },
+      {
+        type: 'video',
+        src: '/video/project_single/3d_2.mp4',
+        alt: 'ИКАР 3D видео 2',
+        poster: '/images/project_single/3d_2.jpg',
+      },
+    ],
+  },
+  {
+    id: 2,
+    type: 'single',
+    items: [
+      {
+        type: 'video',
+        src: '/video/project_single/3d_3_Moscow.mp4',
+        alt: 'ИКАР 3D видео 3',
+        poster: '/images/project_single/3d_3.jpg',
+      },
+    ],
+  },
+] as const
+
+
 
 // Hero Media Items
 const heroMediaItems: MediaItem[] = [
@@ -117,33 +218,7 @@ export default function ProjectPage() {
 
       {/* Branding Gallery */}
       <section className="flex flex-col gap-6 -mt-9">
-        <div className="flex flex-col sm:flex-row gap-6">
-          <div className="w-full h-[300px] lg:h-[500px] 2xl:h-[946px] relative">
-            <Image 
-              src="/images/project_single/pattern_main.svg" 
-              alt="ИКАР брендинг паттерн" 
-              fill 
-              className="object-cover"
-            />
-          </div>
-          <div className="w-full h-[300px] lg:h-[500px] 2xl:h-[946px] relative">
-            <Image 
-              src="/images/project_single/logo_companies.jpg" 
-              alt="ИКАР логотипы компаний" 
-              fill 
-              className="object-cover"
-            />
-          </div>
-        </div>
-
-        <div className="w-full h-[300px] sm:h-[500px] lg:h-[1080px] relative">
-          <Image 
-            src="/images/project_single/branding_image.jpg" 
-            alt="ИКАР брендинг" 
-            fill 
-            className="object-cover"
-          />
-        </div>
+         <CarouselWithLightbox images={brandingImages} />
       </section>
 
       {/* Photo Section */}
@@ -165,72 +240,14 @@ export default function ProjectPage() {
 
       {/* Photo Gallery */}
       <section className="flex flex-col gap-6 mt-6">
-        {/* First Row */}
-        <div className="flex flex-col sm:flex-row gap-6">
-          <div className="w-full h-[300px] sm:h-[500px] lg:h-[946px] relative">
-            <Image 
-              src="/images/project_single/photo_1.jpg" 
-              alt="ИКАР фото 1" 
-              fill 
-              className="object-cover"
-            />
-          </div>
-          <div className="w-full h-[300px] sm:h-[500px] lg:h-[946px] relative">
-            <Image 
-              src="/images/project_single/photo_2.jpg" 
-              alt="ИКАР фото 2" 
-              fill 
-              className="object-cover"
-            />
-          </div>
-        </div>
-
-        {/* Large Image */}
-        <div className="w-full h-[300px] sm:h-[500px] lg:h-[1080px] relative">
-          <Image 
-            src="/images/project_single/photo_3.jpg" 
-            alt="ИКАР фото 3" 
-            fill 
-            className="object-cover"
-          />
-        </div>
-
-        {/* Second Row */}
-        <div className="flex flex-col sm:flex-row gap-6">
-          <div className="w-full h-[300px] sm:h-[500px] lg:h-[946px] relative">
-            <Image 
-              src="/images/project_single/photo_4.jpg" 
-              alt="ИКАР фото 4" 
-              fill 
-              className="object-cover"
-            />
-          </div>
-          <div className="w-full h-[300px] sm:h-[500px] lg:h-[946px] relative">
-            <Image 
-              src="/images/project_single/photo_5.jpg" 
-              alt="ИКАР фото 5" 
-              fill 
-              className="object-cover"
-            />
-          </div>
-        </div>
-
-        {/* Large Image */}
-        <div className="w-full h-[300px] sm:h-[500px] lg:h-[1080px] relative">
-          <Image 
-            src="/images/project_single/photo_6.jpg" 
-            alt="ИКАР фото 6" 
-            fill 
-            className="object-cover"
-          />
-        </div>
+        <CarouselWithLightbox images={photoGalleryImages} />
 
         {/* Button */}
-        <div className="flex justify-center mt-5">
+        {/* <div className="flex justify-center mt-5">
           <button className="font-inter font-semibold text-lg sm:text-xl lg:text-[22px] text-white border-2 border-white py-[16px] px-[26px] w-[159px] h-[54px] rounded-full hover:bg-white/10 hover:cursor-pointer transition-colors whitespace-nowrap leading-[100%]">
             Ещё фото
           </button>
-        </div>
+        </div> */}
       </section>
 
       {/* 3D Graphics Section */}
@@ -252,37 +269,7 @@ export default function ProjectPage() {
 
       {/* 3D Gallery */}
       <section className="flex flex-col gap-6">
-        <div className="flex flex-col sm:flex-row gap-6">
-          <div className="w-full h-[300px] sm:h-[500px] lg:h-[946px] relative">
-            <Image 
-              src="/images/project_single/3d_1.jpg" 
-              alt="ИКАР 3D графика 1" 
-              fill 
-              className="object-cover"
-            />
-          </div>
-          <div className="w-full h-[300px] sm:h-[500px] lg:h-[946px] relative group">
-            <video 
-              src="/video/project_single/3d_2.mp4" 
-              className="absolute inset-0 w-full h-full object-cover"
-              controls
-              controlsList="nodownload"
-              poster="/images/project_single/3d_2.jpg"
-              preload="metadata"
-            />
-          </div>
-        </div>
-
-        <div className="w-full h-[300px] sm:h-[500px] lg:h-[1080px] relative group">
-          <video 
-            src="/video/project_single/3d_3_Moscow.mp4" 
-            className="absolute inset-0 w-full h-full object-cover"
-            controls
-            controlsList="nodownload"
-            poster="/images/project_single/3d_3.jpg"
-            preload="metadata"
-          />
-        </div>
+        <CarouselWithLightbox images={threeDGalleryImages} />
       </section>
 
       {/* Promo Video Section */}
