@@ -1,2 +1,3 @@
 # Node modules внутри frontend
 /frontend_next/node_modules
+/frontend_next/.next

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ContactForm from '@/components/ContactForm';
-import MediaCarousel, { MediaItem } from '@/components/MediaCarousel';
 import CarouselWithLightbox from '@/app/components/CarouselWithLightbox'
 
 // Данные для Branding Gallery
@@ -109,40 +108,160 @@ const threeDGalleryImages = [
 
 
 // Hero Media Items
-const heroMediaItems: MediaItem[] = [
-  { type: "image", src: "/images/project_single/hero_image/image_1.png" },
-  { type: "image", src: "/images/project_single/hero_image/image_2.jpg" },
-  { type: "image", src: "/images/project_single/hero_image/image_3.jpg" },
-  { type: "image", src: "/images/project_single/hero_image/image_4.jpg" },
-  { type: "video", src: "/video/project_single/3d_3_Moscow.mp4", poster: "/images/project_single/hero_image/image_5.webp" }
-];
+const heroMediaItems = [
+  {
+    id: 1,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/hero_image/image_1.png', alt: 'ИКАР герой изображение 1' },
+    ],
+  },
+  {
+    id: 2,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/hero_image/image_2.jpg', alt: 'ИКАР герой изображение 2' },
+    ],
+  },
+  {
+    id: 3,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/hero_image/image_3.jpg', alt: 'ИКАР герой изображение 3' },
+    ],
+  },
+  {
+    id: 4,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/hero_image/image_4.jpg', alt: 'ИКАР герой изображение 4' },
+    ],
+  },
+  {
+    id: 5,
+    type: 'single',
+    items: [
+      { type: 'video', src: '/video/project_single/3d_3_Moscow.mp4', alt: 'ИКАР герой видео 5', poster: '/images/project_single/hero_image/image_5.webp' },
+    ],
+  },
+] as const
 
 // Promo Media Items
-const promoMediaItems: MediaItem[] = [
-  { type: "video", src: "/video/project_single/promo_video/1.mp4", poster: "/images/project_single/video_image.jpg" },
-  { type: "image", src: "/images/project_single/promo_video/2.jpg" },
-  { type: "image", src: "/images/project_single/promo_video/3.jpg" },
-  { type: "image", src: "/images/project_single/promo_video/4.jpg" },
-  { type: "image", src: "/images/project_single/promo_video/5.jpg" }
-];
+const promoMediaItems = [
+  {
+    id: 1,
+    type: 'single',
+    items: [
+      { type: 'video', src: '/video/project_single/promo_video/1.mp4', alt: 'Promo Video 1', poster: '/images/project_single/video_image.jpg' },
+    ],
+  },
+  {
+    id: 2,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/promo_video/2.jpg', alt: 'Promo Image 2' },
+    ],
+  },
+  {
+    id: 3,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/promo_video/3.jpg', alt: 'Promo Image 3' },
+    ],
+  },
+  {
+    id: 4,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/promo_video/4.jpg', alt: 'Promo Image 4' },
+    ],
+  },
+  {
+    id: 5,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/promo_video/5.jpg', alt: 'Promo Image 5' },
+    ],
+  },
+] as const;
 
 // Presentation Media Items
-const presentationMediaItems: MediaItem[] = [
-  { type: "image", src: "/images/project_single/presentation/bpla_io.jpg" },
-  { type: "image", src: "/images/project_single/presentation/ER1_9926 copy.jpg" },
-  { type: "image", src: "/images/project_single/presentation/5.jpg" },
-  { type: "image", src: "/images/project_single/presentation/pervyi-element-bpla-na-vodorode-zashitit-strategicheskuyu-infrastrukturu-5wnnurrx-1724364601.jpg" },
-  { type: "image", src: "/images/project_single/presentation/Silent-Arrow-Autonomous-Cargo-Glider.webp" }
-];
+const presentationMediaItems = [
+  {
+    id: 1,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/presentation/bpla_io.jpg', alt: 'Презентация изображение 1' },
+    ],
+  },
+  {
+    id: 2,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/presentation/ER1_9926 copy.jpg', alt: 'Презентация изображение 2' },
+    ],
+  },
+  {
+    id: 3,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/presentation/5.jpg', alt: 'Презентация изображение 3' },
+    ],
+  },
+  {
+    id: 4,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/presentation/pervyi-element-bpla-na-vodorode-zashitit-strategicheskuyu-infrastrukturu-5wnnurrx-1724364601.jpg', alt: 'Презентация изображение 4' },
+    ],
+  },
+  {
+    id: 5,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/presentation/Silent-Arrow-Autonomous-Cargo-Glider.webp', alt: 'Презентация изображение 5' },
+    ],
+  },
+] as const;
 
 // Website Media Items
-const websiteMediaItems: MediaItem[] = [
-  { type: "image", src: "/images/project_single/website/website_image.jpg" },
-  { type: "image", src: "/images/project_single/website/website.jpg" },
-  { type: "image", src: "/images/project_single/website/web-site-ornekleri.jpg" },
-  { type: "image", src: "/images/project_single/website/sozdanie-saytov-v-moskve.jpg" },
-  { type: "image", src: "/images/project_single/website/bg_2-min.jpeg" }
-];
+const websiteMediaItems = [
+  {
+    id: 1,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/website/website_image.jpg', alt: 'ИКАР сайт изображение 1' },
+    ],
+  },
+  {
+    id: 2,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/website/website.jpg', alt: 'ИКАР сайт изображение 2' },
+    ],
+  },
+  {
+    id: 3,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/website/web-site-ornekleri.jpg', alt: 'ИКАР сайт изображение 3' },
+    ],
+  },
+  {
+    id: 4,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/website/sozdanie-saytov-v-moskve.jpg', alt: 'ИКАР сайт изображение 4' },
+    ],
+  },
+  {
+    id: 5,
+    type: 'single',
+    items: [
+      { type: 'image', src: '/images/project_single/website/bg_2-min.jpeg', alt: 'ИКАР сайт изображение 5' },
+    ],
+  },
+] as const;
 
 export default function ProjectPage() {
   return (
@@ -192,11 +311,7 @@ export default function ProjectPage() {
         </div>
 
         {/* Hero Image Carousel */}
-        <MediaCarousel 
-          items={heroMediaItems}
-          altPrefix="ИКАР проект"
-          ariaLabel="Проектная галерея"
-        />
+        <CarouselWithLightbox images={heroMediaItems} />
       </section>
 
       {/* Branding Section */}
@@ -291,12 +406,7 @@ export default function ProjectPage() {
       </section>
 
       {/* Video Player */}
-      <MediaCarousel 
-        items={promoMediaItems}
-        height="h-[300px] sm:h-[500px] lg:h-[1080px]"
-        altPrefix="ИКАР промо контент"
-        ariaLabel="Промо видео галерея"
-      />
+      <CarouselWithLightbox images={promoMediaItems} />      
 
       {/* Presentation Section */}
       <section className="w-full flex flex-col sm:flex-row gap-6 sm:gap-12 lg:gap-24 px-6 sm:px-12 lg:px-24 py-16 sm:py-24 lg:pt-[90px] lg:pb-[128px]">
@@ -316,12 +426,7 @@ export default function ProjectPage() {
       </section>
 
       {/* Presentation Image */}
-      <MediaCarousel
-        items={presentationMediaItems}
-        height="h-[300px] sm:h-[500px] lg:h-[1080px]"
-        altPrefix="ИКАР презентация"
-        ariaLabel="Презентация"
-      />
+      <CarouselWithLightbox images={presentationMediaItems} />
 
       {/* Website Section */}
       <section className="w-full flex flex-col sm:flex-row gap-6 sm:gap-12 lg:gap-24 px-6 sm:px-12 lg:px-24 py-16 sm:py-24 lg:py-[96px] lg:pb-[128px]">
@@ -357,12 +462,7 @@ export default function ProjectPage() {
       </section>
 
       {/* Website Image */}
-      <MediaCarousel
-        items={websiteMediaItems}
-        height="h-[300px] sm:h-[500px] lg:h-[1080px]"
-        altPrefix="ИКАР сайт"
-        ariaLabel="Сайт изображения"
-      />
+      <CarouselWithLightbox images={websiteMediaItems} />
 
       {/* All Projects Button */}
       <section className="w-full flex items-center justify-center sm:justify-start py-16 sm:py-20 lg:py-[76px] lg:pb-[96px] sm:pl-24">

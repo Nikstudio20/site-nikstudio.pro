@@ -4,6 +4,5 @@
   "/projects/page": "app/projects/page.js",
   "/about/page": "app/about/page.js",
   "/media/page": "app/media/page.js",
-  "/blog/page": "app/blog/page.js",
-  "/blog/[slug]/page": "app/blog/[slug]/page.js"
+  "/blog/page": "app/blog/page.js"
 }
