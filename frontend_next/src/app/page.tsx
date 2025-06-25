@@ -17,7 +17,7 @@ export default function Home() {
         <div className="w-full lg:w-1/2 bg-white relative h-[360px] sm:h-[540px] md:h-[720px] lg:h-[1080px]">
           <div className="relative w-full h-full overflow-hidden">
             <Image 
-              src="/images/home/hero-image.jpg" 
+              src="/images/home/hero-image.png" 
               alt="Hero Image" 
               className="object-cover object-center w-full h-full"
               width={1787}

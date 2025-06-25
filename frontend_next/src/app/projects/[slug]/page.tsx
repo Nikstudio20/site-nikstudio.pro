@@ -80,14 +80,14 @@ const threeDGalleryImages = [
     items: [
       {
         type: 'image',
-        src: '/images/project_single/3d_1.jpg',
+        src: '/images/project_single/3d_1.png',
         alt: 'ИКАР 3D графика 1',
       },
       {
         type: 'video',
         src: '/video/project_single/3d_2.mp4',
         alt: 'ИКАР 3D видео 2',
-        poster: '/images/project_single/3d_2.jpg',
+        poster: '/images/project_single/3d_2.png',
       },
     ],
   },
@@ -113,7 +113,7 @@ const heroMediaItems = [
     id: 1,
     type: 'single',
     items: [
-      { type: 'image', src: '/images/project_single/hero_image/image_1.png', alt: 'ИКАР герой изображение 1' },
+      { type: 'image', src: '/images/project_single/hero_image/image_1.jpg', alt: 'ИКАР герой изображение 1' },
     ],
   },
   {
@@ -152,7 +152,7 @@ const promoMediaItems = [
     id: 1,
     type: 'single',
     items: [
-      { type: 'video', src: '/video/project_single/promo_video/1.mp4', alt: 'Promo Video 1', poster: '/images/project_single/video_image.jpg' },
+      { type: 'video', src: '/video/project_single/promo_video/1.mp4', alt: 'Promo Video 1', poster: '/images/project_single/video_image.png' },
     ],
   },
   {
@@ -191,7 +191,7 @@ const presentationMediaItems = [
     id: 1,
     type: 'single',
     items: [
-      { type: 'image', src: '/images/project_single/presentation/bpla_io.jpg', alt: 'Презентация изображение 1' },
+      { type: 'image', src: '/images/project_single/presentation/presentation.png', alt: 'Презентация изображение 1' },
     ],
   },
   {
