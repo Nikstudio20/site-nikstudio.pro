@@ -3,6 +3,7 @@
 
 import Image from 'next/image'
 import { Swiper, SwiperSlide } from 'swiper/react'
+import type { Swiper as SwiperType } from 'swiper';
 import { Navigation } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
@@ -30,7 +31,7 @@ export default function CarouselWithLightbox({ images }: Props) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  const swiperRef = useRef<any>(null)
+  const swiperRef = useRef<SwiperType | null>(null)
   const prevRef = useRef<HTMLButtonElement>(null)
   const nextRef = useRef<HTMLButtonElement>(null)
 
@@ -41,12 +42,15 @@ export default function CarouselWithLightbox({ images }: Props) {
 
   useEffect(() => {
     if (swiperRef.current && prevRef.current && nextRef.current) {
-      swiperRef.current.params.navigation.prevEl = prevRef.current
-      swiperRef.current.params.navigation.nextEl = nextRef.current
-      swiperRef.current.navigation.init()
-      swiperRef.current.navigation.update()
+      const swiperInstance = swiperRef.current;
+      if (swiperInstance.params && swiperInstance.params.navigation && typeof swiperInstance.params.navigation !== 'boolean') {
+        swiperInstance.params.navigation.prevEl = prevRef.current;
+        swiperInstance.params.navigation.nextEl = nextRef.current;
+        swiperInstance.navigation.init();
+        swiperInstance.navigation.update();
+      }
     }
-  }, [])
+  }, []);
 
   const handleDotClick = (index: number) => {
     if (swiperRef.current && index !== currentIndex) {
@@ -68,7 +72,7 @@ export default function CarouselWithLightbox({ images }: Props) {
           className="w-full custom-swiper"
           pagination={false} // Отключаем стандартные точки
         >
-          {images.map((slide, index) => (
+          {images.map((slide) => (
             <SwiperSlide key={slide.id}>
               {slide.type === 'double' ? (
                 <div className="flex flex-col sm:flex-row gap-6">
@@ -197,3 +201,5 @@ export default function CarouselWithLightbox({ images }: Props) {
     </>
   )
 }
+
+
