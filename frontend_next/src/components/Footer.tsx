@@ -4,7 +4,7 @@ import BackToTopLink from "./BackToTopLink";
 
 export default function Footer() {
   return (
-    <footer className="bg-white w-full">
+    <footer className="bg-white w-full hidden sm:block">
       <div className="flex flex-col justify-between gap-20 lg:gap-40 px-6 sm:px-12 lg:px-24 pt-12 lg:pt-24 pb-8 lg:pb-16 w-full">
         {/* Logo and Navigation */}
         <div className="flex flex-col justify-stretch gap-16 lg:gap-32 w-full">

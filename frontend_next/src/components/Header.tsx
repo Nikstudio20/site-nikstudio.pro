@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function Header() {
   return (
-    <header className="flex flex-col sm:flex-row justify-between items-center px-6 sm:px-12 lg:px-24 pt-16 w-full absolute top-0 left-0 right-0 z-10">
+    <header className="hidden sm:flex flex-col sm:flex-row justify-between items-center px-6 sm:px-12 lg:px-24 pt-16 w-full absolute top-0 left-0 right-0 z-10">
       {/* Logo */}
       <Link href="/">
         <Image

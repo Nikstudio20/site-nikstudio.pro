@@ -24,9 +24,10 @@ type Slide = {
 
 type Props = {
   images: readonly Slide[]
+  className?: string
 }
 
-export default function CarouselWithLightbox({ images }: Props) {
+export default function CarouselWithLightbox({ images, className = "" }: Props) {
   const [isOpen, setIsOpen] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -60,7 +61,7 @@ export default function CarouselWithLightbox({ images }: Props) {
 
   return (
     <>
-      <div className="relative">
+      <div className={`relative ${className}`}>  {/* Добавлен className */}
         <Swiper
           onSwiper={(swiper) => {
             swiperRef.current = swiper
@@ -75,11 +76,11 @@ export default function CarouselWithLightbox({ images }: Props) {
           {images.map((slide) => (
             <SwiperSlide key={slide.id}>
               {slide.type === 'double' ? (
-                <div className="flex flex-col sm:flex-row gap-6">
+                <div className="flex flex-row gap-[10px] sm:gap-6">
                   {slide.items.map((media: MediaItem) => (
                     <div
                       key={media.src}
-                      className="w-full h-[300px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in" // Унифицированная высота
+                      className="w-full h-[200px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in" // Унифицированная высота
                       onClick={() => media.type === 'image' && handleOpen(media.src)}
                     >
                       {media.type === 'image' ? (
@@ -87,13 +88,13 @@ export default function CarouselWithLightbox({ images }: Props) {
                           src={media.src}
                           alt={media.alt}
                           fill
-                          className="object-cover rounded-xl"
+                          className="object-cover"
                         />
                       ) : (
                         <video
                           src={media.src}
                           poster={media.poster}
-                          className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                          className="absolute inset-0 w-full h-full object-cover"
                           controls
                           controlsList="nodownload"
                           preload="metadata"
@@ -104,7 +105,7 @@ export default function CarouselWithLightbox({ images }: Props) {
                 </div>
               ) : (
                 <div
-                  className="w-full h-[300px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in" // Унифицированная высота
+                  className="w-full h-[200px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in" // Унифицированная высота
                   onClick={() => slide.items[0].type === 'image' && handleOpen(slide.items[0].src)}
                 >
                   {slide.items[0].type === 'image' ? (
@@ -112,13 +113,13 @@ export default function CarouselWithLightbox({ images }: Props) {
                       src={slide.items[0].src}
                       alt={slide.items[0].alt}
                       fill
-                      className="object-cover rounded-xl"
+                      className="object-cover"
                     />
                   ) : (
                     <video
                       src={slide.items[0].src}
                       poster={slide.items[0].poster}
-                      className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                      className="absolute inset-0 w-full h-full object-cover"
                       controls
                       controlsList="nodownload"
                       preload="metadata"

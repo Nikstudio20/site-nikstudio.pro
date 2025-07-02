@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Header_mini() {
   return (
-    <header className="flex flex-col sm:flex-row lg:flex-col xl:flex-row justify-between items-center px-6 sm:px-12 lg:px-24 pt-8 lg:pt-16 pb-0 w-full">
+    <header className="hidden sm:flex flex-col sm:flex-row lg:flex-col xl:flex-row justify-between items-center px-6 sm:px-12 lg:px-24 pt-8 lg:pt-16 pb-0 w-full">
       <nav className="flex items-center gap-4 sm:gap-8">
         <Link
           href="/about"

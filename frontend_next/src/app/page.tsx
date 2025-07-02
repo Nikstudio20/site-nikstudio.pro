@@ -1,20 +1,25 @@
+"use client";
 import Image from "next/image";
 import Header_mini from "@/components/Header_mini";
+import Header_mobile from "@/components/Header_mobile";
 import Footer from "@/components/Footer";
+import FooterMobile from "@/components/Footer_mobile";
 import Link from "next/link";
 import ProjectCategories from '@/components/ProjectCategories';
+import TestimonialCarousel from '@/components/TestimonialCarousel';
 
 export default function Home() {
   return (
     <main className="flex flex-col min-h-screen bg-[#0E1011] overflow-x-hidden">
       {/* Header */}
+      <Header_mobile />
       <div className="absolute top-0 right-0 w-full lg:w-1/2 z-10">
         <Header_mini />
       </div>
 
       <div className="flex flex-col lg:flex-row justify-center w-full relative">
         {/* Left Side - Image */}
-        <div className="w-full lg:w-1/2 bg-white relative h-[360px] sm:h-[540px] md:h-[720px] lg:h-[1080px]">
+        <div className="w-full lg:w-1/2 bg-white relative h-[246px] sm:h-[540px] md:h-[720px] lg:h-[1080px]">
           <div className="relative w-full h-full overflow-hidden">
             <Image 
               src="/images/home/hero-image.png" 
@@ -29,9 +34,9 @@ export default function Home() {
 
         {/* Right Side - Content */}
         <div className="w-full lg:w-1/2 flex flex-col justify-end">
-          <div className="flex flex-col p-6 sm:p-12 lg:p-24 gap-12 lg:pt-[204px] lg:pb-[64px] h-full">
+          <div className="flex flex-col p-5 sm:p-12 lg:p-24 gap-12 lg:pt-[204px] lg:pb-[64px] h-full">
             <div className="flex flex-col items-center sm:items-start gap-12 lg:gap-[73px]">
-              <Link href="/">
+              <Link href="/" className="hidden sm:block">
                 <div className="relative w-[321.99px] h-[119.99px] scale-75 sm:scale-100">
                   <Image 
                     src="/images/home/nik-logo-hero.svg" 
@@ -43,14 +48,13 @@ export default function Home() {
               </Link>
               
               <div className="flex flex-col gap-8 lg:gap-10 lg:mt-[38px]">
-                <p className="text-white font-geometria text-[30px] leading-[100%] w-full lg:w-[400px] xl:w-[500px] 2xl:w-[768px] w-full-3xl h-[90px] font-normal flex-none self-stretch">
+                <p className="text-white font-geometria text-[20px] sm:text-[30px] leading-[100%] w-full lg:w-[400px] xl:w-[500px] 2xl:w-[768px] w-full-3xl h-[90px] font-normal flex-none self-stretch">
                   Комплексные решения для промышленных компаний / подготовка к отраслевым выставкам / сопровождение / вывод продукта на новый рынок
-                </p>
-                
-                <h1 className="text-white font-inter text-[40px] sm:text-[48px] leading-[130%] w-full lg:w-[400px] xl:w-[500px] 2xl:w-[768px] w-full-3xl h-[124px] font-semibold flex-none self-stretch mt-55 sm:mt-15 xl:mt-15 2xl:mt-0">
+                </p>                
+                <h1 className="text-white font-inter text-[32px] sm:text-[48px] leading-[100%] sm:leading-[130%] w-full lg:w-[400px] xl:w-[500px] 2xl:w-[768px] w-full-3xl h-[124px] font-semibold flex-none self-stretch sm:mt-15 xl:mt-15 2xl:mt-0">
                   Превращаем сложные технологии в понятный визуал
                 </h1>
-                <div className="text-white/60 font-inter text-[30px] leading-[100%] h-[240px] font-light flex-none mt-40 xl:mt-25 2xl:mt-0">
+                <div className="text-white/60 font-inter text-[16px] sm:text-[30px] leading-[100%] h-[240px] font-light flex-none -mt-[40px] sm:mt-40 xl:mt-25 2xl:mt-0">
                   мультимедиа<br/>
                   брендинг<br/>
                   дизайн / презентации<br/>
@@ -66,21 +70,21 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="w-full lg:w-1/2 ml-auto mt-5 sm:mt-0">
-        <div className="flex flex-col p-6 sm:p-12 lg:p-24 lg:py-[85px] gap-16 lg:gap-[64px]">
+      <div className="w-full lg:w-1/2 ml-auto -mt-25 sm:mt-0">
+        <div className="flex flex-col p-5 sm:p-12 lg:p-24 lg:py-[85px] gap-16 lg:gap-[64px]">
           <div className="flex flex-col gap-8">
-            <p className="text-white font-geometria text-lg lg:text-[30px]">дизайн-бюро NIKstudio</p>
+            <p className="text-white font-geometria text-[20px] sm:text-lg lg:text-[30px]">дизайн-бюро NIKstudio</p>
             
-            <div className="flex flex-col gap-4 lg:gap-8 lg:-mt-[10px]">
-              <h2 className="text-white font-geometria font-bold xl:text-[60px] 2xl:text-[80px] leading-[110%] w-full sm:w-[500px] 2xl:w-[768px] w-full-3xl h-[352px] uppercase flex-none self-stretch">
+            <div className="flex flex-col gap-4 lg:gap-8 -mt-[16px] sm:mt-0 lg:-mt-[10px]">
+              <h2 className="text-white font-geometria font-bold text-[40px] sm:text-[60px] 2xl:text-[80px] leading-[120%] sm:leading-[110%] w-full sm:w-[500px] 2xl:w-[768px] w-full-3xl h-[352px] uppercase flex-none self-stretch">
                 комплексные решения, мощный визуал
               </h2>
               
-              <div className="text-white/60 font-inter text-[22px] leading-[170%] w-full lg:w-[400px] xl:w-[500px] 2xl:w-[768px] w-full-3xl font-normal flex-none self-stretch -mt-[300px] sm:-mt-[10px]">
+              <div className="text-white/60 font-inter text-[16px] sm:text-[22px] leading-[100%] sm:leading-[170%] w-full lg:w-[400px] xl:w-[500px] 2xl:w-[768px] w-full-3xl font-normal flex-none self-stretch -mt-[155px] sm:-mt-[10px]">
                 <p>
                   Мы помогаем технологичным и производственным компаниям выглядеть ярко и понятно. Создаём дизайн, который работает — от логотипа до выставочного стенда, от презентации до 3D-видео.
                 </p>
-                <p className="mt-[35px]">
+                <p className="mt-[17px] sm:mt-[35px]">
                   Уникальный сервис «под ключ» для демонстрации вашей компании в цифровом пространстве, позволяющий избежать разрозненности работы с множеством подрядчиков. Единый, отлаженный механизм реализации ваших проектов.
                 </p>
               </div>
@@ -88,9 +92,9 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-8">
-            <p className="text-white font-geometria text-lg lg:text-[30px] mt-[20px]">Работали с компаниями -</p>
+            <p className="text-white font-geometria text-[20px] sm:text-lg lg:text-[30px] -mt-[50px] sm:mt-[20px]">Работали с компаниями -</p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-16">
+            <div className="-mt-[20px] sm:mt-0 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-8 lg:gap-16">
               <div className="bg-[#0E1011] rounded-lg flex items-center justify-center h-[72px]">
                 <Image 
                   src="/images/home/ikar-logo.svg" 
@@ -154,43 +158,43 @@ export default function Home() {
       </div>
 
       {/* Projects Section */}
-      <section className="w-full bg-[#181A1B] pt-10 sm:pt-24 flex flex-col mt-[25px]">
-        <div className="px-6 sm:px-12 lg:px-24 flex flex-col gap-24">
+      <section className="w-full bg-[#181A1B] pt-7 sm:pt-24 flex flex-col sm:mt-[25px]">
+        <div className="px-5 sm:px-12 lg:px-24 flex flex-col gap-24">
           {/* Header */}
           <div className="flex flex-col gap-24">
             <div className="flex flex-row justify-between items-center">
-              <h3 className="text-white/60 font-cabin font-medium text-xl sm:text-2xl lg:text-[32px]sm:w-[288px] h-[32px]">
+              <h3 className="text-white/60 font-cabin font-medium text-[20px] sm:text-2xl lg:text-[32px] sm:w-[288px] h-[32px]">
                 проекты под ключ
               </h3>
-              <span className="text-white/60 font-cabin font-medium text-xl sm:text-2xl lg:text-[32px]">(01)</span>
+              <span className="text-white/60 font-cabin font-medium text-[20px] sm:text-2xl lg:text-[32px]">(01)</span>
             </div>
             
-            <div className="flex flex-col gap-4 -mt-[15px]">
-              <h2 className="text-white font-geometria font-bold text-5xl sm:text-6xl xl:text-[200px] 2xl:text-[280px] uppercase leading-none">
+            <div className="flex flex-col gap-4 -mt-[80px] sm:-mt-[15px]">
+              <h2 className="text-white font-geometria font-extrabold sm:font-bold text-[60px] sm:text-6xl xl:text-[200px] 2xl:text-[280px] uppercase leading-none">
                 проекты
               </h2>
               
-              <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[80px] leading-tight max-w-[1450px] max-w-full-3xl -mt-[15px]">
+              <p className="text-white font-inter font-medium sm:font-semibold text-[32px] sm:text-2xl lg:text-[80px] leading-[120%] sm:leading-tight max-w-[1450px] max-w-full-3xl mt-[14px] sm:-mt-[15px]">
                 Мы берём на себя составление всех технических заданий. Все части проекта в едином ключе
               </p>
             </div>
           </div>
           
           {/* Project Categories */}
-          <ProjectCategories />
+          <ProjectCategories className="-mt-[60px] sm:mt-0" />
         </div>
         
         {/* Project Items */}
-        <div className="flex flex-col gap-12 mt-12">
+        <div className="flex flex-col gap-12 mt-[25px] sm:mt-12">
           {/* Row 1 */}
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <div className="flex flex-col">
-              <div className="relative w-full aspect-square">
+              <div className="relative w-full  aspect-square">
                 <Image 
                   src="/images/home/project-1.jpg" 
                   alt="Project IKAR" 
                   fill
-                  className="object-cover opacity-70"
+                  className="object-cover opacity-70 h-[390px] sm:h-auto"
                 />
                 <div className="absolute inset-0 flex items-center justify-center scale-75 sm:scale-100">
                   <Image 
@@ -202,21 +206,21 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="flex justify-between items-center py-8 px-6 sm:px-8 lg:px-12">
-                <h3 className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[40px] leading-tight">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-8 px-5 sm:px-8 lg:px-12 -mt-[20px] sm:mt-0">
+                <h3 className="text-white font-inter font-medium sm:font-semibold text-[24px] sm:text-2xl lg:text-[40px] leading-[140%] sm:leading-tight tracking-[-1px] sm:tracking-normal">
                   Группа компаний «ИКАР»
                 </h3>
-                <span className="text-white/60 font-cabin font-medium text-base sm:text-lg lg:text-[32px]">(2024)</span>
+                <span className="text-white/60 font-cabin font-medium text-[24px] sm:text-lg lg:text-[32px]">(2024)</span>
               </div>
             </div>
             
-            <div className="flex flex-col">
+            <div className="flex flex-col -mt-[5px] sm:mt-0">
               <div className="relative w-full aspect-square">
                 <Image 
                   src="/images/home/project-2.jpg" 
                   alt="Project Aviaspecmash" 
                   fill
-                  className="object-cover"
+                  className="object-cover h-[390px] sm:h-auto"
                 />
                 <div className="absolute inset-0 flex items-center justify-center scale-75 sm:scale-100">
                   <Image 
@@ -228,24 +232,24 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="flex justify-between items-center py-8 px-6 sm:px-8 lg:px-12">
-                <h3 className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[40px] leading-tight">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-8 px-5 sm:px-8 lg:px-12 -mt-[20px] sm:mt-0">
+                <h3 className="text-white font-inter font-medium sm:font-semibold text-[24px] sm:text-2xl lg:text-[40px] leading-[140%] sm:leading-tight tracking-[-1px] sm:tracking-normal">
                   НПП «Авиаспецмаш»
                 </h3>
-                <span className="text-white/60 font-cabin font-medium text-base sm:text-lg lg:text-[32px]">(2024)</span>
+                <span className="text-white/60 font-cabin font-medium text-[24px] sm:text-lg lg:text-[32px]">(2024)</span>
               </div>
             </div>
           </div>
           
           {/* Row 2 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 -mt-[30px]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 -mt-[55px] sm:-mt-[30px]">
             <div className="flex flex-col">
               <div className="relative w-full aspect-square overflow-hidden">
                 <Image 
                   src="/images/home/project-3.jpg" 
                   alt="Project Technopolis" 
                   fill
-                  className="object-cover opacity-75"
+                  className="object-cover opacity-75 h-[390px] sm:h-auto"
                 />
                 <div className="absolute inset-0 flex items-center justify-center scale-75 sm:scale-100">
                   <Image 
@@ -257,21 +261,21 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="flex justify-between items-center py-8 px-6 sm:px-8 lg:px-12">
-                <h3 className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[40px] leading-tight">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-8 px-5 sm:px-8 lg:px-12 -mt-[20px] sm:mt-0">
+                <h3 className="text-white font-inter font-medium sm:font-semibold text-[24px] sm:text-2xl lg:text-[40px] leading-[140%] sm:leading-tight tracking-[-1px] sm:tracking-normal">
                   ОЭЗ «Технополис Москва»
                 </h3>
-                <span className="text-white/60 font-cabin font-medium text-base sm:text-lg lg:text-[32px]">(2024)</span>
+                <span className="text-white/60 font-cabin font-medium text-[24px] sm:text-lg lg:text-[32px]">(2024)</span>
               </div>
             </div>
             
-            <div className="flex flex-col">
+            <div className="flex flex-col -mt-[5px] sm:mt-0">
               <div className="relative w-full aspect-square">
                 <Image 
                   src="/images/home/project-4.jpg" 
                   alt="Project Almaz Antey" 
                   fill
-                  className="object-cover opacity-70"
+                  className="object-cover opacity-70 h-[390px] sm:h-auto"
                 />
                 <div className="absolute inset-0 flex items-center justify-center scale-75 sm:scale-100">
                   <Image 
@@ -283,11 +287,11 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <div className="flex justify-between items-center py-8 px-6 sm:px-8 lg:px-12">
-                <h3 className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[40px] leading-tight">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-8 px-5 sm:px-8 lg:px-12 -mt-[20px] sm:mt-0">
+                <h3 className="text-white font-inter font-medium sm:font-semibold text-[24px] sm:text-2xl lg:text-[40px] leading-[140%] sm:leading-tight tracking-[-1px] sm:tracking-normal">
                   Алмаз Антей «Монитор СОФТ»
                 </h3>
-                <span className="text-white/60 font-cabin font-medium text-base sm:text-lg lg:text-[32px]">(2024)</span>
+                <span className="text-white/60 font-cabin font-medium text-[24px] sm:text-lg lg:text-[32px]">(2024)</span>
               </div>
             </div>
           </div>
@@ -295,7 +299,7 @@ export default function Home() {
       </section>
 
       {/* Projects Link Section */}
-      <section className="py-20 md:py-[76px] px-6 sm:px-12 lg:px-24 flex justify-center md:justify-start mt-3">
+      <section className="py-20 md:py-[76px] px-6 sm:px-12 lg:px-24 hidden sm:flex justify-center md:justify-start mt-3">
         <Link 
           href="/projects"
           className="flex items-center justify-center w-[192px] h-[54px] text-center text-white border-2 border-white rounded-full font-inter font-semibold text-xl md:text-[22px] hover:bg-white hover:text-[#0E1011] transition-colors duration-300"
@@ -305,21 +309,21 @@ export default function Home() {
       </section>
       
       {/* Services Section */}
-      <section className="w-full bg-[#0E1011] flex flex-col mt-3">
-        <div className="px-6 sm:px-12 lg:px-24 py-24 flex flex-col gap-24">
+      <section className="w-full bg-[#0E1011] flex flex-col mt-[28px] sm:mt-3">
+        <div className="px-5 sm:px-12 lg:px-24 sm:py-24 flex flex-col gap-24">
           {/* Header */}
           <div className="flex flex-col gap-24">
             <div className="flex flex-row justify-between items-center">
-              <h3 className="text-white/60 font-cabin font-medium text-xl sm:text-2xl lg:text-[32px]">услуги</h3>
-              <span className="text-white/60 font-cabin font-medium text-xl sm:text-2xl lg:text-[32px]">(02)</span>
+              <h3 className="text-white/60 font-cabin font-medium text-[20px] sm:text-2xl lg:text-[32px]">услуги</h3>
+              <span className="text-white/60 font-cabin font-medium text-[20px] sm:text-2xl lg:text-[32px]">(02)</span>
             </div>
             
-            <div className="flex flex-col gap-4 -mt-3">
-              <h2 className="text-white font-geometria font-bold text-5xl sm:text-6xl lg:text-[200px] xl:text-[280px] uppercase leading-none">
+            <div className="flex flex-col gap-4 -mt-[58px] sm:-mt-3">
+              <h2 className="text-white font-geometria font-extrabold sm:font-bold text-[60px] sm:text-6xl lg:text-[200px] xl:text-[280px] uppercase leading-none">
                 медиа
               </h2>
               
-              <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[80px] leading-[120%] tracking-[-2px] max-w-[1400px] max-w-full-3xl">
+              <p className="mt-[25px] sm:mt-0 text-white font-inter font-medium sm:font-semibold text-[32px] sm:text-2xl lg:text-[80px] leading-[120%] sm:tracking-[-2px] max-w-[1400px] max-w-full-3xl">
                 Создаём проекты комплексно и выполняем отдельные задачи
               </p>
             </div>
@@ -330,26 +334,26 @@ export default function Home() {
         <div className="flex flex-col">
           {/* Card 1 */}
           <div className="flex flex-col lg:flex-row">            
-            <div className="w-full lg:w-3/5 px-6 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
+            <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
               <div className="flex flex-col justify-between flex-1">
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-white font-geometria font-bold text-3xl sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none -mt-30 sm:mt-0">
+                  <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none mt-[10px] sm:mt-0">
                     решения для выставок
                   </h3>
-                  <p className="w-full lg:w-[600px] 2xl:w-[800px] w-full-3xl h-[168px] font-inter text-[40px] leading-[140%] tracking-[-1px] text-white font-semibold flex-none order-1">
+                  <p className="w-full lg:w-[600px] 2xl:w-[800px] w-full-3xl h-[168px] font-inter text-[20px] sm:text-[40px] leading-[120%] sm:leading-[140%] tracking-[-1px] sm:tracking-normal text-white font-semibold flex-none order-1">
                     Комплексный подход к дизайну и визуализации вашего присутствия на выставке.
                   </p>
                 </div>
-                <div className="flex flex-col gap-4 lg:gap-8 mt-55 sm:mt-20 md:mt-11">
-                  <h3 className="w-full lg:w-[500px] xl:w-[600px] 2xl:w-[691px] h-8 font-cabin text-[28px] sm:text-[32px] leading-[100%] text-white/60 font-normal flex-none order-0">
+                <div className="flex flex-col gap-4 lg:gap-8 -mt-[76px] sm:mt-20 md:mt-11">
+                  <h3 className="w-full lg:w-[500px] xl:w-[600px] 2xl:w-[691px] h-8 font-cabin text-[16px] sm:text-[32px] leading-[100%] text-white/60 font-normal flex-none order-0">
                     Из производственников — в звёзды отрасли
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24 mt-15 sm:mt-10 md:mt-0">
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                  <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24 -mt-[12px] sm:mt-10 md:mt-0">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Концепция</p>
                       <p>Пространство</p>
                     </div>
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Мультимедиа</p>
                       <p>Сопровождение</p>
                     </div>
@@ -357,7 +361,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="relative w-full lg:w-2/5 h-[400px] lg:h-[1080px]">
+            <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
               <Image 
                 src="/images/home/service-1.jpg" 
                 alt="Exhibition Solutions" 
@@ -368,8 +372,8 @@ export default function Home() {
           </div>
           
           {/* Card 2 */}
-          <div className="flex flex-col lg:flex-row">
-            <div className="relative w-full lg:w-2/5 h-[400px] lg:h-[1080px]">
+          <div className="flex flex-col lg:flex-row mt-[25px] sm:mt-0">
+            <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
               <Image 
                 src="/images/home/service-2.jpg" 
                 alt="Branding and Strategy" 
@@ -377,28 +381,28 @@ export default function Home() {
                 className="object-cover"
               />
             </div>
-            <div className="w-full lg:w-3/5 px-6 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24 bg-[#181A1B]">
+            <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24 bg-[#181A1B]">
               <div className="flex flex-col justify-between flex-1">
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-white font-geometria font-bold text-3xl sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none">
+                  <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none -mt-[40px] sm:mt-0">
                     стратегия
                     <br />брендинг
                   </h3>
-                  <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[40px] leading-[140%]">
-                    Разработка индивидуальной маркетинговой стратегии визуализации с учётом специфики вашей отрасли.                    
+                  <p className="w-full lg:w-[600px] 2xl:w-[800px] w-full-3xl h-[168px] font-inter text-[20px] sm:text-[40px] leading-[120%] sm:leading-[140%] tracking-[-1px] text-white font-semibold flex-none order-1">
+                    Разработка индивидуальной маркетинговой стратегии визуализации с учётом специфики вашей отрасли.<br />                    
                     Создание целостного визуального месседжа, дизайн-концепции, фирменного стиля, логотипа и брендинга.
                   </p>
                 </div>
-                <div className="flex flex-col gap-4 lg:gap-8">
-                  <p className="text-white/60 font-cabin text-base sm:text-xl lg:text-[32px] leading-tight">
+                <div className="flex flex-col gap-4 lg:gap-8 mt-[44px] sm:mt-0">
+                  <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
                     Выделяющийся из массы, стильный, технологичный
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                  <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Концепция брендинга</p>
                       <p>Логотип</p>
                     </div>
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Позиционирование</p>
                       <p>Гайдлайн</p>
                     </div>
@@ -410,34 +414,34 @@ export default function Home() {
           
           {/* Card 3 */}
           <div className="flex flex-col lg:flex-row">            
-            <div className="w-full lg:w-3/5 px-6 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
+            <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
               <div className="flex flex-col justify-between flex-1">
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-white font-geometria font-bold text-3xl sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none">
+                  <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none mt-[10px] sm:mt-0">
                     ДИЗАЙН
                     <br />полиграфии
                   </h3>
-                  <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[40px] leading-[140%] max-w-[800px] max-w-full-3xl">
+                  <p className="text-white font-inter font-semibold text-[20px] sm:text-2xl lg:text-[40px] leading-[120%] sm:leading-[140%] max-w-[800px] max-w-full-3xl tracking-[-1px] sm:tracking-normal">
                     Стильный и понятный дизайн, отражающий суть продукта, созданный точно под целевого клиента. Изготовление в точной цветопередачей.
                   </p>
                 </div>
-                <div className="flex flex-col gap-4 lg:gap-8 mt-14">
-                  <p className="text-white/60 font-cabin text-base sm:text-xl lg:text-[32px] leading-tight">
+                <div className="flex flex-col gap-4 lg:gap-8 mt-[20px] sm:mt-14">
+                  <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-tight">
                     Создание полиграфических материалов под ключ
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                  <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Презентации</p>
                       <p>Буклеты</p>
                     </div>
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Корпоративные журналы</p>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="relative w-full lg:w-2/5 h-[400px] lg:h-[1080px]">
+            <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
               <Image 
                 src="/images/home/service-3.jpg" 
                 alt="Print Design" 
@@ -448,8 +452,8 @@ export default function Home() {
           </div>
           
           {/* Card 4 */}
-          <div className="flex flex-col lg:flex-row">
-            <div className="relative w-full lg:w-2/5 h-[400px] lg:h-[1080px]">
+          <div className="flex flex-col lg:flex-row mt-[25px] sm:mt-0">
+            <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
               <Image 
                 src="/images/home/service-4.jpg" 
                 alt="Photography" 
@@ -457,26 +461,26 @@ export default function Home() {
                 className="object-cover"
               />
             </div>
-            <div className="w-full lg:w-3/5 px-6 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24 bg-[#181A1B]">
+            <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24 bg-[#181A1B]">
               <div className="flex flex-col justify-between flex-1">
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-white font-geometria font-bold text-3xl sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none">
+                  <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none -mt-[40px] sm:mt-0">
                     Фото
                   </h3>
-                  <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[40px] leading-[140%] max-w-[800px] max-w-full-3xl">
+                  <p className="text-white font-inter font-semibold text-[20px] sm:text-2xl lg:text-[40px] leading-[120%] sm:leading-[140%] tracking-[-1px] sm:tracking-normal max-w-[800px] max-w-full-3xl">
                     Профессиональное фото продукта и процесса производства
                   </p>
                 </div>
-                <div className="flex flex-col gap-4 lg:gap-8">
-                  <p className="text-white/60 font-cabin text-base sm:text-xl lg:text-[32px] leading-tight">
+                <div className="flex flex-col gap-4 lg:gap-8  mt-[24px] sm:mt-0">
+                  <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
                     Опыт более 15 лет
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                  <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Фото продукта</p>
                       <p>Портреты команды</p>
                     </div>
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Съёмка производства</p>
                       <p>Фото мероприятий</p>
                     </div>
@@ -488,26 +492,26 @@ export default function Home() {
           
           {/* Card 5 */}
           <div className="flex flex-col lg:flex-row">            
-            <div className="w-full lg:w-3/5 px-6 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
+            <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
               <div className="flex flex-col justify-between flex-1">
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-white font-geometria font-bold text-3xl sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none">
+                  <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none mt-[10px] sm:mt-0">
                     3d графика
                   </h3>
-                  <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[40px] leading-[140%] max-w-[800px] max-w-full-3xl">
+                  <p className="text-white font-inter font-semibold text-[20px] sm:text-2xl lg:text-[40px] leading-[120%] sm:leading-[140%] max-w-[800px] max-w-full-3xl tracking-[-1px] sm:tracking-normal">
                     Создание промышленного 3д-дизайна, анимация графики
                   </p>
                 </div>
-                <div className="flex flex-col gap-4 lg:gap-8">
-                  <p className="text-white/60 font-cabin text-base sm:text-xl lg:text-[32px] leading-tight">
+                <div className="flex flex-col gap-4 lg:gap-8 mt-[20px] sm:mt-0">
+                  <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-tight">
                     TDM/ERP/CAD
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                  <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Доработка моделей</p>
                       <p>Текстурирование</p>
                     </div>
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Анимация 3д</p>
                       <p>Создание рендеров</p>
                     </div>
@@ -515,7 +519,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="relative w-full lg:w-2/5 h-[400px] lg:h-[1080px]">
+            <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
               <Image 
                 src="/images/home/service-5.jpg" 
                 alt="3D Graphics" 
@@ -526,8 +530,8 @@ export default function Home() {
           </div>
           
           {/* Card 6 */}
-          <div className="flex flex-col lg:flex-row">            
-            <div className="relative w-full lg:w-2/5 h-[400px] lg:h-[1080px]">
+          <div className="flex flex-col lg:flex-row mt-[25px] sm:mt-0">            
+            <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
               <Image 
                 src="/images/home/service-6.jpg" 
                 alt="Web Design" 
@@ -538,56 +542,55 @@ export default function Home() {
             <div className="w-full lg:w-3/5 px-6 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24 bg-[#181A1B]">
               <div className="flex flex-col justify-between flex-1">
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-white font-geometria font-bold text-3xl sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none">
+                  <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none -mt-[40px] sm:mt-0">
                     web-Сайты
                   </h3>
-                  <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[40px] leading-[140%] max-w-[800px] max-w-full-3xl">
+                  <p className="text-white font-inter font-semibold text-[20px] sm:text-2xl lg:text-[40px] leading-[120%] sm:leading-[140%] tracking-[-1px] sm:tracking-normal max-w-[800px] max-w-full-3xl">
                     Эксклюзивные продуманные web-сайты, созданные на основе уникального контента: брендинг, фото, видео, 3д графика - всё в едином ключе.
                   </p>
                 </div>
-                <div className="flex flex-col gap-4 lg:gap-8">
-                  <p className="text-white/60 font-cabin text-base sm:text-xl lg:text-[32px] leading-tight">
+                <div className="flex flex-col gap-4 lg:gap-8 mt-[24px] sm:mt-0">
+                  <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
                     Российские CMS
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                  <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
                       <p>Мобильная версия</p>
                       <p>Тестирование удобства</p>
                     </div>
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
                       <p>Современный дизайн</p>
                       <p>UI/UX аудит</p>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
+            </div>            
           </div>
           
           {/* Card 7 */}
           <div className="flex flex-col lg:flex-row">            
-            <div className="w-full lg:w-3/5 px-6 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
+            <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
               <div className="flex flex-col justify-between flex-1">
                 <div className="flex flex-col gap-4">
-                  <h3 className="text-white font-geometria font-bold text-3xl sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none">
+                  <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none mt-[10px] sm:mt-0">
                     видео
                     <br />продакшн
                   </h3>
-                  <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[40px] leading-[140%] max-w-[800px] max-w-full-3xl">
+                  <p className="text-white font-inter font-semibold text-[20px] sm:text-2xl lg:text-[40px] leading-[120%] sm:leading-[140%] max-w-[800px] max-w-full-3xl tracking-[-1px] sm:tracking-normal">
                     Большой опыт позволяет самим создавать сценарий и понятно демонстрировать преимущества вашей компании.
                   </p>
                 </div>
-                <div className="flex flex-col gap-4 lg:gap-8">
-                  <p className="text-white/60 font-cabin text-base sm:text-xl lg:text-[32px] leading-tight">
+                <div className="flex flex-col gap-4 lg:gap-8 mt-[20px] sm:mt-0">
+                  <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-tight">
                     Профессиональная съёмка роликов
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                  <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Составим сценарий</p>
                       <p>Продумаем детали</p>
                     </div>
-                    <div className="text-white font-inter font-semibold text-lg sm:text-xl lg:text-[32px] leading-tight">
+                    <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
                       <p>Создадим стильный</p>
                       <p>информативный ролик</p>
                     </div>
@@ -595,7 +598,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="relative w-full lg:w-2/5 h-[400px] lg:h-[1080px]">
+            <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
               <Image 
                 src="/images/home/service-7.jpg" 
                 alt="Video Production" 
@@ -606,23 +609,32 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Projects Link Section */}
+      <section className="py-20 md:py-[76px] px-5 sm:px-12 lg:px-24 flex sm:hidden justify-center md:justify-start -mt-8 sm:mt-3">
+        <Link 
+          href="/projects"
+          className="flex items-center justify-center w-[134px] h-[32px] text-center text-white border-2 border-white rounded-full font-inter font-semibold text-[16px] md:text-[22px] hover:bg-white hover:text-[#0E1011] transition-colors duration-300"
+        >
+          все проекты
+        </Link>
+      </section>
       
       {/* Testimonials Section */}
-      <section className="w-full bg-[#0E1011] mt-29">
+      <section className="w-full bg-[#0E1011] -mt-[10px] sm:mt-29">
         {/* Header with padding */}
         <div className="px-6 sm:px-12 lg:px-24 mb-24">
           <div className="flex flex-col gap-24">
             <div className="flex flex-row justify-between items-center">
-              <h3 className="text-white/60 font-cabin font-medium text-xl sm:text-2xl lg:text-[32px]">Информация</h3>
-              <span className="text-white/60 font-cabin font-medium text-xl sm:text-2xl lg:text-[32px]">(03)</span>
+              <h3 className="text-white/60 font-cabin font-medium text-[20px] sm:text-2xl lg:text-[32px]">Информация</h3>
+              <span className="text-white/60 font-cabin font-medium text-[20px] sm:text-2xl lg:text-[32px]">(03)</span>
             </div>
             
-            <div className="flex flex-col gap-4 -mt-4">
-              <h2 className="text-white font-geometria font-bold text-5xl sm:text-6xl xl:text-[200px] 2xl:text-[240px] uppercase leading-none">
+            <div className="flex flex-col gap-4 -mt-[60px] sm:-mt-4">
+              <h2 className="text-white font-geometria font-extrabold sm:font-bold text-[60px] sm:text-6xl xl:text-[200px] 2xl:text-[240px] uppercase leading-[120%] sm:leading-none">
                 говорят о нас
-              </h2>
-              
-              <p className="text-white font-inter font-semibold text-xl sm:text-2xl lg:text-[80px] leading-tight tracking-[-2px] max-w-[1400px] max-w-full-3xl">
+              </h2>              
+              <p className="text-white font-inter font-medium sm:font-semibold text-[32px] sm:text-2xl lg:text-[80px] leading-[120%] sm:leading-tight tracking-[-2px] max-w-[1400px] max-w-full-3xl">
                 Команда NIKstudio закрывает целый ряд задач с энтузиазмом и полной ответственностью
               </p>
             </div>
@@ -630,7 +642,7 @@ export default function Home() {
         </div>
         
         {/* Testimonial Cards - Full width */}
-        <div className="grid grid-cols-1 md:grid-cols-3">
+        <div className="hidden sm:grid grid-cols-1 md:grid-cols-3">
           {/* Card 1 */}
           <div className="bg-[#181A1B] p-12 md:p-4 2xl:p-20 flex flex-col justify-between flex-1 h-[600px] sm:h-[500px] md:h-[600px] lg:h-[696px]">
             <div className="relative w-[48px] h-[30px]">
@@ -801,7 +813,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-
           {/* Card 6 */}
           <div className="bg-[#1F2122] p-12 md:p-4 2xl:p-20 flex flex-col justify-between flex-1 h-[600px] sm:h-[500px] md:h-[600px] lg:h-[696px]">
             <div className="relative w-[48px] h-[30px]">
@@ -837,10 +848,14 @@ export default function Home() {
             </div>
           </div>
         </div>
+
+        {/* Testimonial Cards - mobile */}
+        <TestimonialCarousel />
       </section>
       
       {/* Footer */}
       <Footer />
+      <FooterMobile />
     </main>
   );
 }

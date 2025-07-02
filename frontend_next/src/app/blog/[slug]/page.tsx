@@ -2,7 +2,9 @@ import Image from "next/image";
 import { Inter } from "next/font/google";
 import { Metadata } from "next";
 import Header_mini from "@/components/Header_mini";
+import Header_mobile from "@/components/Header_mobile";
 import Footer from "@/components/Footer";
+import FooterMobile from "@/components/Footer_mobile";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -171,6 +173,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       className={`relative flex flex-col min-h-screen bg-[#0E1011] max-w-[2560px] w-full mx-auto ${inter.variable}`}
     >
       {/* Header */}
+      <Header_mobile />
       <div className="absolute top-0 right-0 w-full lg:w-1/2 z-10">
         <Header_mini />
       </div>
@@ -192,12 +195,12 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
         {/* Right Side - Content */}
         <div className="w-full lg:w-1/2 flex flex-col justify-end">
-          <div className="flex flex-col p-6 sm:p-12 lg:p-24 3xl:p-[120px] gap-12 3xl:gap-16 lg:pt-[564px] 3xl:pt-[700px] lg:pb-[64px] 3xl:pb-[80px] h-full">
+          <div className="flex flex-col p-5 sm:p-12 lg:p-24 3xl:p-[120px] gap-12 3xl:gap-16 lg:pt-[564px] 3xl:pt-[700px] lg:pb-[64px] 3xl:pb-[80px] h-full">
             <div className="flex flex-col gap-4 3xl:gap-6">
-              <h1 className="text-white text-3xl sm:text-5xl md:text-6xl lg:text-[44px] xl:text-[56px] 2xl:text-[80px] 3xl:text-[100px] font-bold uppercase leading-[110%] font-geometria">
+              <h1 className="text-white text-[32px] sm:text-5xl md:text-6xl lg:text-[44px] xl:text-[56px] 2xl:text-[80px] 3xl:text-[100px] font-bold uppercase leading-[120%] sm:leading-[110%] font-geometria">
                 {post.title}
               </h1>
-              <p className="text-white text-base sm:text-lg lg:text-[24px] 3xl:text-[32px] leading-[170%] font-inter mt-2 3xl:mt-4">
+              <p className="text-white text-[20px] sm:text-lg lg:text-[24px] 3xl:text-[32px] leading-[100%] sm:leading-[170%] font-inter mt-[5px] sm:mt-2 3xl:mt-4">
                 {post.description}
               </p>
             </div>
@@ -207,7 +210,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       {/* Main Content */}
       <div className="w-full lg:w-1/2 ml-auto">
-        <div className="flex flex-col p-6 sm:p-12 lg:p-24 3xl:p-[120px] lg:py-[96px] 3xl:py-[120px] gap-16 lg:gap-[64px] 3xl:gap-[80px] -mt-[10px]">
+        <div className="flex flex-col p-5 sm:p-12 lg:p-24 3xl:p-[120px] lg:py-[96px] 3xl:py-[120px] gap-16 lg:gap-[64px] 3xl:gap-[80px] -mt-[10px]">
           {post.blocks.map((block, index) => (
             <div key={index} className="flex flex-col gap-2 3xl:gap-4">
               <h2 className="text-white text-2xl sm:text-3xl lg:text-[48px] 3xl:text-[60px] font-bold uppercase leading-[130%] font-geometria">
@@ -225,7 +228,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       {/* Related News Section */}
       <div className="w-full">
-        <div className="flex flex-col bg-[#181A1B] p-6 sm:p-12 lg:p-24 3xl:p-[120px] lg:pt-[150px] 3xl:pt-[200px] lg:pb-[96px] 3xl:pb-[120px] mt-[25px]">
+        <div className="flex flex-col bg-[#181A1B] p-5 sm:p-12 lg:p-24 3xl:p-[120px] lg:pt-[150px] 3xl:pt-[200px] lg:pb-[96px] 3xl:pb-[120px] mt-[25px]">
           <h2 className="text-white text-6xl sm:text-8xl xl:text-[200px] 2xl:text-[280px] 3xl:text-[320px] font-bold uppercase leading-[100%] font-geometria">
             ЕЩЁ НОВОСТИ
           </h2>
@@ -276,6 +279,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       </div>
 
       <Footer />
+      <FooterMobile />
     </main>
   );
 }

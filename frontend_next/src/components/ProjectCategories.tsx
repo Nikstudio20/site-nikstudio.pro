@@ -1,9 +1,13 @@
 import Link from 'next/link';
 
-const ProjectCategories = () => {
+interface ProjectCategoriesProps {
+  className?: string;
+}
+
+const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className }) => {
   return (
-    <section className="w-full px-6 sm:px-12 lg:px-24 flex justify-center items-cente mt-10">
-      <div className="text-white text-lg sm:text-xl lg:text-[32px] font-inter leading-none flex flex-wrap justify-center gap-4 sm:gap-8 lg:gap-10">
+    <section className={`w-full px-5 sm:px-12 lg:px-24 flex justify-center items-cente -mt-[26px] sm:mt-10 ${className}`}>
+      <div className="text-white text-[20px] sm:text-xl lg:text-[32px] font-light sm:font-normal font-geometria sm:font-inter leading-[100%] sm:leading-none flex flex-wrap justify-center gap-4 sm:gap-8 lg:gap-10">
         <Link href="/projects" className="hover:text-[#DE063A] transition-colors duration-300">
           Проекты
         </Link>
@@ -22,12 +26,12 @@ const ProjectCategories = () => {
         <Link href="/projects/video" className="hover:text-[#DE063A] transition-colors duration-300">
           Видео
         </Link>
-        <Link href="/projects/websites" className="hover:text-[#DE063A] transition-colors duration-300">
+        {/* <Link href="/projects/websites" className="hover:text-[#DE063A] transition-colors duration-300">
           Сайты
-        </Link>
+        </Link> */}
       </div>
     </section>
   );
 };
 
-export default ProjectCategories; 
+export default ProjectCategories;
