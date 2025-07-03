@@ -4,6 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import Image from "next/image"
 import { SquarePen, Trash2 } from "lucide-react"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,18 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
+import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
@@ -28,6 +41,7 @@ export type BlogPost = {
   created_at: string
   updated_at: string
   slug: string
+  status: boolean | number | string // Добавляем поле status
 }
 
 interface UpdatePostResponse {
@@ -36,6 +50,24 @@ interface UpdatePostResponse {
   data?: BlogPost;
   errors?: Record<string, string[]>;
 }
+
+// Компонент для кликабельных элементов
+const ClickableCell = ({ children, post }: { children: React.ReactNode; post: BlogPost }) => {
+  const router = useRouter();
+  
+  const handleClick = () => {
+    router.push(`/admin/blog/${post.slug}`);
+  };
+
+  return (
+    <div 
+      onClick={handleClick}
+      className="cursor-pointer hover:bg-gray-50 transition-colors duration-300 p-1 rounded"
+    >
+      {children}
+    </div>
+  );
+};
 
 const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
   const [open, setOpen] = useState(false);
@@ -77,23 +109,28 @@ const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
         mode: 'cors',
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
-      }
-
       const result: UpdatePostResponse = await response.json();
+
+      if (!response.ok) {
+        if (result.errors) {
+          const errorMessages = Object.entries(result.errors)
+            .map(([field, errors]) => `${field}: ${errors.join(', ')}`)
+            .join('\n');
+          throw new Error(`Ошибка валидации:\n${errorMessages}`);
+        }
+        throw new Error(result.message || `Ошибка сервера: ${response.status}`);
+      }
 
       if (result?.status === "success") {
         setOpen(false);
-        window.location.reload();
-        alert("Статья успешно обновлена");
+        window.location.reload();        
+        toast("Статья успешно обновлена");
       } else {
-        alert(`Ошибка: ${result?.message || "Не удалось обновить статью"}`);
+        toast(`Ошибка: ${result?.message || "Не удалось обновить статью"}`);
       }
     } catch (error) {
       console.error("Ошибка при отправке данных:", error);
-      alert(`Произошла ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+      toast(`Произошла ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
       setIsLoading(false);
     }
@@ -113,22 +150,22 @@ const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
           <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
             <div>
               <Label htmlFor="title">Заголовок</Label>
-              <Input id="title" name="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+              <Input id="title" name="title" className="mt-2" value={title} onChange={(e) => setTitle(e.target.value)} required />
             </div>
             <div>
               <Label htmlFor="position">Должность</Label>
-              <Input id="position" name="position" value={position} onChange={(e) => setPosition(e.target.value)} required />
+              <Input id="position" name="position" className="mt-2" value={position} onChange={(e) => setPosition(e.target.value)} required />
             </div>
             <div>
               <Label htmlFor="description">Описание</Label>
-              <Textarea id="description" name="description" value={description} onChange={(e) => setDescription(e.target.value)} required />
+              <Textarea id="description" name="description" className="mt-2" value={description} onChange={(e) => setDescription(e.target.value)} required />
             </div>
             <div>
               <Label htmlFor="image">Изображение</Label>
               {post.image && (
                 <div className="mb-2">
                   <p className="text-xs text-gray-500">Текущее изображение:</p>
-                  <div className="relative h-20 w-20 overflow-hidden rounded mt-1">
+                  <div className="relative h-20 w-20 overflow-hidden rounded mt-2">
                     <Image src={post.image} alt="Blog thumbnail" fill className="object-cover" />
                   </div>
                 </div>
@@ -136,7 +173,7 @@ const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
               <Input id="image" type="file" name="image" onChange={handleImageChange} />
               <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы сохранить текущее изображение</p>
             </div>
-            <Button type="submit" disabled={isLoading} className="mt-1">
+            <Button type="submit" disabled={isLoading} className="mt-2 cursor-pointer">
               {isLoading ? "Обновление..." : "Обновить статью"}
             </Button>
           </form>
@@ -150,9 +187,6 @@ const DeleteBlogPostCell = ({ post }: { post: BlogPost }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDelete = async () => {
-    const confirmed = window.confirm(`Удалить статью "${post.title}"? Это действие нельзя отменить.`);
-    if (!confirmed) return;
-
     setIsDeleting(true);
     try {
       const response = await fetch(`${API_BASE_URL}/blog-posts/${post.id}`, {
@@ -174,13 +208,13 @@ const DeleteBlogPostCell = ({ post }: { post: BlogPost }) => {
 
       if (result?.status === "success") {
         window.location.reload();
-        alert("Статья успешно удалена");
+        toast("Статья успешно удалена");
       } else {
-        alert(`Ошибка: ${result?.message || "Не удалось удалить статью"}`);
+        toast(`Ошибка: ${result?.message || "Не удалось удалить статью"}`);
       }
     } catch (error) {
       console.error("Ошибка при удалении поста:", error);
-      alert(`Произошла ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+      toast(`Произошла ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
       setIsDeleting(false);
     }
@@ -188,8 +222,87 @@ const DeleteBlogPostCell = ({ post }: { post: BlogPost }) => {
 
   return (
     <div className="flex items-center justify-center">
-      <Trash2 className={`h-4 w-4 cursor-pointer ${isDeleting ? 'opacity-50' : ''} hover:text-[#DE063A] transition-colors duration-300`} onClick={handleDelete} />
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Trash2 
+            className={`h-4 w-4 cursor-pointer ${isDeleting ? 'opacity-50' : ''} hover:text-[#DE063A] transition-colors duration-300`} 
+          />
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить статью?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Удалить статью `{post.title}`? Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting} className="cursor-pointer">
+              Отмена
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground text-white hover:bg-destructive/90 cursor-pointer transition-colors duration-300"
+            >
+              {isDeleting ? "Удаление..." : "Удалить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+  );
+};
+
+const StatusSwitchCell = ({ post }: { post: BlogPost }) => {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(() => {
+    // Преобразуем различные форматы статуса в boolean
+    return post.status === true || post.status === 1 || post.status === "1" || post.status === "active";
+  });
+
+  const handleStatusChange = async (checked: boolean) => {
+    setIsUpdating(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/blog-posts/${post.id}/status`, {
+        method: "PATCH",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: checked }),
+        credentials: 'include',
+        mode: 'cors',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result?.status === "success") {
+        setCurrentStatus(checked);
+        toast(checked ? "Статья активирована" : "Статья деактивирована");
+      } else {
+        toast(`Ошибка: ${result?.message || "Не удалось изменить статус"}`);
+      }
+    } catch (error) {
+      console.error("Ошибка при изменении статуса:", error);
+      toast(`Произошла ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  return (
+    <Switch 
+      className={`hover:cursor-pointer ${isUpdating ? 'opacity-50' : ''}`}
+      checked={currentStatus}
+      onCheckedChange={handleStatusChange}
+      disabled={isUpdating}
+    />
   );
 };
 
@@ -198,6 +311,13 @@ export const columns: ColumnDef<BlogPost>[] = [
     accessorKey: "id",
     header: "ID",
     meta: { className: "w-[3%]" },
+    cell: ({ row }) => (
+      <ClickableCell post={row.original}>
+        <div className="font-medium hover:text-[#DE063A] transition-colors duration-300">
+          {row.getValue("id")}
+        </div>
+      </ClickableCell>
+    ),
   },
   {
     accessorKey: "image",
@@ -205,12 +325,16 @@ export const columns: ColumnDef<BlogPost>[] = [
     meta: { className: "w-[8%]" },
     cell: ({ row }) => {
       const imageUrl = row.getValue("image") as string;
-      return imageUrl ? (
-        <div className="relative h-10 w-10 overflow-hidden rounded">
-          <Image src={imageUrl} alt="Blog thumbnail" fill className="object-cover" />
-        </div>
-      ) : (
-        <span className="text-gray-400">Нет изображения</span>
+      return (
+        <ClickableCell post={row.original}>
+          {imageUrl ? (
+            <div className="relative h-10 w-10 overflow-hidden rounded">
+              <Image src={imageUrl} alt="Blog thumbnail" fill className="object-cover" />
+            </div>
+          ) : (
+            <span className="text-gray-400">Нет изображения</span>
+          )}
+        </ClickableCell>
       );
     },
   },
@@ -218,12 +342,25 @@ export const columns: ColumnDef<BlogPost>[] = [
     accessorKey: "position",
     header: "Должность",
     meta: { className: "w-[11%]" },
+    cell: ({ row }) => (
+      <ClickableCell post={row.original}>
+        <div className="hover:text-[#DE063A] transition-colors duration-300">
+          {row.getValue("position")}
+        </div>
+      </ClickableCell>
+    ),
   },
   {
     accessorKey: "title",
     header: "Заголовок",
     meta: { className: "w-[19%]" },
-    cell: ({ row }) => <div className="font-medium">{row.getValue("title")}</div>,
+    cell: ({ row }) => (
+      <ClickableCell post={row.original}>
+        <div className="font-medium hover:text-[#DE063A] transition-colors duration-300">
+          {row.getValue("title")}
+        </div>
+      </ClickableCell>
+    ),
   },
   {
     accessorKey: "description",
@@ -231,19 +368,32 @@ export const columns: ColumnDef<BlogPost>[] = [
     meta: { className: "w-[20%]" },
     cell: ({ row }) => {
       const description = row.getValue("description") as string;
-      return <div className="max-w-xs truncate" title={description}>{description}</div>;
+      return (
+        <ClickableCell post={row.original}>
+          <div className="max-w-xs truncate hover:text-[#DE063A] transition-colors duration-300" title={description}>
+            {description}
+          </div>
+        </ClickableCell>
+      );
     },
   },
   {
     accessorKey: "slug",
     header: "Slug",
     meta: { className: "w-[15%]" },
+    cell: ({ row }) => (
+      <ClickableCell post={row.original}>
+        <div className="hover:text-[#DE063A] transition-colors duration-300">
+          {row.getValue("slug")}
+        </div>
+      </ClickableCell>
+    ),
   },
   {
     accessorKey: "status",
     header: "Статус",
     meta: { className: "w-[4%]" },
-    cell: () => <Switch className="hover:cursor-pointer" />, // пример
+    cell: ({ row }) => <StatusSwitchCell post={row.original} />,
   },
   {
     accessorKey: "update",

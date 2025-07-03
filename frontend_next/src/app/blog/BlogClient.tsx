@@ -25,6 +25,7 @@ interface BlogPost {
   created_at: string;
   updated_at: string;
   slug: string;
+  status: boolean | string | number;
 }
 
 interface ApiResponse {
@@ -49,7 +50,9 @@ async function getBlogPosts(): Promise<BlogPost[]> {
     if (!res.ok) throw new Error('Failed to fetch blog posts');
 
     const data: ApiResponse = await res.json();
-    return data.data?.map(post => ({
+    console.log('All posts:', data.data);
+    console.log('Posts status values:', data.data?.map(post => ({ id: post.id, status: post.status, type: typeof post.status })));
+    return data.data?.filter(post => post.status === true).map(post => ({
       ...post,
       image: getImageUrl(post.image),
     })) || [];

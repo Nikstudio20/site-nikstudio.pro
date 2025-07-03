@@ -16,6 +16,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 
 // Интерфейс для ответа API
 interface ApiResponse {
@@ -75,7 +76,9 @@ async function getData(): Promise<BlogPost[]> {
     // Обрабатываем URL изображений перед отображением
     const postsWithCorrectImageUrls = data.data?.map(post => ({
       ...post,
-      image: getImageUrl(post.image)
+      image: getImageUrl(post.image),
+      // Убедимся, что status существует, если нет - устанавливаем по умолчанию
+      status: post.status !== undefined ? post.status : true
     })) || [];
     
     return postsWithCorrectImageUrls;
@@ -250,15 +253,15 @@ export default function AdminBlogPageWrapper() {
         resetForm();
         
         // Показываем уведомление об успехе
-        alert("Статья успешно создана");
+        toast("Статья успешно создана");
       } else {
         // Показываем ошибку
-        alert(`Ошибка: ${result?.message || "Не удалось создать статью - неизвестная ошибка"}`);
+        toast(`Ошибка: ${result?.message || "Не удалось создать статью - неизвестная ошибка"}`);
         console.error(result?.errors || "Нет дополнительной информации об ошибке");
       }
     } catch (error) {
       console.error("Ошибка при отправке данных:", error);
-      alert(`Произошла ошибка при отправке данных: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+      toast(`Произошла ошибка при отправке данных: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
       setIsLoading(false);
     }
@@ -293,10 +296,10 @@ export default function AdminBlogPageWrapper() {
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => setOpen(true)} className="hover:cursor-pointer">
+            <Button onClick={() => setOpen(true)} className="hover:cursor-pointer" variant="outline">
               <PlusCircle className="mr-2 h-4 w-4" />
               Создать статью
-            </Button>
+            </Button>           
           </DialogTrigger>
           <DialogContent className="sm:max-w-xl">
             <DialogHeader>
@@ -313,7 +316,7 @@ export default function AdminBlogPageWrapper() {
                   name="title" 
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1" 
+                  className="mt-2" 
                   required
                 />
               </div>
@@ -324,7 +327,7 @@ export default function AdminBlogPageWrapper() {
                   name="position" 
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
-                  className="mt-1" 
+                  className="mt-2" 
                   required
                 />
               </div>
@@ -335,7 +338,7 @@ export default function AdminBlogPageWrapper() {
                   name="description" 
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1" 
+                  className="mt-2" 
                   required
                 />
               </div>
@@ -346,13 +349,13 @@ export default function AdminBlogPageWrapper() {
                   type="file" 
                   name="image" 
                   onChange={handleImageChange}
-                  className="mt-1" 
+                  className="mt-2" 
                 />
               </div>
               <Button 
                 type="submit" 
                 disabled={isLoading}
-                className="hover:cursor-pointer mt-1"
+                className="hover:cursor-pointer mt-2"
               >
                 {isLoading ? "Создание..." : "Создать статью"}
               </Button>

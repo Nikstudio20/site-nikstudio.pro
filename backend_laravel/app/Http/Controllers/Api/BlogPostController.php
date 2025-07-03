@@ -32,6 +32,7 @@ class BlogPostController extends Controller
                     'created_at' => $post->created_at ? $post->created_at->format('Y-m-d H:i:s') : null,
                     'updated_at' => $post->updated_at ? $post->updated_at->format('Y-m-d H:i:s') : null,
                     'slug' => $post->slug,
+                    'status' => $post->status,
                 ];
             });
 
@@ -63,6 +64,7 @@ class BlogPostController extends Controller
                 'created_at' => $post->created_at?->format('Y-m-d H:i:s'),
                 'updated_at' => $post->updated_at?->format('Y-m-d H:i:s'),
                 'slug' => $post->slug,
+                'status' => $post->status,
                 'blocks' => $post->blocks,
             ],
         ]);
@@ -371,6 +373,48 @@ class BlogPostController extends Controller
                     'line' => $e->getLine(),
                     'class' => get_class($e),
                 ] : null,
+            ], 500);
+        }
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        try {
+            // Валидация входящих данных
+            $request->validate([
+                'status' => 'required|boolean'
+            ]);
+
+            // Найти пост по ID
+            $post = BlogPost::findOrFail($id);
+            
+            // Обновить статус
+            $post->status = $request->status;
+            $post->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Статус поста успешно обновлен',
+                'data' => $post
+            ], 200);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Пост не найден'
+            ], 404);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Ошибка валидации',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Произошла ошибка при обновлении статуса'
             ], 500);
         }
     }

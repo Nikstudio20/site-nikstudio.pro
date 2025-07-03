@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { Cabin } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Toaster } from "../components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -63,7 +64,13 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${geometria.variable} ${cabin.variable} antialiased`}
       >
-        {children}
+        <Toaster 
+          position="top-center"
+          expand={false}
+          richColors
+          closeButton
+        />
+        {children}        
       </body>
     </html>
   );
