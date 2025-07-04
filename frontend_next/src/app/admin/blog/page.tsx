@@ -36,6 +36,7 @@ interface CreatePostResponse {
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 // Функция для формирования корректного URL изображения
+// Функция для формирования корректного URL изображения
 function getImageUrl(imagePath: string | null): string {
   console.log('getImageUrl input:', imagePath);
   
@@ -55,34 +56,21 @@ function getImageUrl(imagePath: string | null): string {
   
   // Определяем окружение
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  const isLocalhost = apiUrl?.includes('localhost');
   
-  // Если путь уже начинается с /storage/
+  // Для всех storage файлов всегда используем полный URL
+  // Это нужно для корректной работы Next.js Image Optimization
+  let result: string;
+  
   if (imagePath.startsWith('/storage/')) {
-    if (isLocalhost) {
-      // В localhost используем API URL для надежности
-      const result = `${apiUrl}${imagePath}`;
-      console.log('getImageUrl output (storage local via API):', result);
-      return result;
-    } else {
-      // В production nginx проксирует
-      console.log('getImageUrl output (storage prod):', imagePath);
-      return imagePath;
-    }
+    // Путь уже начинается с /storage/
+    result = `${apiUrl}${imagePath}`;
+  } else {
+    // Относительный путь
+    result = `${apiUrl}/storage/blog/${imagePath}`;
   }
   
-  // Для относительных путей
-  if (isLocalhost) {
-    // В localhost всегда используем API URL
-    const result = `${apiUrl}/storage/blog/${imagePath}`;
-    console.log('getImageUrl output (local via API):', result);
-    return result;
-  } else {
-    // В production используем nginx проксирование
-    const result = `/storage/blog/${imagePath}`;
-    console.log('getImageUrl output (prod):', result);
-    return result;
-  }
+  console.log('getImageUrl output (full URL):', result);
+  return result;
 }
 
 // Функция для загрузки постов с API
