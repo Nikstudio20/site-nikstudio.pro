@@ -37,26 +37,52 @@ const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 // Функция для формирования корректного URL изображения
 function getImageUrl(imagePath: string | null): string {
+  console.log('getImageUrl input:', imagePath);
+  
   if (!imagePath) return '';
   
   // Проверяем, начинается ли путь с http/https (абсолютный URL)
   if (imagePath.startsWith('http')) {
+    console.log('getImageUrl output (http):', imagePath);
     return imagePath;
   }
   
-  // Если путь начинается с /storage/ - это загруженный через форму файл
-  if (imagePath.startsWith('/storage/')) {
-    return `${process.env.NEXT_PUBLIC_API_URL}${imagePath}`;
-  }
-  
-  // Для изображений, добавленных вручную через DBeaver (в public/images/blog)
+  // Для изображений из public/images (статические изображения Next.js)
   if (imagePath.startsWith('/images/')) {
-    // Используем относительный путь для локальных изображений в Next.js
+    console.log('getImageUrl output (images):', imagePath);
     return imagePath;
   }
   
-  // Для случаев, когда передан только имя файла без пути
-  return `${process.env.NEXT_PUBLIC_API_URL}/storage/blog/${imagePath}`;
+  // Определяем окружение
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const isLocalhost = apiUrl?.includes('localhost');
+  
+  // Если путь уже начинается с /storage/
+  if (imagePath.startsWith('/storage/')) {
+    if (isLocalhost) {
+      // В localhost используем API URL для надежности
+      const result = `${apiUrl}${imagePath}`;
+      console.log('getImageUrl output (storage local via API):', result);
+      return result;
+    } else {
+      // В production nginx проксирует
+      console.log('getImageUrl output (storage prod):', imagePath);
+      return imagePath;
+    }
+  }
+  
+  // Для относительных путей
+  if (isLocalhost) {
+    // В localhost всегда используем API URL
+    const result = `${apiUrl}/storage/blog/${imagePath}`;
+    console.log('getImageUrl output (local via API):', result);
+    return result;
+  } else {
+    // В production используем nginx проксирование
+    const result = `/storage/blog/${imagePath}`;
+    console.log('getImageUrl output (prod):', result);
+    return result;
+  }
 }
 
 // Функция для загрузки постов с API
