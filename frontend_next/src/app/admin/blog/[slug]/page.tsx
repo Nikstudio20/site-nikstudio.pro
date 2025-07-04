@@ -470,13 +470,13 @@ export default function BlogPostViewPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      {/* Хедер с кнопками */}
+    
+    <div className="w-full min-h-screen">      
       <div className="p-6">
         <h1 className="text-2xl font-bold">Управление блоками статьи</h1>
         <p className="mt-2">Здесь вы можете просматривать блоки и управлять ими - создавать, редактировать и удалять</p>
       </div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 px-6">
         <Button 
           variant="outline" 
           onClick={() => router.push('/admin/blog')}
@@ -576,7 +576,7 @@ export default function BlogPostViewPage() {
       </div>
 
       {/* Основной контент */}
-      <div className="space-y-6">
+      <div className="space-y-6 px-6">
         {/* Карточка с основной информацией */}
         <Card>
           <CardHeader>
@@ -625,5 +625,6 @@ export default function BlogPostViewPage() {
         </Card>
       </div>
     </div>
+    
   )
 }

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from 'next/link';
 import Header from "@/components/Header";
 import Header_mobile from "@/components/Header_mobile";
 import Footer from "@/components/Footer";
@@ -28,7 +29,7 @@ export default function ProjectsPage() {
       {/* Project Cards */}
       <section className="w-full flex flex-col gap-6 lg:gap-[24px] 3xl:gap-[32px] mt-[45px] sm:mt-8 lg:mt-7 3xl:mt-10 pb-6 3xl:pb-8">
         {/* ИКАР Project */}
-        <div className="w-full h-[390px] sm:h-[540px] lg:h-[1080px] 3xl:h-[1440px] relative mb-[15px] sm:mb-0">
+        <Link href="/projects/ikar" className="w-full h-[390px] sm:h-[540px] lg:h-[1080px] 3xl:h-[1440px] relative mb-[15px] sm:mb-0">
           <Image 
             src="/images/projects/ikar.jpg" 
             alt="ИКАР проект" 
@@ -40,10 +41,10 @@ export default function ProjectsPage() {
               икар
             </h2>
           </div>
-        </div>
+        </Link>
 
         {/* АВИАСПЕЦМАШ Project */}
-        <div className="w-full h-[390px] sm:h-[540px] lg:h-[1080px] 3xl:h-[1440px] relative mb-[15px] sm:mb-0">
+        <Link href="/projects/ikar" className="w-full h-[390px] sm:h-[540px] lg:h-[1080px] 3xl:h-[1440px] relative mb-[15px] sm:mb-0">
           <div className="absolute inset-0 bg-black/40"></div>
           <Image 
             src="/images/projects/aviaspecmash.jpg" 
@@ -56,10 +57,10 @@ export default function ProjectsPage() {
               авиаспецмаш
             </h2>
           </div>
-        </div>
+        </Link>
 
         {/* ТЕХНОПОЛИС МОСКВА Project */}
-        <div className="w-full h-[390px] sm:h-[540px] lg:h-[1080px] 3xl:h-[1440px] relative mb-[15px] sm:mb-0">
+        <Link href="/projects/ikar" className="w-full h-[390px] sm:h-[540px] lg:h-[1080px] 3xl:h-[1440px] relative mb-[15px] sm:mb-0">
           <div className="absolute inset-0 bg-black/20"></div>
           <Image 
             src="/images/projects/tehnopolis.jpg" 
@@ -72,10 +73,10 @@ export default function ProjectsPage() {
               технополис<br />москва
             </h2>
           </div>
-        </div>
+        </Link>
 
         {/* МОНИТОР СОФТ Project */}
-        <div className="w-full h-[390px] sm:h-[540px] lg:h-[1080px] 3xl:h-[1440px] relative mb-[15px] sm:mb-0">
+        <Link href="/projects/ikar" className="w-full h-[390px] sm:h-[540px] lg:h-[1080px] 3xl:h-[1440px] relative mb-[15px] sm:mb-0">
           <Image 
             src="/images/projects/monitor-soft.jpg" 
             alt="МОНИТОР СОФТ проект" 
@@ -87,7 +88,7 @@ export default function ProjectsPage() {
               монитор софт
             </h2>
           </div>
-        </div>
+        </Link>
       </section>
 
       {/* Footer */}

@@ -11,5 +11,6 @@
   "/contact/page": "app/contact/page.js",
   "/admin/blog/[slug]/page": "app/admin/blog/[slug]/page.js",
   "/admin/blog/page": "app/admin/blog/page.js",
+  "/admin/category/page": "app/admin/category/page.js",
   "/admin/page": "app/admin/page.js"
 }

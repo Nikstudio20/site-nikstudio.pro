@@ -1,4 +1,4 @@
-import { FileText, Home, Inbox, Search, Settings } from "lucide-react"
+import { FileText, Home, Inbox, BriefcaseBusiness, LayoutGrid } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -26,15 +26,15 @@ const items = [
     icon: FileText,
   },
   {
-    title: "Search",
-    url: "#",
-    icon: Search,
+    title: "Категории",
+    url: "/admin/category",
+    icon: LayoutGrid,
   },
   {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
+    title: "Проекты",
+    url: "/admin/projects",
+    icon: BriefcaseBusiness,
+  },  
   {
     title: "Inbox",
     url: "#",
@@ -58,7 +58,7 @@ export function AppSidebar() {
           </Link>
           <SidebarGroupLabel>Приложение</SidebarGroupLabel>
           <SidebarGroupContent>
-                          <SidebarMenu>
+            <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
