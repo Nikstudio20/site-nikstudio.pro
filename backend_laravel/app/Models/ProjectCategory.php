@@ -19,6 +19,12 @@ class ProjectCategory extends Model
         'sort_order' => 'integer'
     ];
 
+    // Связь многие ко многим с проектами
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'project_project_category');
+    }
+
     // Scope для сортировки
     public function scopeOrdered($query)
     {

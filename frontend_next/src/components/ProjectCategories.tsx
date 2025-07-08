@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 interface ProjectCategory {
@@ -14,6 +13,7 @@ interface ProjectCategory {
 
 interface ProjectCategoriesProps {
   className?: string;
+  onCategoryChange?: (categoryId: number | null) => void;
 }
 
 interface ApiResponse {
@@ -23,10 +23,11 @@ interface ApiResponse {
   message?: string;
 }
 
-const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className }) => {
+const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className, onCategoryChange }) => {
   const [categories, setCategories] = useState<ProjectCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -68,6 +69,17 @@ const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className }) => {
     fetchCategories();
   }, []);
 
+  // Обработчик клика по категории
+  const handleCategoryClick = (categoryId: number | null) => {
+    console.log('Выбрана категория:', categoryId); // Отладочная информация
+    setActiveCategory(categoryId);
+    
+    if (onCategoryChange) {
+      onCategoryChange(categoryId);
+    }
+    
+  };
+
   if (loading) {
     return (
       <section className={`w-full px-5 sm:px-12 lg:px-24 flex justify-center items-center -mt-[26px] sm:mt-10 ${className}`}>
@@ -91,15 +103,23 @@ const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className }) => {
   return (
     <section className={`w-full px-5 sm:px-12 lg:px-24 flex justify-center items-center -mt-[26px] sm:mt-10 ${className}`}>
       <div className="text-white text-[20px] sm:text-xl lg:text-[32px] font-light sm:font-normal font-geometria sm:font-inter leading-[100%] sm:leading-none flex flex-wrap justify-center gap-4 sm:gap-8 lg:gap-10">
+        {/* Ссылка "Проекты" для показа всех проектов */}
+        <span
+          onClick={() => handleCategoryClick(null)}
+          className={`cursor-pointer transition-colors duration-300 ${activeCategory === null ? 'text-[#DE063A]' : 'hover:text-[#DE063A]'}`}
+        >
+          Проекты
+        </span>
+        
         {/* Динамические категории из API */}
         {categories.map((category) => (
-          <Link 
+          <span
             key={category.id}
-            href={`/projects/${category.slug}`} 
-            className="hover:text-[#DE063A] transition-colors duration-300"
+            onClick={() => handleCategoryClick(category.id)}
+            className={`cursor-pointer transition-colors duration-300 ${activeCategory === category.id ? 'text-[#DE063A]' : 'hover:text-[#DE063A]'}`}
           >
             {category.name}
-          </Link>
+          </span>
         ))}
       </div>
     </section>

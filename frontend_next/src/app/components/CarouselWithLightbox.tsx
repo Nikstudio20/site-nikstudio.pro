@@ -61,17 +61,20 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
 
   return (
     <>
-      <div className={`relative ${className}`}>  {/* Добавлен className */}
+      <div className={`relative ${className}`}>
         <Swiper
           onSwiper={(swiper) => {
             swiperRef.current = swiper
           }}
           onSlideChange={(swiper) => setCurrentIndex(swiper.activeIndex)}
           spaceBetween={30}
-          navigation
+          navigation={{
+            prevEl: prevRef.current,
+            nextEl: nextRef.current,
+          }}
           modules={[Navigation]}
           className="w-full custom-swiper"
-          pagination={false} // Отключаем стандартные точки
+          pagination={false}
         >
           {images.map((slide) => (
             <SwiperSlide key={slide.id}>
@@ -80,7 +83,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
                   {slide.items.map((media: MediaItem) => (
                     <div
                       key={media.src}
-                      className="w-full h-[200px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in" // Унифицированная высота
+                      className="w-full h-[200px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in"
                       onClick={() => media.type === 'image' && handleOpen(media.src)}
                     >
                       {media.type === 'image' ? (
@@ -105,7 +108,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
                 </div>
               ) : (
                 <div
-                  className="w-full h-[200px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in" // Унифицированная высота
+                  className="w-full h-[200px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in"
                   onClick={() => slide.items[0].type === 'image' && handleOpen(slide.items[0].src)}
                 >
                   {slide.items[0].type === 'image' ? (
@@ -133,7 +136,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
 
         <button
           ref={prevRef}
-          className="absolute top-1/2 left-0 z-10 -translate-y-1/2 cursor-pointer w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group"
+          className="absolute top-1/2 left-0 z-10 -translate-y-1/2 cursor-pointer w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 group opacity-50 sm:opacity-100"
           aria-label="Previous slide"
         >
           <Image
@@ -147,7 +150,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
 
         <button
           ref={nextRef}
-          className="absolute top-1/2 right-0 z-10 -translate-y-1/2 cursor-pointer w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group"
+          className="absolute top-1/2 right-0 z-10 -translate-y-1/2 cursor-pointer w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 group opacity-50 sm:opacity-100"
           aria-label="Next slide"
         >
           <Image
@@ -161,7 +164,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
 
         {/* Кастомные точки навигации */}
         <div
-          className="absolute bottom-[20px] left-1/2 -translate-x-1/2 flex gap-10 z-20"
+          className="absolute bottom-[10px] sm:bottom-[20px] left-1/2 -translate-x-1/2 flex gap-10 z-20"
           role="tablist"
           aria-label="Навигация по слайдам"
         >
@@ -171,8 +174,8 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
               onClick={() => handleDotClick(index)}
               className={`rounded-full transition-all cursor-pointer duration-300 focus:outline-none focus:ring-2 focus:ring-white ${
                 index === currentIndex
-                  ? 'w-5 h-5 bg-[#0e1011]'
-                  : 'w-4 h-4 bg-[#5e6265] hover:bg-[#5e6265]'
+                  ? 'w-4 sm:w-5 h-4 sm:h-5 bg-[#0e1011]'
+                  : 'w-3 sm:w-4 h-3 sm:h-4 bg-[#5e6265] hover:bg-[#5e6265] flex flex-row items-center'
               }`}
               role="tab"
               aria-selected={index === currentIndex}
@@ -189,7 +192,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
           onClick={() => setIsOpen(false)}
         >
-          <div className="relative w-[90%] h-[90%]">
+          <div className="relative w-[90%] max-w-[80vh] aspect-[4/3]">
             <Image
               src={selectedImage}
               alt="Preview"
@@ -202,5 +205,3 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
     </>
   )
 }
-
-

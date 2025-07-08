@@ -103,7 +103,7 @@ export default function BlogClient() {
                     src={post.image || '/images/blog/blog_img1.jpg'}
                     alt={post.title}
                     fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    className="object-cover transition-transform duration-300 group-hover:scale-110"
                   />
                 </div>
                 <div className="px-[20px] sm:px-0 pb-[78px] sm:pb-0 pt-[38px] sm:pt-0 sm:p-8 md:p-20 3xl:p-[120px] flex flex-col gap-12 3xl:gap-16 bg-inherit">

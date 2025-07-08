@@ -36,7 +36,6 @@ interface CreatePostResponse {
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 // Функция для формирования корректного URL изображения
-// Функция для формирования корректного URL изображения
 function getImageUrl(imagePath: string | null): string {
   console.log('getImageUrl input:', imagePath);
   

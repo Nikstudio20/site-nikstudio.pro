@@ -1,8 +1,66 @@
+'use client';
+
 import Link from "next/link";
 import Image from "next/image";
 import BackToTopLink from "./BackToTopLink";
+import { useState, useEffect } from 'react';
+
+interface ProjectCategory {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ApiResponse {
+  status?: string;
+  success?: boolean;
+  data?: ProjectCategory[];
+  message?: string;
+}
 
 export default function Footer() {
+  const [categories, setCategories] = useState<ProjectCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        const response = await fetch(`${apiUrl}/api/project-categories`);
+        
+        if (!response.ok) {
+          throw new Error('Ошибка при загрузке категорий');
+        }
+
+        const data: ApiResponse = await response.json();
+        
+        // Проверяем разные варианты структуры ответа
+        if (data.status === 'success' && data.data) {
+          setCategories(data.data);
+        } else if (data.success && data.data) {
+          setCategories(data.data);
+        } else if (Array.isArray(data.data)) {
+          setCategories(data.data);
+        } else if (Array.isArray(data)) {
+          setCategories(data as ProjectCategory[]);
+        } else {
+          throw new Error(data.message || 'Ошибка при получении данных');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Произошла ошибка');
+        console.error('Ошибка при загрузке категорий:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   return (
     <footer className="bg-white w-full hidden sm:block">
       <div className="flex flex-col justify-between gap-20 lg:gap-40 px-6 sm:px-12 lg:px-24 pt-12 lg:pt-24 pb-8 lg:pb-16 w-full">
@@ -65,30 +123,34 @@ export default function Footer() {
                   Проекты
                 </h3>
                 <nav className="flex flex-col gap-2 lg:gap-4">
+                  {/* Ссылка на все проекты */}
                   <Link
                     href="/projects"
                     className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
                   >
                     Проекты под ключ
                   </Link>
-                  <Link
-                    href="#"
-                    className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
-                  >
-                    Брендинг
-                  </Link>
-                  <Link
-                    href="/blog"
-                    className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
-                  >
-                    Дизайн
-                  </Link>
-                  <Link
-                    href="#"
-                    className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
-                  >
-                    3д графика
-                  </Link>
+                  
+                  {/* Динамические категории */}
+                  {loading ? (
+                    <span className="text-[#0E1011]/60 text-xl lg:text-[26px] font-inter font-normal leading-[130%]">
+                      Загрузка...
+                    </span>
+                  ) : error ? (
+                    <span className="text-[#0E1011]/60 text-xl lg:text-[26px] font-inter font-normal leading-[130%]">
+                      Ошибка загрузки
+                    </span>
+                  ) : (
+                    categories.map((category) => (
+                      <Link
+                        key={category.id}
+                        href={`/projects?category=${category.slug}`}
+                        className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
+                      >
+                        {category.name}
+                      </Link>
+                    ))
+                  )}
                 </nav>
               </div>
 
@@ -159,4 +221,4 @@ export default function Footer() {
       </div>
     </footer>
   );
-} 
+}

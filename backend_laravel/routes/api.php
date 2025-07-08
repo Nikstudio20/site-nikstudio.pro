@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\BlogPostController;
 use App\Http\Controllers\Api\BlogBlockController;
 use App\Http\Controllers\Api\ProjectCategoryController;
+use App\Http\Controllers\Api\ProjectController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -46,3 +47,10 @@ Route::prefix('project-categories')->group(function () {
     Route::put('/{id}/move-down', [ProjectCategoryController::class, 'moveDown']);
     Route::put('/bulk-sort-order', [ProjectCategoryController::class, 'updateBulkSortOrder']);
 });
+
+// Projects API
+Route::get('/projects', [ProjectController::class, 'index']);
+Route::get('/projects/{slug}', [ProjectController::class, 'show']);
+Route::post('/projects', [ProjectController::class, 'store']);
+Route::put('/projects/{id}', [ProjectController::class, 'update']);
+Route::delete('/projects/{id}', [ProjectController::class, 'destroy']);

@@ -177,7 +177,7 @@ function ServiceSection({ service, className = "" }: { service: Service, classNa
         {/* Кнопки навигации */}
         <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between items-center pointer-events-none">
           <button
-            className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10 pointer-events-auto"
+            className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10 pointer-events-auto opacity-50 sm:opacity-100"
             onClick={handlePrevSlide}
             disabled={isSlideTransitioning}
             aria-label="Previous slide"
@@ -192,7 +192,7 @@ function ServiceSection({ service, className = "" }: { service: Service, classNa
             />
           </button>
           <button
-            className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10 pointer-events-auto"
+            className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10 pointer-events-auto opacity-50 sm:opacity-100"
             onClick={handleNextSlide}
             disabled={isSlideTransitioning}
             aria-label="Next slide"
@@ -476,7 +476,7 @@ export default function MediaPage() {
               </div>
               <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between items-center">
                 <button 
-                  className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10"
+                  className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10 opacity-50 sm:opacity-100"
                   onClick={handlePreviousTestimonial}
                   disabled={isTransitioning}
                   aria-label="Previous testimonial"
@@ -490,8 +490,9 @@ export default function MediaPage() {
                     draggable={false}
                   />
                 </button>
+                
                 <button 
-                  className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10"
+                  className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10 opacity-50 sm:opacity-100"
                   onClick={handleNextTestimonial}
                   disabled={isTransitioning}
                   aria-label="Next testimonial"
