@@ -16,6 +16,41 @@ interface Project {
   main_title: string;
 }
 
+// Функция для получения полного URL изображения
+const getImageUrl = (imagePath: string) => {
+  if (!imagePath) return '/placeholder.jpg';
+  
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  
+  // Если путь уже содержит полный URL, используем его
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  
+  // Убираем все лишние префиксы и получаем чистый путь
+  let cleanPath = imagePath;
+  
+  // Убираем /storage/app/public/ если есть
+  if (cleanPath.includes('/storage/app/public/')) {
+    cleanPath = cleanPath.substring(cleanPath.indexOf('/storage/app/public/') + '/storage/app/public/'.length);
+  }
+  // Убираем storage/app/public/ если есть
+  else if (cleanPath.includes('storage/app/public/')) {
+    cleanPath = cleanPath.substring(cleanPath.indexOf('storage/app/public/') + 'storage/app/public/'.length);
+  }
+  // Убираем /storage/ если есть
+  else if (cleanPath.startsWith('/storage/')) {
+    cleanPath = cleanPath.substring('/storage/'.length);
+  }
+  // Убираем storage/ если есть
+  else if (cleanPath.startsWith('storage/')) {
+    cleanPath = cleanPath.substring('storage/'.length);
+  }
+  
+  // Возвращаем полный URL к Laravel серверу
+  return `${apiUrl}/storage/${cleanPath}`;
+};
+
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,7 +128,7 @@ export default function ProjectsPage() {
       </section>
 
       {/* Project Categories с передачей обработчика и текущей категории */}
-      <ProjectCategories onCategoryChange={handleCategoryChange} />
+      <ProjectCategories onCategoryChange={handleCategoryChange} selectedCategory={selectedCategory} />
 
       {/* Project Cards с индикатором загрузки */}
       <section className="w-full flex flex-col gap-6 lg:gap-[24px] 3xl:gap-[32px] mt-[45px] sm:mt-8 lg:mt-7 3xl:mt-10 pb-6 3xl:pb-8">
@@ -104,7 +139,7 @@ export default function ProjectsPage() {
             <Link key={project.id} href={`/projects/${project.slug}`} className="w-full h-[390px] sm:h-[540px] lg:h-[1080px] 3xl:h-[1440px] relative mb-[15px] sm:mb-0 group overflow-hidden">
               {project.projects_page_image ? (
                 <Image
-                  src={project.projects_page_image?.replace('/storage/', '/storage/app/public/')}
+                  src={getImageUrl(project.projects_page_image)}
                   alt={project.projects_page_title || project.main_title}
                   fill
                   className="object-cover transition-transform duration-300 group-hover:scale-110"

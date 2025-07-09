@@ -13,7 +13,8 @@ interface ProjectCategory {
 
 interface ProjectCategoriesProps {
   className?: string;
-  onCategoryChange?: (categoryId: number | null) => void;
+  onCategoryChange: (categoryId: number | null) => void;
+  selectedCategory: number | null;
 }
 
 interface ApiResponse {
@@ -23,11 +24,10 @@ interface ApiResponse {
   message?: string;
 }
 
-const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className, onCategoryChange }) => {
+const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className, onCategoryChange, selectedCategory }) => {
   const [categories, setCategories] = useState<ProjectCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -71,13 +71,7 @@ const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className, onCate
 
   // Обработчик клика по категории
   const handleCategoryClick = (categoryId: number | null) => {
-    console.log('Выбрана категория:', categoryId); // Отладочная информация
-    setActiveCategory(categoryId);
-    
-    if (onCategoryChange) {
-      onCategoryChange(categoryId);
-    }
-    
+    onCategoryChange(categoryId);
   };
 
   if (loading) {
@@ -106,7 +100,7 @@ const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className, onCate
         {/* Ссылка "Проекты" для показа всех проектов */}
         <span
           onClick={() => handleCategoryClick(null)}
-          className={`cursor-pointer transition-colors duration-300 ${activeCategory === null ? 'text-[#DE063A]' : 'hover:text-[#DE063A]'}`}
+          className={`cursor-pointer transition-colors duration-300 ${selectedCategory === null ? 'text-[#DE063A]' : 'hover:text-[#DE063A]'}`}
         >
           Проекты
         </span>
@@ -116,7 +110,7 @@ const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className, onCate
           <span
             key={category.id}
             onClick={() => handleCategoryClick(category.id)}
-            className={`cursor-pointer transition-colors duration-300 ${activeCategory === category.id ? 'text-[#DE063A]' : 'hover:text-[#DE063A]'}`}
+            className={`cursor-pointer transition-colors duration-300 ${selectedCategory === category.id ? 'text-[#DE063A]' : 'hover:text-[#DE063A]'}`}
           >
             {category.name}
           </span>

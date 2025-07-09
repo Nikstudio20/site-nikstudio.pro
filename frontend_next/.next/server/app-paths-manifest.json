@@ -4,14 +4,14 @@
   "/blog/[slug]/page": "app/blog/[slug]/page.js",
   "/media/page": "app/media/page.js",
   "/page": "app/page.js",
-  "/projects/[slug]/page": "app/projects/[slug]/page.js",
   "/projects/page": "app/projects/page.js",
+  "/projects/[slug]/page": "app/projects/[slug]/page.js",
   "/about/page": "app/about/page.js",
   "/blog/page": "app/blog/page.js",
   "/contact/page": "app/contact/page.js",
   "/admin/blog/[slug]/page": "app/admin/blog/[slug]/page.js",
-  "/admin/blog/page": "app/admin/blog/page.js",
   "/admin/category/page": "app/admin/category/page.js",
+  "/admin/blog/page": "app/admin/blog/page.js",
   "/admin/page": "app/admin/page.js",
   "/admin/projects/page": "app/admin/projects/page.js"
 }

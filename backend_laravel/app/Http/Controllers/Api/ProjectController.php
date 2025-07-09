@@ -160,9 +160,9 @@ class ProjectController extends Controller
             'main_title' => 'required|string|max:255',
             'projects_page_title' => 'nullable|string|max:255',
             'year' => 'required|integer|min:1900|max:' . (date('Y') + 10),
-            'main_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:4096',
-            'projects_page_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:4096',
-            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'main_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'projects_page_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
         
         // Кастомная валидация файлов
@@ -336,9 +336,9 @@ class ProjectController extends Controller
             'main_title' => 'sometimes|required|string|max:255',
             'projects_page_title' => 'nullable|string|max:255',
             'year' => 'sometimes|required|integer|min:1900|max:' . (date('Y') + 10),
-            'main_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:4096',
-            'projects_page_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:4096',
-            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:4096',
+            'main_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'projects_page_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
         
         // Кастомная валидация файлов

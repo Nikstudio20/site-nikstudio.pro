@@ -1,4 +1,4 @@
-// File: C:\dev\fullstack\nik_studio_fullstack\frontend_next\src\app\projects\page.tsx
+// File: /home/akhmetshin/dev/fullstack/nik_studio/frontend_next/src/app/projects/page.tsx
 import * as entry from '../../../../src/app/projects/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

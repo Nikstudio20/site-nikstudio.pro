@@ -6,7 +6,8 @@ import Footer from "@/components/Footer";
 import FooterMobile from "@/components/Footer_mobile";
 import Link from "next/link";
 import ProjectCategories from '@/components/ProjectCategories';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
+import { useSearchParams, useRouter } from 'next/navigation';
 import ServicesSection from '@/app/home/ServicesSection';
 import TestimonialsSection from '@/app/home/TestimonialsSection';
 import MainContentSection from '@/app/home/MainContentSection';
@@ -22,11 +23,63 @@ interface Project {
   slug: string;
 }
 
-export default function Home() {
+// Функция для получения полного URL изображения
+const getImageUrl = (imagePath: string) => {
+  if (!imagePath) return '/placeholder.jpg';
+  
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  
+  // Если путь уже содержит полный URL, используем его
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  
+  // Убираем все лишние префиксы и получаем чистый путь
+  let cleanPath = imagePath;
+  
+  // Убираем /storage/app/public/ если есть
+  if (cleanPath.includes('/storage/app/public/')) {
+    cleanPath = cleanPath.substring(cleanPath.indexOf('/storage/app/public/') + '/storage/app/public/'.length);
+  }
+  // Убираем storage/app/public/ если есть
+  else if (cleanPath.includes('storage/app/public/')) {
+    cleanPath = cleanPath.substring(cleanPath.indexOf('storage/app/public/') + 'storage/app/public/'.length);
+  }
+  // Убираем /storage/ если есть
+  else if (cleanPath.startsWith('/storage/')) {
+    cleanPath = cleanPath.substring('/storage/'.length);
+  }
+  // Убираем storage/ если есть
+  else if (cleanPath.startsWith('storage/')) {
+    cleanPath = cleanPath.substring('storage/'.length);
+  }
+  
+  // Возвращаем полный URL к Laravel серверу
+  return `${apiUrl}/storage/${cleanPath}`;
+};
+
+// Компонент с логикой поиска параметров
+function HomeContent() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const projectsSectionRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    const categoryId = searchParams.get('category_id');
+    if (categoryId) {
+      const categoryIdNum = parseInt(categoryId, 10);
+      setSelectedCategory(categoryIdNum);
+      if (projectsSectionRef.current) {
+        setTimeout(() => {
+          projectsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     async function fetchProjects() {
@@ -71,18 +124,19 @@ export default function Home() {
   // Обработчик изменения категории
   const handleCategoryChange = (categoryId: number | null) => {
     setSelectedCategory(categoryId);
+    const params = new URLSearchParams(window.location.search);
+    if (categoryId !== null) {
+      params.set('category_id', categoryId.toString());
+    } else {
+      params.delete('category_id');
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const displayedProjects = showAllProjects ? projects : projects.slice(0, 4);
 
   return (
-    <main className="flex flex-col min-h-screen bg-[#0E1011] overflow-x-hidden">
-      {/* Header */}
-      <Header_mobile />
-      <div className="absolute top-0 right-0 w-full lg:w-1/2 z-10">
-        <Header_mini />
-      </div>
-
+    <>
       {/* Hero */}
       <div className="flex flex-col lg:flex-row justify-center w-full relative">
         {/* Left Side - Image */}
@@ -139,7 +193,7 @@ export default function Home() {
       <MainContentSection />      
 
       {/* Projects Section */}
-      <section className="w-full bg-[#181A1B] pt-7 sm:pt-24 flex flex-col sm:mt-[25px]">
+      <section className="w-full bg-[#181A1B] pt-7 sm:pt-24 flex flex-col sm:mt-[25px] scroll-mt-20">
         <div className="px-5 sm:px-12 lg:px-24 flex flex-col gap-24">
           {/* Header */}
           <div className="flex flex-col gap-24">
@@ -164,7 +218,15 @@ export default function Home() {
           </div>
 
           {/* Project Categories */}
-          <ProjectCategories onCategoryChange={handleCategoryChange} className="-mt-[60px] sm:mt-0" />
+          <div id="projects" ref={projectsSectionRef}>
+
+          </div>
+          <ProjectCategories
+            selectedCategory={selectedCategory}
+            onCategoryChange={handleCategoryChange}
+            className="-mt-[60px] sm:mt-0"
+            
+          />
         </div>
 
         {/* Project Items */}
@@ -174,22 +236,30 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2">
               {displayedProjects.map((project) => (
-                <Link href={`/projects/${project.slug}`} key={project.id} className="flex flex-col group ">
+                <Link href={`/projects/${project.slug}`} key={project.id} className="flex flex-col group">
                   <div className="relative w-full aspect-square overflow-hidden">
                     <Image
-                      src={project.main_image?.replace('/storage/', '/storage/app/public/') || '/placeholder.jpg'}
+                      src={getImageUrl(project.main_image)}
                       alt={project.main_title}
                       fill
                       className="object-cover opacity-70 h-[390px] sm:h-auto transition-transform duration-300 group-hover:scale-110"
+                      onError={(e) => {
+                        console.error('Ошибка загрузки изображения:', project.main_image);
+                        e.currentTarget.src = '/placeholder.jpg';
+                      }}
                     />
                     {project.logo && (
                       <div className="absolute inset-0 flex items-center justify-center scale-75 sm:scale-100">
                         <Image
-                          src={project.logo.replace('/storage/', '/storage/app/public/')}
+                          src={getImageUrl(project.logo)}
                           alt={`${project.main_title} Logo`}
                           width={335}
                           height={122}
                           className="object-contain"
+                          onError={(e) => {
+                            console.error('Ошибка загрузки логотипа:', project.logo);
+                            e.currentTarget.style.display = 'none';
+                          }}
                         />
                       </div>
                     )}
@@ -223,7 +293,24 @@ export default function Home() {
 
       {/* Другие секции */}
       <ServicesSection />
-      <TestimonialsSection />      
+      <TestimonialsSection />
+    </>
+  );
+}
+
+export default function Home() {
+  return (
+    <main className="flex flex-col min-h-screen bg-[#0E1011] overflow-x-hidden">
+      {/* Header */}
+      <Header_mobile />
+      <div className="absolute top-0 right-0 w-full lg:w-1/2 z-10">
+        <Header_mini />
+      </div>
+
+      {/* Обернутый в Suspense контент */}
+      <Suspense fallback={<div className="text-white text-center py-10">Загрузка...</div>}>
+        <HomeContent />
+      </Suspense>
 
       {/* Footer */}
       <Footer />
