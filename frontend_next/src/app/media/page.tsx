@@ -5,8 +5,10 @@ import Header from "@/components/Header";
 import Header_mobile from "@/components/Header_mobile";
 import Footer from "@/components/Footer";
 import FooterMobile from "@/components/Footer_mobile";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { mediaServices } from "./mediaServices";
+import ServiceSection from "./ServiceSection";
+import ServiceSectionMobile from "./ServiceSection_mobile";
 
 // Интерфейсы для типизации
 interface Slide {
@@ -45,203 +47,6 @@ interface Testimonial {
   image: string;
 }
 
-// Универсальный компонент для рендера изображения или видео
-function MediaRenderer({ src, alt, className }: { src: string, alt: string, className?: string }) {
-  const isVideo = src.match(/\.mp4($|\?)/i);
-  if (isVideo) {
-    return (
-      <a href={src} target="_blank" rel="noopener noreferrer">
-        <video
-          src={src}
-          className={className}
-          style={{ objectFit: 'cover', width: '100%', height: '100%' }}
-          autoPlay
-          loop
-          muted
-          playsInline
-        />
-      </a>
-    );
-  }
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      className={className}
-      fill
-      priority
-    />
-  );
-}
-
-// Компонент для секции сервисов
-function ServiceSection({ service, className = "" }: { service: Service, className?: string }) {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isSlideTransitioning, setIsSlideTransitioning] = useState(false);
-  
-  // Создаем массив всех изображений для мобильной версии
-  const allMobileImages = service.slides.flatMap(slide => [
-    { image: slide.mainImage, isMain: true },
-    { image: slide.secondaryImage, isMain: false }
-  ]);
-  
-  const [currentMobileImageIndex, setCurrentMobileImageIndex] = useState(0);
-  
-  const handlePrevSlide = () => {
-    if (isSlideTransitioning) return;
-    setIsSlideTransitioning(true);
-    
-    // Разная логика для мобильной и десктопной версии
-    if (window.innerWidth < 640) { // sm breakpoint в tailwind
-      setTimeout(() => {
-        setCurrentMobileImageIndex(prev => 
-          prev === 0 ? allMobileImages.length - 1 : prev - 1
-        );
-        setTimeout(() => setIsSlideTransitioning(false), 50);
-      }, 450);
-    } else {
-      setTimeout(() => {
-        setCurrentSlide((prev) => prev === 0 ? service.slides.length - 1 : prev - 1);
-        setTimeout(() => setIsSlideTransitioning(false), 50);
-      }, 450);
-    }
-  };
-  
-  const handleNextSlide = () => {
-    if (isSlideTransitioning) return;
-    setIsSlideTransitioning(true);
-    
-    // Разная логика для мобильной и десктопной версии
-    if (window.innerWidth < 640) { // sm breakpoint в tailwind
-      setTimeout(() => {
-        setCurrentMobileImageIndex(prev => 
-          (prev + 1) % allMobileImages.length
-        );
-        setTimeout(() => setIsSlideTransitioning(false), 50);
-      }, 450);
-    } else {
-      setTimeout(() => {
-        setCurrentSlide((prev) => (prev + 1) % service.slides.length);
-        setTimeout(() => setIsSlideTransitioning(false), 50);
-      }, 450);
-    }
-  };
-
-  // Используем useEffect для обработки изменения размера окна
-  useEffect(() => {
-    const handleResize = () => {
-      // Сбрасываем индексы при изменении размера окна
-      setCurrentSlide(0);
-      setCurrentMobileImageIndex(0);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  return (
-    <section className={`bg-[#0e1011] w-full ${className}`}>
-      {/* Image Grid */}
-      <div className="flex flex-col md:flex-row w-full gap-6 md:gap-6 mt-[20px] sm:mt-20 relative">
-        {/* На мобильных устройствах показываем только одно изображение */}
-        <div className="sm:hidden w-full h-[390px] relative">
-          <div className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${isSlideTransitioning ? 'opacity-0' : 'opacity-100'}`}> 
-            <MediaRenderer
-              src={allMobileImages[currentMobileImageIndex].image}
-              alt={service.title}
-              className="object-cover"
-            />
-          </div>
-        </div>
-        
-        {/* На десктопе показываем два изображения как раньше */}
-        <div className="hidden sm:block w-full md:w-[39.55%] h-[390px] md:h-[750px] shrink-0 relative">
-          <div className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${isSlideTransitioning ? 'opacity-0' : 'opacity-100'}`}> 
-            <MediaRenderer
-              src={service.slides[currentSlide].mainImage}
-              alt={service.title}
-              className="object-cover"
-            />
-          </div>
-        </div>
-        <div className="hidden sm:block w-full h-[390px] md:h-[750px] relative">
-          <div className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${isSlideTransitioning ? 'opacity-0' : 'opacity-100'}`}> 
-            <MediaRenderer
-              src={service.slides[currentSlide].secondaryImage}
-              alt={service.title}
-              className="object-cover"
-            />
-          </div>
-        </div>
-        
-        {/* Кнопки навигации */}
-        <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between items-center pointer-events-none">
-          <button
-            className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10 pointer-events-auto opacity-50 sm:opacity-100"
-            onClick={handlePrevSlide}
-            disabled={isSlideTransitioning}
-            aria-label="Previous slide"
-          >
-            <Image
-              src="/images/media/arrow_left.svg"
-              alt="Previous"
-              width={21}
-              height={21}
-              className="[filter:invert(1)] group-hover:[filter:invert(0)]"
-              draggable={false}
-            />
-          </button>
-          <button
-            className="w-[60px] h-[60px] flex items-center justify-center bg-[#0E1011] hover:bg-white transition-colors duration-300 cursor-pointer group z-10 pointer-events-auto opacity-50 sm:opacity-100"
-            onClick={handleNextSlide}
-            disabled={isSlideTransitioning}
-            aria-label="Next slide"
-          >
-            <Image
-              src="/images/media/arrow_right.svg"
-              alt="Next"
-              width={21}
-              height={21}
-              className="[filter:invert(1)] group-hover:[filter:invert(0)]"
-              draggable={false}
-            />
-          </button>
-        </div>
-      </div>
-
-      {/* Content Grid */}
-      <div className="flex flex-col md:flex-row w-full gap-6 md:gap-4 lg:gap-24 px-5 sm:px-12 lg:px-22 py-16 md:py-24 lg:py-[96px]">
-        <h2 lang="ru" className="text-white font-geometria font-bold text-[40px] md:text-[128px] uppercase leading-none w-full md:w-[39.55%] whitespace-normal hyphens-auto break-words -mt-[40px] sm:mt-0">
-          {service.title}
-        </h2>
-        
-        <div className="flex flex-col gap-12 md:gap-20 flex-1 -ml-">
-          <p className="text-white font-inter font-semibold -mt-[10px] sm:mt-0 text-[20px] md:text-[36px] lg:text-[48px] leading-[120%] sm:leading-[130%] -tracking-[1px] sm:-tracking-[0.5px] w-full lg:max-w-[400px] xl:max-w-[992px] break-words">
-            {service.description}
-          </p>
-
-          <div className="flex flex-col gap-12 md:gap-12">
-            {service.features.map((feature: Feature, index: number) => (
-              <div key={index} className="flex flex-col">
-                <h3 className="text-white font-inter font-semibold -mt-[20px] sm:mt-0 text-[18px] md:text-[40px] mb-[16px] leading-[120%] sm:leading-[140%] -tracking-[1px]">
-                  {feature.title}
-                </h3>
-                {feature.description.map((paragraph: string, i: number) => (
-                  <p key={i} className="text-white/60 font-inter text-[16px] md:text-[20px] leading-[100%] sm:leading-[180%]">
-                    {paragraph}
-                  </p>
-                ))}
-                {index < service.features.length - 1 && (
-                  <div className="h-[2px] bg-white/20 w-full mt-[15px] sm:mt-12"></div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 export default function MediaPage() {
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
@@ -413,7 +218,11 @@ export default function MediaPage() {
 
       {/* Services Sections */}
       {mediaServices.map((service: Service) => (
-        <ServiceSection key={service.id} service={service} className="mt-[10px] sm:mt-0" />
+        <ServiceSection key={service.id} service={service} className="mt-[10px] sm:mt-0 hidden sm:block" />
+      ))}
+
+      {mediaServices.map((service: Service) => (
+        <ServiceSectionMobile key={service.id} service={service} className="mt-[10px] sm:mt-0 block sm:hidden" />
       ))}
       <div className="h-[130px] bg-[#0e1011] w-auto"></div>
 

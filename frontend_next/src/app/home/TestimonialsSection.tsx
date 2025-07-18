@@ -4,7 +4,7 @@ import TestimonialCarousel from '@/components/TestimonialCarousel';
 
 export default function TestimonialsSection() {
   return (
-    <section className="w-full bg-[#0E1011] -mt-[10px] sm:mt-29">
+    <section className="w-full bg-[#0E1011] mt-[10px] sm:mt-29">
       {/* Header with padding */}
       <div className="px-6 sm:px-12 lg:px-24 mb-24">
         <div className="flex flex-col gap-24">

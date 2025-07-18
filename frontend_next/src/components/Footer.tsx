@@ -157,21 +157,15 @@ export default function Footer() {
               {/* Медиа */}
               <div className="flex flex-col gap-4 lg:gap-8 self-stretch mt-8 sm:mt-0">
                 <h3 className="text-[#0E1011]/60 text-xl lg:text-[30px] font-geometria font-normal leading-[100%] w-full lg:w-[360px] lg:h-[30px] self-stretch flex-grow-0">
-                  Фото
+                  Услуги
                 </h3>
                 <nav className="flex flex-col gap-2 lg:gap-4">
                   <Link
-                    href="#"
+                    href="/media"
                     className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
                   >
-                    Видео
-                  </Link>
-                  <Link
-                    href="#"
-                    className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
-                  >
-                    Сайты
-                  </Link>
+                    Медиа
+                  </Link>                  
                 </nav>
               </div>
 

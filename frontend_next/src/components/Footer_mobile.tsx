@@ -150,13 +150,12 @@ export default function FooterMobile() {
                 <AccordionItem value="media">
                   <AccordionTrigger className="flex items-center justify-between w-full">
                     <h3 className="text-[#0E1011]/60 text-xl lg:text-[30px] font-geometria font-normal leading-[100%] w-full lg:w-[360px] lg:h-[30px] self-stretch flex-grow-0">
-                      Фото
+                      Услуги
                     </h3>
                   </AccordionTrigger>
                   <AccordionContent>
                     <nav className="flex flex-col gap-2 lg:gap-4">
-                      <Link href="#" className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300">Видео</Link>
-                      <Link href="#" className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300">Сайты</Link>
+                      <Link href="/media" className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300">Медиа</Link>
                     </nav>
                   </AccordionContent>
                 </AccordionItem>

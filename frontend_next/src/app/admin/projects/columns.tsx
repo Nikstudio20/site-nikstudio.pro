@@ -24,6 +24,24 @@ import { Trash2, SquarePen } from "lucide-react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+
+const ClickableCell = ({ children, slug }: { children: React.ReactNode; slug: string }) => {
+  const router = useRouter();
+  
+  const handleClick = () => {
+    router.push(`/admin/projects/${slug}`);
+  };
+  
+  return (
+    <div 
+      onClick={handleClick}
+      className="cursor-pointer hover:text-[#DE063A] transition-colors duration-300"
+    >
+      {children}
+    </div>
+  );
+};
 
 export interface ProjectCategory {
   id: number;
@@ -41,6 +59,7 @@ export interface Project {
   main_image?: string | null;
   projects_page_image?: string | null;
   logo?: string | null;
+  slug: string;
 }
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
@@ -358,46 +377,72 @@ export const columns = (): ColumnDef<Project>[] => [
     accessorKey: "id",
     header: "ID",
     meta: { className: "w-[3%]" },
+    cell: ({ row }) => (
+      <ClickableCell slug={row.original.slug}>
+        {row.getValue("id")}
+      </ClickableCell>
+    ),
   },
   {
     accessorKey: "main_title",
     header: "Заголовок на главной странице",
     meta: { className: "w-[15%]" },
+    cell: ({ row }) => (
+      <ClickableCell slug={row.original.slug}>
+        {row.getValue("main_title")}
+      </ClickableCell>
+    ),
   },
   {
     accessorKey: "projects_page_title",
     header: 'Заголовок на странице "Проекты"',
     meta: { className: "w-[16%]" },
+    cell: ({ row }) => (
+      <ClickableCell slug={row.original.slug}>
+        {row.getValue("projects_page_title")}
+      </ClickableCell>
+    ),
   },
   {
     accessorKey: "year",
     header: "Год",
     meta: { className: "w-[4%]" },
+    cell: ({ row }) => (
+      <ClickableCell slug={row.original.slug}>
+        {row.getValue("year")}
+      </ClickableCell>
+    ),
   },
   {
     header: "Категории",
     meta: { className: "w-[10%]" },
     cell: ({ row }) => {
       const projectCategories = row.original.categories || [];
-      return projectCategories.length > 0
-        ? projectCategories.map(cat => cat.name).join(", ")
-        : "Неизвестно";
+      return (
+        <ClickableCell slug={row.original.slug}>
+          {projectCategories.length > 0
+            ? projectCategories.map(cat => cat.name).join(", ")
+            : "Неизвестно"}
+        </ClickableCell>
+      );
     },
   },
   {
     accessorKey: "main_image",
     header: "Изображение на главной странице",
     meta: { className: "w-[16%]" },
-    cell: ({ getValue }) => {
-      const url = getValue() as string | null;
+    cell: ({ row }) => {
+      const url = row.getValue("main_image") as string | null;
       return url ? (
-        <Image 
-          src={url} 
-          alt="Main" 
-          width={48} 
-          height={48} 
-          className="object-cover rounded" 
-        />
+        <ClickableCell slug={row.original.slug}>
+          <Image 
+            src={url} 
+            alt="Main" 
+            width={48} 
+            height={48} 
+            className="object-cover rounded" 
+          />
+        </ClickableCell>
       ) : null;
     },
   },
@@ -405,16 +450,18 @@ export const columns = (): ColumnDef<Project>[] => [
     accessorKey: "projects_page_image",
     header: 'Изображение на странице "Проекты"',
     meta: { className: "w-[17%]" },
-    cell: ({ getValue }) => {
-      const url = getValue() as string | null;
+    cell: ({ row }) => {
+      const url = row.getValue("projects_page_image") as string | null;
       return url ? (
-        <Image 
-          src={url} 
-          alt="Page" 
-          width={48} 
-          height={48} 
-          className="object-cover rounded" 
-        />
+        <ClickableCell slug={row.original.slug}>
+          <Image 
+            src={url} 
+            alt="Page" 
+            width={48} 
+            height={48} 
+            className="object-cover rounded" 
+          />
+        </ClickableCell>
       ) : null;
     },
   },
@@ -422,16 +469,18 @@ export const columns = (): ColumnDef<Project>[] => [
     accessorKey: "logo",
     header: "Логотип",
     meta: { className: "w-[6%]" },
-    cell: ({ getValue }) => {
-      const url = getValue() as string | null;
+    cell: ({ row }) => {
+      const url = row.getValue("logo") as string | null;
       return url ? (
-        <Image 
-          src={url} 
-          alt="Logo" 
-          width={48} 
-          height={48} 
-          className="rounded bg-[#0E1011]" 
-        />
+        <ClickableCell slug={row.original.slug}>
+          <Image 
+            src={url} 
+            alt="Logo" 
+            width={48} 
+            height={48} 
+            className="rounded bg-[#0E1011]" 
+          />
+        </ClickableCell>
       ) : null;
     },
   },

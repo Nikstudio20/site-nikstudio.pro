@@ -32,6 +32,18 @@ class Project extends Model
         return $this->categories()->first();
     }
 
+    // Связь с внутренней страницей проекта
+    public function detail()
+    {
+        return $this->hasOne(ProjectDetail::class);
+    }
+
+    // Проверка наличия внутренней страницы
+    public function hasDetail()
+    {
+        return $this->detail()->exists();
+    }
+
     // Автоматическая генерация slug при создании и обновлении
     protected static function boot()
     {
