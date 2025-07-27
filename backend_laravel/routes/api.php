@@ -2,10 +2,22 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Api\BlogPostController;
 use App\Http\Controllers\Api\BlogBlockController;
 use App\Http\Controllers\Api\ProjectCategoryController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\HomeController;
+use App\Http\Controllers\Api\SEOController;
+use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\ServiceVideoController;
+use App\Http\Controllers\Api\MediaPageController;
+use App\Http\Controllers\Api\MediaServicesController;
+use App\Http\Controllers\Api\MediaServiceFeaturesController;
+use App\Http\Controllers\Api\MediaServiceMediaController;
+use App\Http\Controllers\Api\MediaTestimonialsController;
+use App\Http\Controllers\Api\MediaProcessStepsController;
+use App\Http\Controllers\Api\MediaPagePublicController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -18,6 +30,7 @@ Route::post('/blog-posts', [BlogPostController::class, 'store']);
 Route::post('/blog-posts/update', [BlogPostController::class, 'update']);
 Route::delete('/blog-posts/{id}', [BlogPostController::class, 'destroy']);
 Route::patch('/blog-posts/{id}/status', [BlogPostController::class, 'updateStatus']);
+Route::patch('/blog-posts/{id}/sort-order', [BlogPostController::class, 'updateSortOrder']);
 Route::post('/blog-posts/{slug}/blocks', [BlogBlockController::class, 'store']);
 Route::put('/blog-posts/blocks/{id}', [BlogBlockController::class, 'update']);
 Route::delete('/blog-posts/blocks/{id}', [BlogBlockController::class, 'destroy']);
@@ -66,4 +79,131 @@ Route::prefix('projects/{slug}/blocks/{blockId}/media')->group(function () {
     Route::put('/{groupId}', [ProjectController::class, 'updateBlockMediaGroup']); 
     // Удаление медиа-группы
     Route::delete('/{groupId}', [ProjectController::class, 'destroyBlockMediaGroup']);
+});
+
+// Маршруты для управления контентом главной страницы
+Route::get('/home', [HomeController::class, 'index']);
+Route::post('/home/hero-video', [HomeController::class, 'uploadHeroVideo']);
+Route::delete('/home/hero-video', [HomeController::class, 'deleteHeroVideo']);
+Route::post('/home/fallback-image', [HomeController::class, 'uploadFallbackImage']);
+
+// Маршруты для управления видео услуг
+Route::get('/services/{serviceName}/video', [ServiceVideoController::class, 'show']);
+Route::post('/services/{serviceName}/video', [ServiceVideoController::class, 'upload']);
+Route::delete('/services/{serviceName}/video', [ServiceVideoController::class, 'delete']);
+
+// Маршруты для управления контентом медиа страницы
+Route::prefix('admin/media-page')->group(function () {
+    Route::get('/', [MediaPageController::class, 'index']);
+    Route::put('/hero', [MediaPageController::class, 'updateHero']);
+    Route::put('/testimonials-header', [MediaPageController::class, 'updateTestimonialsHeader']);
+    Route::put('/process-header', [MediaPageController::class, 'updateProcessHeader']);
+});
+
+// Маршруты для управления медиа услугами
+Route::prefix('media-services')->group(function () {
+    Route::get('/', [MediaServicesController::class, 'index']);
+    Route::get('/{id}', [MediaServicesController::class, 'show']);
+    Route::post('/', [MediaServicesController::class, 'store']);
+    Route::put('/{id}', [MediaServicesController::class, 'update']);
+    Route::delete('/{id}', [MediaServicesController::class, 'destroy']);
+    Route::put('/{id}/order', [MediaServicesController::class, 'updateOrder']);
+    Route::put('/{id}/move-up', [MediaServicesController::class, 'moveUp']);
+    Route::put('/{id}/move-down', [MediaServicesController::class, 'moveDown']);
+    Route::put('/bulk-order', [MediaServicesController::class, 'updateBulkOrder']);
+});
+
+// Маршруты для управления функциями медиа услуг
+Route::prefix('media-services/{serviceId}/features')->group(function () {
+    Route::get('/', [MediaServiceFeaturesController::class, 'index']);
+    Route::get('/{id}', [MediaServiceFeaturesController::class, 'show']);
+    Route::post('/', [MediaServiceFeaturesController::class, 'store']);
+    Route::put('/{id}', [MediaServiceFeaturesController::class, 'update']);
+    Route::delete('/{id}', [MediaServiceFeaturesController::class, 'destroy']);
+    Route::put('/{id}/order', [MediaServiceFeaturesController::class, 'updateOrder']);
+    Route::put('/{id}/move-up', [MediaServiceFeaturesController::class, 'moveUp']);
+    Route::put('/{id}/move-down', [MediaServiceFeaturesController::class, 'moveDown']);
+    Route::put('/bulk-order', [MediaServiceFeaturesController::class, 'updateBulkOrder']);
+});
+
+// Маршруты для управления медиа файлами медиа услуг
+Route::prefix('media-services/{serviceId}/media')->group(function () {
+    Route::get('/', [MediaServiceMediaController::class, 'index']);
+    Route::post('/', [MediaServiceMediaController::class, 'store']);
+    Route::post('/{groupId}', [MediaServiceMediaController::class, 'update']); // POST для FormData с _method=PUT
+    Route::put('/{groupId}', [MediaServiceMediaController::class, 'update']);
+    Route::delete('/{groupId}', [MediaServiceMediaController::class, 'destroy']);
+    Route::post('/reorder', [MediaServiceMediaController::class, 'reorder']);
+});
+
+// Маршруты для управления отзывами медиа страницы
+Route::prefix('admin/media-testimonials')->group(function () {
+    Route::get('/', [MediaTestimonialsController::class, 'index']);
+    Route::post('/', [MediaTestimonialsController::class, 'store']);
+    Route::post('/reorder', [MediaTestimonialsController::class, 'reorder']);
+    Route::get('/{id}', [MediaTestimonialsController::class, 'show']);
+    Route::post('/{id}', [MediaTestimonialsController::class, 'update']); // POST для FormData с _method=PUT
+    Route::put('/{id}', [MediaTestimonialsController::class, 'update']);
+    Route::delete('/{id}', [MediaTestimonialsController::class, 'destroy']);
+});
+
+// Маршруты для управления шагами процесса медиа страницы
+Route::prefix('admin/media-process-steps')->group(function () {
+    Route::get('/', [MediaProcessStepsController::class, 'index']);
+    Route::post('/', [MediaProcessStepsController::class, 'store']);
+    Route::post('/reorder', [MediaProcessStepsController::class, 'reorder']);
+    Route::get('/{id}', [MediaProcessStepsController::class, 'show']);
+    Route::post('/{id}', [MediaProcessStepsController::class, 'update']); // POST для FormData с _method=PUT
+    Route::put('/{id}', [MediaProcessStepsController::class, 'update']);
+    Route::delete('/{id}', [MediaProcessStepsController::class, 'destroy']);
+});
+
+// Маршруты для SEO управления
+Route::prefix('seo')->group(function () {
+    // Глобальные SEO настройки
+    Route::get('/settings', [SEOController::class, 'getGlobalSettings']);
+    Route::post('/settings', [SEOController::class, 'updateGlobalSettings']);
+    
+    // SEO настройки страниц списков
+    Route::get('/pages', [SEOController::class, 'getPageSettings']);
+    Route::post('/pages/{pageType}', [SEOController::class, 'updatePageSettings']);
+    
+    // SEO для проектов
+    Route::get('/projects/{slug}', [SEOController::class, 'getProjectSeo']);
+    Route::post('/projects/{slug}', [SEOController::class, 'updateProjectSeo']);
+    
+    // SEO для блога
+    Route::get('/blog/{slug}', [SEOController::class, 'getBlogPostSeo']);
+    Route::post('/blog/{slug}', [SEOController::class, 'updateBlogPostSeo']);
+    
+    // Обзор всех SEO настроек
+    Route::get('/overview', [SEOController::class, 'getSeoOverview']);
+    
+    // Тестовый эндпоинт
+    Route::get('/test', [SEOController::class, 'test']);
+});
+
+// Image optimization routes
+Route::prefix('images')->group(function () {
+    Route::get('/optimize', [App\Http\Controllers\Api\ImageOptimizationController::class, 'optimize']);
+    Route::post('/clear-cache', [App\Http\Controllers\Api\ImageOptimizationController::class, 'clearCache']);
+    Route::get('/stats', [App\Http\Controllers\Api\ImageOptimizationController::class, 'getStats']);
+});
+
+// SEO метаданные для проектов
+Route::get('/projects/{slug}/seo', [ProjectController::class, 'getSEOMetadata']);
+Route::post('/projects/{slug}/seo', [ProjectController::class, 'updateSEOMetadata']);
+
+// SEO метаданные для постов блога
+Route::get('/blog-posts/{slug}/seo', [BlogPostController::class, 'getSEOMetadata']);
+Route::post('/blog-posts/{slug}/seo', [BlogPostController::class, 'updateSEOMetadata']);
+
+// Публичный API для медиа страницы
+Route::get('/public/media-page', [MediaPagePublicController::class, 'index']);
+Route::post('/public/media-page/refresh-cache', [MediaPagePublicController::class, 'refreshCache']);
+
+// Маршруты для контактной формы
+Route::prefix('contact')->middleware(['throttle:10,1'])->group(function () {
+    Route::post('/send', [ContactController::class, 'sendContactEmail'])->name('contact.send');
+    Route::post('/project', [ContactController::class, 'sendProjectInquiry'])->name('contact.project');
 });

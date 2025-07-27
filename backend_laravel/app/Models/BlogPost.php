@@ -16,6 +16,10 @@ class BlogPost extends Model
         'title',
         'description',
         'slug', // Добавили slug в fillable
+        'sort_order', // Добавили sort_order в fillable
+        'seo_title',
+        'seo_description',
+        'seo_image',
     ];
 
     public function blocks()

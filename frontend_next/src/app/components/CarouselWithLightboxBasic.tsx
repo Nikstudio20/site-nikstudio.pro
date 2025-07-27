@@ -43,6 +43,10 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
   const lightboxNextRef = useRef<HTMLButtonElement>(null)
   const slideChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Состояние для обработки свайпа вверх
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null)
+  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null)
+
   // Функция для открытия лайтбокса с определенным слайдом
   const handleOpen = (slideIndex: number) => {
     setSelectedSlideIndex(slideIndex)
@@ -238,6 +242,34 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
     setEnlargedMediaSrc(null) // Сбрасываем увеличенное изображение
   }
 
+  // Обработчики для свайпа вверх
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null) // Сбрасываем предыдущее значение
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    })
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    })
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+    
+    const distanceX = touchStart.x - touchEnd.x
+    const distanceY = touchStart.y - touchEnd.y
+    const isUpSwipe = distanceY > 50 && Math.abs(distanceX) < Math.abs(distanceY)
+    
+    if (isUpSwipe) {
+      handleCloseLightbox()
+    }
+  }
+
   // Обработчик нажатия клавиши Escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -299,11 +331,11 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
           preventInteractionOnTransition={true}
           resistanceRatio={0.85}
         >
-          {images.map((slide, _slideIndex) => (
+          {images.filter(slide => slide.items && slide.items.length > 0).map((slide, _slideIndex) => (
             <SwiperSlide key={slide.id}>
               {slide.type === 'double' ? (
                 <div className="flex flex-row gap-[10px] sm:gap-6">
-                  {slide.items.map((media: MediaItem) => (
+                  {slide.items.filter(media => media.src && media.src.trim()).map((media: MediaItem) => (
                     <div
                       key={media.src}
                       className="w-full h-[200px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in active:cursor-grabbing"
@@ -365,7 +397,7 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
                     </div>
                   ))}
                 </div>
-              ) : (
+              ) : slide.items[0] && slide.items[0].src && slide.items[0].src.trim() ? (
                 <div
                   className="w-full h-[200px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in active:cursor-grabbing"
                   onClick={() => handleMediaClick(slide.items[0].src)}
@@ -424,7 +456,7 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
                     </>
                   )}
                 </div>
-              )}
+              ) : null}
             </SwiperSlide>
           ))}
         </Swiper>
@@ -467,7 +499,7 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
           role="tablist"
           aria-label="Навигация по слайдам"
         >
-          {images.map((_, index) => (
+          {images.filter(slide => slide.items && slide.items.length > 0).map((_, index) => (
             <button
               key={`dot-${index}`}
               onClick={() => handleDotClick(index)}
@@ -490,6 +522,9 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
         <div 
           className="fixed inset-0 bg-black/95 flex items-center justify-center z-50"
           style={{ userSelect: 'none' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Кнопка закрытия */}
           <button
@@ -526,14 +561,14 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
               watchSlidesProgress={false}
               resistanceRatio={0.85}
             >
-              {images.map((slide) => (
+              {images.filter(slide => slide.items && slide.items.length > 0).map((slide) => (
                 <SwiperSlide key={`lightbox-${slide.id}`} className="flex items-center justify-center" style={{ userSelect: 'none' }}>
                   {slide.type === 'double' ? (
                     <div 
                       className={`flex ${enlargedMediaSrc ? 'flex-col' : 'flex-row'} gap-4 w-full h-full items-center justify-center px-4 transition-all duration-300`} 
                       style={{ userSelect: 'none' }}
                     >
-                      {slide.items.map((media: MediaItem) => {
+                      {slide.items.filter(media => media.src && media.src.trim()).map((media: MediaItem) => {
                         const isEnlarged = enlargedMediaSrc === media.src
                         const isOtherEnlarged = enlargedMediaSrc && enlargedMediaSrc !== media.src
                         

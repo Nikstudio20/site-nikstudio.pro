@@ -1,8 +1,16 @@
-import Image from "next/image";
+"use client"
 
-export default function ServicesSection() {
+import Image from "next/image";
+import { useServiceVideo } from "@/hooks/useServiceVideo";
+
+interface ServicesSectionProps {
+  className?: string;
+}
+
+export default function ServicesSection({ className }: ServicesSectionProps) {
+  const { video: videoProductionVideo, loading: videoLoading } = useServiceVideo('video_production');
   return (
-    <section className="w-full bg-[#0E1011] flex flex-col mt-[28px] sm:mt-3">
+    <section className={`w-full bg-[#0E1011] flex flex-col mt-[28px] sm:mt-3 ${className || ''}`}>
       <div className="px-5 sm:px-12 lg:px-24 sm:py-24 flex flex-col gap-24">
         {/* Header */}
         <div className="flex flex-col gap-24">
@@ -10,23 +18,23 @@ export default function ServicesSection() {
             <h3 className="text-white/60 font-cabin font-medium text-[20px] sm:text-2xl lg:text-[32px]">услуги</h3>
             <span className="text-white/60 font-cabin font-medium text-[20px] sm:text-2xl lg:text-[32px]">(02)</span>
           </div>
-          
+
           <div className="flex flex-col gap-4 -mt-[58px] sm:-mt-3">
             <h2 className="text-white font-geometria font-extrabold sm:font-bold text-[60px] sm:text-6xl lg:text-[200px] xl:text-[280px] uppercase leading-none">
               медиа
             </h2>
-            
+
             <p className="mt-[25px] sm:mt-0 text-white font-inter font-medium sm:font-semibold text-[32px] sm:text-2xl lg:text-[80px] leading-[120%] sm:tracking-[-2px] max-w-[1400px] max-w-full-3xl">
               Создаём проекты комплексно и выполняем отдельные задачи
             </p>
           </div>
         </div>
       </div>
-      
+
       {/* Service Cards */}
       <div className="flex flex-col">
         {/* Card 1 */}
-        <div className="flex flex-col lg:flex-row">            
+        <div className="flex flex-col lg:flex-row">
           <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
             <div className="flex flex-col justify-between flex-1">
               <div className="flex flex-col gap-4">
@@ -55,21 +63,21 @@ export default function ServicesSection() {
             </div>
           </div>
           <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image 
-              src="/images/home/service-1.jpg" 
-              alt="Exhibition Solutions" 
+            <Image
+              src="/images/home/service-1.jpg"
+              alt="Exhibition Solutions"
               fill
               className="object-cover"
             />
           </div>
         </div>
-        
+
         {/* Card 2 */}
         <div className="flex flex-col lg:flex-row mt-[25px] sm:mt-0">
           <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image 
-              src="/images/home/service-2.jpg" 
-              alt="Branding and Strategy" 
+            <Image
+              src="/images/home/service-2.jpg"
+              alt="Branding and Strategy"
               fill
               className="object-cover"
             />
@@ -82,7 +90,7 @@ export default function ServicesSection() {
                   <br />брендинг
                 </h3>
                 <p className="w-full lg:w-[600px] 2xl:w-[800px] w-full-3xl h-[168px] font-inter text-[20px] sm:text-[40px] leading-[120%] sm:leading-[140%] tracking-[-1px] text-white font-semibold flex-none order-1">
-                  Разработка индивидуальной маркетинговой стратегии визуализации с учётом специфики вашей отрасли.<br />                    
+                  Разработка индивидуальной маркетинговой стратегии визуализации с учётом специфики вашей отрасли.<br />
                   Создание целостного визуального месседжа, дизайн-концепции, фирменного стиля, логотипа и брендинга.
                 </p>
               </div>
@@ -102,11 +110,11 @@ export default function ServicesSection() {
                 </div>
               </div>
             </div>
-          </div>            
+          </div>
         </div>
-        
+
         {/* Card 3 */}
-        <div className="flex flex-col lg:flex-row">            
+        <div className="flex flex-col lg:flex-row">
           <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
             <div className="flex flex-col justify-between flex-1">
               <div className="flex flex-col gap-4">
@@ -135,21 +143,21 @@ export default function ServicesSection() {
             </div>
           </div>
           <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image 
-              src="/images/home/service-3.jpg" 
-              alt="Print Design" 
+            <Image
+              src="/images/home/service-3.jpg"
+              alt="Print Design"
               fill
               className="object-cover"
             />
           </div>
         </div>
-        
+
         {/* Card 4 */}
         <div className="flex flex-col lg:flex-row mt-[25px] sm:mt-0">
           <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image 
-              src="/images/home/service-4.jpg" 
-              alt="Photography" 
+            <Image
+              src="/images/home/service-4.jpg"
+              alt="Photography"
               fill
               className="object-cover"
             />
@@ -180,11 +188,11 @@ export default function ServicesSection() {
                 </div>
               </div>
             </div>
-          </div>            
+          </div>
         </div>
-        
+
         {/* Card 5 */}
-        <div className="flex flex-col lg:flex-row">            
+        <div className="flex flex-col lg:flex-row">
           <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
             <div className="flex flex-col justify-between flex-1">
               <div className="flex flex-col gap-4">
@@ -213,21 +221,21 @@ export default function ServicesSection() {
             </div>
           </div>
           <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image 
-              src="/images/home/service-5.jpg" 
-              alt="3D Graphics" 
+            <Image
+              src="/images/home/service-5.jpg"
+              alt="3D Graphics"
               fill
               className="object-cover"
             />
           </div>
         </div>
-        
+
         {/* Card 6 */}
-        <div className="flex flex-col lg:flex-row mt-[25px] sm:mt-0">            
+        <div className="flex flex-col lg:flex-row mt-[25px] sm:mt-0">
           <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image 
-              src="/images/home/service-6.jpg" 
-              alt="Web Design" 
+            <Image
+              src="/images/home/service-6.jpg"
+              alt="Web Design"
               fill
               className="object-cover"
             />
@@ -258,11 +266,11 @@ export default function ServicesSection() {
                 </div>
               </div>
             </div>
-          </div>            
+          </div>
         </div>
-        
+
         {/* Card 7 */}
-        <div className="flex flex-col lg:flex-row">            
+        <div className="flex flex-col lg:flex-row">
           <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
             <div className="flex flex-col justify-between flex-1">
               <div className="flex flex-col gap-4">
@@ -292,12 +300,33 @@ export default function ServicesSection() {
             </div>
           </div>
           <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image 
-              src="/images/home/service-7.jpg" 
-              alt="Video Production" 
-              fill
-              className="object-cover"
-            />
+            {videoLoading ? (
+              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+              </div>
+            ) : videoProductionVideo?.video_url ? (
+              <video
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+              >
+                <source src={videoProductionVideo.video_url} type="video/mp4" />
+                Ваш браузер не поддерживает видео.
+              </video>
+            ) : (
+              <video
+                className="w-full h-full object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+              >
+                <source src="/video/Авиационный Буксировочный Комплекс Геркулес (АБК ГЕРКУЛЕС).mp4" type="video/mp4" />
+                Ваш браузер не поддерживает видео.
+              </video>
+            )}
           </div>
         </div>
       </div>

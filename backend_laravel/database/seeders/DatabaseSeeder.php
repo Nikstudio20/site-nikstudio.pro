@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             ProjectDetailSeeder::class,
+            HomeContentSeeder::class,
+            MediaPageSeeder::class,
         ]);
     }
 }

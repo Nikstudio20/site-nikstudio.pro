@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import FooterMobile from "@/components/Footer_mobile";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { StructuredDataScript } from "@/components/StructuredDataComponent";
+import { SEOMetadataGenerator } from "@/lib/seo-metadata";
 
 const inter = Inter({
   weight: ["400", "600"],
@@ -16,50 +18,55 @@ const inter = Inter({
 });
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  
   try {
-    const { slug } = await params;  // <-- await здесь
-    const post = await getBlogPost(slug);
+    // Fetch blog post data for SEO metadata
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/blog-posts/${slug}`, {
+      cache: 'no-store' // Ensure fresh data for SEO
+    });
 
-    return {
-      title: `${post.title} | NIK Studio - Блог`,
-      description: post.description,
-      keywords: ["NIK Studio", "дизайн", "UX дизайн", "продуманный дизайн", "пользовательский опыт"],
-      openGraph: {
-        title: `${post.title} | NIK Studio - Блог`,
-        description: post.description,
-        url: `https://nikstudio.com/blog/${slug}`,
-        siteName: "NIK Studio",
-        images: [
-          {
-            url: "https://nikstudio.com/images/blog-og.jpg",
-            width: 1200,
-            height: 630,
-            alt: "NIK Studio Blog Post",
-          },
-        ],
-        locale: "ru_RU",
-        type: "article",
-      },
-      twitter: {
-        card: "summary_large_image",
-        title: `${post.title} | NIK Studio - Блог`,
-        description: post.description,
-        images: ["https://nikstudio.com/images/blog-og.jpg"],
-      },
-      alternates: {
-        canonical: `https://nikstudio.com/blog/${slug}`
-      },
-      robots: {
-        index: true,
-        follow: true,
-      },
-    };
+    let blogPostData = null;
+    if (response.ok) {
+      const data: ApiResponse = await response.json();
+      if (data.status === 'success' && data.data) {
+        blogPostData = data.data;
+      }
+    }
+
+    // Fetch global SEO settings
+    const globalSettings = await SEOMetadataGenerator.fetchGlobalSettings();
+
+    // Generate metadata using the SEO system
+    return SEOMetadataGenerator.generateMetadata({
+      content: blogPostData ? {
+        title: blogPostData.title,
+        main_title: blogPostData.title,
+        description: blogPostData.description,
+        main_image: blogPostData.image,
+        seo_title: blogPostData.seo_title,
+        seo_description: blogPostData.seo_description,
+        seo_image: blogPostData.seo_image,
+        created_at: blogPostData.created_at,
+        updated_at: blogPostData.updated_at,
+        slug: blogPostData.slug
+      } : null,
+      globalSettings,
+      pageType: 'blog',
+      slug: slug
+    });
   } catch (error) {
-    console.error("Ошибка при генерации метаданных:", error);
-    return {
-      title: "Blog Post | NIK Studio",
-      description: "Blog post details",
-    };
+    console.error('Error generating blog metadata:', error);
+    
+    // Fallback to global settings
+    const globalSettings = await SEOMetadataGenerator.fetchGlobalSettings();
+    return SEOMetadataGenerator.generateMetadata({
+      content: null,
+      globalSettings,
+      pageType: 'blog',
+      slug: slug
+    });
   }
 }
 
@@ -77,6 +84,11 @@ interface BlogPost {
   description: string;
   blocks: BlogPostBlock[];
   slug?: string;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_image?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface BlogPosts {
@@ -161,17 +173,40 @@ async function getAllBlogPosts(): Promise<BlogPost[]> {
 // Сам компонент страницы, правильный тип props
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;  // <-- await и деструктуризация тут
+  const { slug } = await params;
 
   const post = await getBlogPost(slug);
   const allPosts = await getAllBlogPosts();
+  const globalSettings = await SEOMetadataGenerator.fetchGlobalSettings();
 
   const relatedPosts = allPosts.filter((relatedPost) => relatedPost.slug !== slug).slice(0, 3);
+
+  // Transform blog post data for SEO
+  const seoContent = {
+    seo_title: post.seo_title,
+    seo_description: post.seo_description,
+    seo_image: post.seo_image,
+    title: post.title,
+    main_title: post.title,
+    description: post.description,
+    main_image: post.image,
+    created_at: post.created_at,
+    updated_at: post.updated_at,
+    slug: post.slug
+  };
 
   return (
     <main
       className={`relative flex flex-col min-h-screen bg-[#0E1011] max-w-[2560px] w-full mx-auto ${inter.variable}`}
     >
+      {/* Structured Data */}
+      <StructuredDataScript
+        contentType="blog"
+        content={seoContent}
+        globalSettings={globalSettings}
+        slug={slug}
+      />
+
       {/* Header */}
       <Header_mobile />
       <div className="absolute top-0 right-0 w-full lg:w-1/2 z-10">

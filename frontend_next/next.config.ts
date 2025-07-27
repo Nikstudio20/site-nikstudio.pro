@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Image optimization configuration
   images: {
     remotePatterns: [
       // Localhost development
@@ -36,8 +37,148 @@ const nextConfig: NextConfig = {
         pathname: '/storage/**',
       }
     ],
+    // Enable modern image formats with fallbacks
+    formats: ['image/webp', 'image/avif'],
+    // Optimize for different device sizes
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  /* config options here */
+
+  // Compiler optimizations for cross-browser compatibility
+  compiler: {
+    // Remove console.log in production
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn']
+    } : false,
+  },
+
+
+
+  // Experimental features for better compatibility
+  experimental: {
+    // Enable modern bundling optimizations
+    optimizeCss: true,
+  },
+
+  // Webpack configuration for cross-browser compatibility
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Add polyfills for older browsers
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      };
+    }
+
+    // Optimize chunks for better browser caching
+    if (!dev && !isServer) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            // Separate polyfills into their own chunk
+            polyfills: {
+              name: 'polyfills',
+              test: /[\\/]node_modules[\\/](core-js|regenerator-runtime|whatwg-fetch)[\\/]/,
+              chunks: 'all',
+              priority: 10,
+            },
+            // Separate vendor libraries
+            vendor: {
+              name: 'vendor',
+              test: /[\\/]node_modules[\\/]/,
+              chunks: 'all',
+              priority: 5,
+            },
+            // Common components
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 1,
+            }
+          }
+        }
+      };
+    }
+
+    // Add webpack plugins for compatibility
+    config.plugins.push(
+      // Define environment variables for feature detection
+      new webpack.DefinePlugin({
+        'process.env.BROWSER_SUPPORT': JSON.stringify({
+          MODERN_BROWSERS: process.env.NODE_ENV === 'production',
+          LEGACY_SUPPORT: true,
+        })
+      })
+    );
+
+    return config;
+  },
+
+  // Headers for better browser compatibility
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          // Security headers
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          // Cache control for static assets
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      {
+        source: '/api/(.*)',
+        headers: [
+          // API-specific headers
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate'
+          }
+        ]
+      }
+    ];
+  },
+
+  // Redirects for better SEO and compatibility
+  async redirects() {
+    return [
+      // Add any necessary redirects here
+    ];
+  },
+
+  // Environment variables
+  env: {
+    BROWSER_SUPPORT_LEVEL: process.env.NODE_ENV === 'production' ? 'modern' : 'legacy',
+  },
+
+  // Output configuration
+  output: 'standalone',
+  
+  // Enable source maps in development for debugging
+  productionBrowserSourceMaps: false,
+  
+  // Optimize for different deployment targets
+  target: 'server',
 };
 
 export default nextConfig;

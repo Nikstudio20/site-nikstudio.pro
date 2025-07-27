@@ -25,6 +25,9 @@ import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+// import SEOEditor, { SEOData } from "@/components/SEOEditor"
+import { SEOData } from "@/components/SEOEditor";
+import { SEOSettings } from "@/lib/seo-metadata";
 
 const ClickableCell = ({ children, slug }: { children: React.ReactNode; slug: string }) => {
   const router = useRouter();
@@ -60,6 +63,9 @@ export interface Project {
   projects_page_image?: string | null;
   logo?: string | null;
   slug: string;
+  seo_title?: string;
+  seo_description?: string;
+  seo_image?: string;
 }
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
@@ -80,10 +86,19 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [projectsPageImage, setProjectsPageImage] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
+  
+  // SEO states
+  const [seoData, setSeoData] = useState<SEOData>({
+    seo_title: project.seo_title,
+    seo_description: project.seo_description,
+    seo_image: project.seo_image
+  });
+  const [_globalSettings, _setGlobalSettings] = useState<SEOSettings | null>(null);
 
   useEffect(() => {
     if (open) {
       fetchCategories();
+      fetchGlobalSEOSettings();
     }
   }, [open]);
 
@@ -102,9 +117,90 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
     }
   };
 
-  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<File | null>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setter(e.target.files[0]);
+  const fetchGlobalSEOSettings = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/seo/settings`, { 
+        cache: 'no-cache', // Используем no-cache вместо no-store для админки
+        headers: { 'Accept': 'application/json' } 
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      _setGlobalSettings(data.data || null);
+    } catch (error) {
+      console.error('Error fetching SEO settings:', error);
+    }
+  };
+
+  // SEO image upload handler
+  const _handleSEOImageUpload = async (file: File): Promise<string> => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch(`${API_BASE_URL}/seo/upload-image`, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include',
+        mode: 'cors',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success && result.data?.url) {
+        return result.data.url;
+      } else {
+        throw new Error(result.message || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('SEO image upload error:', error);
+      throw error;
+    }
+  };
+
+  // Handle SEO data save
+  const _handleSEOSave = (newSeoData: SEOData) => {
+    setSeoData(newSeoData);
+    toast("SEO данные обновлены");
+  };
+
+  const validateFileSize = (file: File): boolean => {
+    const maxSize = 2 * 1024 * 1024; // 2MB для изображений
+    return file.size <= maxSize;
+  };
+
+  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<File | null>>, isLogo: boolean = false) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.size > 0) {
+      // Проверяем размер файла
+      if (!validateFileSize(file)) {
+        toast("Размер файла не должен превышать 2 МБ");
+        e.target.value = ''; // Очищаем input
+        setter(null);
+        return;
+      }
+      
+      // Проверяем тип файла - для логотипа разрешаем SVG
+      const allowedTypes = isLogo 
+        ? ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml']
+        : ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      
+      if (!allowedTypes.includes(file.type)) {
+        const formats = isLogo ? "JPG, PNG, WEBP, SVG" : "JPG, PNG, WEBP";
+        toast(`Разрешены только файлы форматов: ${formats}`);
+        e.target.value = ''; // Очищаем input
+        setter(null);
+        return;
+      }
+      
+      setter(file);
+      console.log(`File selected: ${file.name}, size: ${file.size} bytes`);
+    } else {
+      setter(null);
+      console.log('No file selected or file is empty');
     }
   };
 
@@ -148,9 +244,20 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
       });
       formData.append("_method", "PUT");
 
-      if (mainImage) formData.append("main_image", mainImage);
-      if (projectsPageImage) formData.append("projects_page_image", projectsPageImage);
-      if (logo) formData.append("logo", logo);
+      if (mainImage && mainImage.size > 0) formData.append("main_image", mainImage);
+      if (projectsPageImage && projectsPageImage.size > 0) formData.append("projects_page_image", projectsPageImage);
+      if (logo && logo.size > 0) formData.append("logo", logo);
+
+      // Add SEO data
+      if (seoData.seo_title) {
+        formData.append("seo_title", seoData.seo_title);
+      }
+      if (seoData.seo_description) {
+        formData.append("seo_description", seoData.seo_description);
+      }
+      if (seoData.seo_image) {
+        formData.append("seo_image", seoData.seo_image);
+      }
 
       const response = await fetch(`${API_BASE_URL}/projects/${project.id}`, {
         method: "POST",
@@ -161,6 +268,11 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
       });
 
       if (!response.ok) {
+        // Специальная обработка ошибки размера файла
+        if (response.status === 413) {
+          throw new Error("Размер файла превышает допустимый лимит (2 МБ для изображений)");
+        }
+        
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
           const errorData = await response.json();
@@ -178,7 +290,10 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
 
       toast("Проект успешно обновлен");
       setOpen(false);
-      window.location.reload();
+      // Автоматическое закрытие уведомления через 3 секунды
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
     } catch (error) {
       toast(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
     } finally {
@@ -248,9 +363,16 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
               <Input
                 id="main_image"
                 type="file"
-                onChange={handleFileChange(setMainImage)}
+                accept=".jpg,.jpeg,.png,.webp,.svg"
+                onChange={handleFileChange(setMainImage, false)}
                 className="mt-2"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Максимальный размер: 2 МБ. Форматы: JPG, PNG, WEBP, SVG
+              </p>
+              {mainImage && (
+                <p className="text-xs text-green-600 mt-1">Выбран файл: {mainImage.name}</p>
+              )}
               {project.main_image && (
                 <div className="mt-2">
                   <p className="text-xs text-gray-500">Текущее изображение:</p>
@@ -269,9 +391,16 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
               <Input
                 id="projects_page_image"
                 type="file"
-                onChange={handleFileChange(setProjectsPageImage)}
+                accept=".jpg,.jpeg,.png,.webp,.svg"
+                onChange={handleFileChange(setProjectsPageImage, false)}
                 className="mt-2"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Максимальный размер: 2 МБ. Форматы: JPG, PNG, WEBP, SVG
+              </p>
+              {projectsPageImage && (
+                <p className="text-xs text-green-600 mt-1">Выбран файл: {projectsPageImage.name}</p>
+              )}
               {project.projects_page_image && (
                 <div className="mt-2">
                   <p className="text-xs text-gray-500">Текущее изображение:</p>
@@ -290,9 +419,16 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
               <Input
                 id="logo"
                 type="file"
-                onChange={handleFileChange(setLogo)}
+                accept=".jpg,.jpeg,.png,.webp,.svg"
+                onChange={handleFileChange(setLogo, true)}
                 className="mt-2"
               />
+              <p className="text-sm text-muted-foreground mt-1">
+                Максимальный размер: 2 МБ. Форматы: JPG, PNG, WEBP, SVG
+              </p>
+              {logo && (
+                <p className="text-xs text-green-600 mt-1">Выбран файл: {logo.name}</p>
+              )}
               {project.logo && (
                 <div className="mt-2">
                   <p className="text-xs text-gray-500">Текущий логотип:</p>
@@ -305,7 +441,9 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
                   />
                 </div>
               )}
-            </div>
+            </div>           
+           
+            
             <Button type="submit" disabled={isLoading} className="hover:cursor-pointer">
               {isLoading ? "Обновление..." : "Обновить проект"}
             </Button>

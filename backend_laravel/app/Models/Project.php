@@ -18,6 +18,9 @@ class Project extends Model
         'projects_page_title',
         'year',
         'slug',
+        'seo_title',
+        'seo_description',
+        'seo_image',
     ];
 
     // Связь многие ко многим с категориями

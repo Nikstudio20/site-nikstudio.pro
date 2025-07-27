@@ -7,83 +7,68 @@ inclusion: always
 ## TypeScript/React Standards
 
 ### Component Structure
-- Use functional components with hooks
-- Implement proper TypeScript interfaces for all props and state
-- Use descriptive component and variable names
-- Keep components focused on single responsibilities
+- Functional components with hooks only
+- TypeScript interfaces for all props/state at file top
+- Single responsibility principle per component
+- Descriptive semantic naming conventions
 
-### State Management
-- Use React hooks (useState, useEffect, etc.) for local state
-- Implement proper error handling with try-catch blocks
-- Use loading states for async operations
-- Clear success/error messages after timeout (typically 3 seconds)
+### State Management & Error Handling
+- React hooks (useState, useEffect) for local state
+- Try-catch blocks for ALL async operations
+- Loading states during API calls
+- Auto-dismiss messages after exactly 3 seconds
+- Proper useEffect dependency arrays
 
-### File Upload Patterns
+### File Upload Implementation
 ```typescript
-// File validation helper functions
-const validateFileSize = (file: File, fileType: 'image' | 'video'): boolean => {
-  const maxSize = fileType === 'image' ? 2 * 1024 * 1024 : 50 * 1024 * 1024; // 2MB for images, 50MB for videos
+const validateFileSize = (file: File, type: 'image' | 'video'): boolean => {
+  const maxSize = type === 'image' ? 2 * 1024 * 1024 : 50 * 1024 * 1024;
   return file.size <= maxSize;
 };
 
-const getFileSizeLimit = (fileType: 'image' | 'video'): string => {
-  return fileType === 'image' ? '2 MB' : '50 MB';
-};
-
-const formatFileSize = (bytes: number): string => {
-  return bytes < 1024 * 1024 
-    ? `${(bytes / 1024).toFixed(1)} KB`
-    : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
+// ALWAYS use FormData for uploads
+const formData = new FormData();
+formData.append('file', file);
+if (posterFile) formData.append('poster', posterFile);
 ```
 
 ### API Communication
-- Use FormData for file uploads
-- Implement proper error handling for HTTP responses
-- Check for specific status codes (413 for file size limits)
-- Normalize file paths in responses
+- FormData for all file uploads
+- Handle HTTP 413 specifically for file size errors
+- Remove `/storage/` prefix from file paths in responses
+- Poster images REQUIRED for all videos
+- Consistent error response handling with field-specific messages
 
-### Form Handling
-- Validate required fields before submission
-- Show specific error messages for validation failures
-- Reset form state after successful operations
-- Handle file selection with proper state management
+## Laravel/PHP Standards
 
-## PHP/Laravel Standards
+### API Controllers
+- Consistent JSON response format with success/data/message structure
+- HTTP status codes: 200/201 (success), 413 (file size), 422 (validation), 500 (error)
+- Laravel validation rules with server-side file validation
+- Storage facade for file operations
 
-### Model Conventions
-- Use Eloquent relationships properly
-- Implement proper model factories and seeders
-- Follow Laravel naming conventions for models and relationships
+### Models & Storage
+- Laravel naming conventions (singular models)
+- Eloquent relationships and ORM patterns
+- Fillable/guarded properties
+- Normalized file paths in API responses (no `/storage/` prefix)
 
-### API Controller Patterns
-- Return consistent JSON response format
-- Use proper HTTP status codes
-- Implement proper validation rules
-- Handle file uploads with Laravel's storage system
+## Critical Media Constraints
 
-### File Storage
-- Use Laravel's storage facade for file operations
-- Implement proper file validation
-- Return normalized file paths in API responses
-- Handle different file types (images, videos) appropriately
+### File Limits (STRICTLY ENFORCED)
+- **Images**: 2MB max, jpg/png/webp formats only
+- **Videos**: 50MB max, mp4/webm formats only, poster image REQUIRED
+- **Validation**: MUST implement both client-side AND server-side validation
 
-## General Principles
+### UI/UX Requirements
+- ALL user-facing text MUST be in Russian
+- Loading states for ALL async operations
+- Field-specific validation error messages
+- Disabled submit buttons during processing
+- Auto-dismiss notifications after exactly 3 seconds
 
-### Error Handling
-- Provide user-friendly error messages
-- Log detailed errors for debugging
-- Handle edge cases gracefully
-- Validate input on both client and server sides
-
-### Performance
-- Optimize file upload sizes
-- Use appropriate image/video compression
-- Implement proper loading states
-- Cache frequently accessed data
-
-### Security
-- Validate file types and sizes
-- Sanitize user inputs
-- Use proper authentication for admin routes
-- Implement CSRF protection
+### Security & Performance
+- File type and size validation on both ends
+- Input sanitization and CSRF protection
+- Authentication for admin routes
+- Skeleton loaders for content loading states

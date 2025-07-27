@@ -20,7 +20,8 @@ class BlogPostController extends Controller
     public function index(): JsonResponse
     {
         $posts = BlogPost::with('blocks')
-            ->latest()
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function($post) {
                 return [
@@ -29,10 +30,14 @@ class BlogPostController extends Controller
                     'description' => $post->description,
                     'image' => $post->image,
                     'position' => $post->position,
+                    'sort_order' => $post->sort_order,
                     'created_at' => $post->created_at ? $post->created_at->format('Y-m-d H:i:s') : null,
                     'updated_at' => $post->updated_at ? $post->updated_at->format('Y-m-d H:i:s') : null,
                     'slug' => $post->slug,
                     'status' => $post->status,
+                    'seo_title' => $post->seo_title,
+                    'seo_description' => $post->seo_description,
+                    'seo_image' => $post->seo_image,
                 ];
             });
 
@@ -61,10 +66,14 @@ class BlogPostController extends Controller
                 'description' => $post->description,
                 'image' => $post->image,
                 'position' => $post->position,
+                'sort_order' => $post->sort_order,
                 'created_at' => $post->created_at?->format('Y-m-d H:i:s'),
                 'updated_at' => $post->updated_at?->format('Y-m-d H:i:s'),
                 'slug' => $post->slug,
                 'status' => $post->status,
+                'seo_title' => $post->seo_title,
+                'seo_description' => $post->seo_description,
+                'seo_image' => $post->seo_image,
                 'blocks' => $post->blocks,
             ],
         ]);
@@ -107,7 +116,8 @@ class BlogPostController extends Controller
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
                 'position' => 'required|string|max:255',
-                'image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'sort_order' => 'nullable|integer|min:0',
+                'image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -167,6 +177,7 @@ class BlogPostController extends Controller
                 'title' => $request->input('title'),
                 'description' => $request->input('description'),
                 'position' => $request->input('position'),
+                'sort_order' => $request->input('sort_order', 0),
                 'image' => $imagePath,
             ]);
 
@@ -184,9 +195,13 @@ class BlogPostController extends Controller
                     'description' => $post->description,
                     'image' => $post->image,
                     'position' => $post->position,
+                    'sort_order' => $post->sort_order,
                     'created_at' => $post->created_at?->format('Y-m-d H:i:s'),
                     'updated_at' => $post->updated_at?->format('Y-m-d H:i:s'),
                     'slug' => $post->slug,
+                    'seo_title' => $post->seo_title,
+                    'seo_description' => $post->seo_description,
+                    'seo_image' => $post->seo_image,
                 ],
             ], 201);
         } catch (\Exception $e) {
@@ -257,7 +272,8 @@ class BlogPostController extends Controller
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'sometimes|required|string',
                 'position' => 'sometimes|required|string|max:255',
-                'image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'sort_order' => 'nullable|integer|min:0',
+                'image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -283,6 +299,10 @@ class BlogPostController extends Controller
             
             if ($request->has('position')) {
                 $post->position = $request->input('position');
+            }
+            
+            if ($request->has('sort_order')) {
+                $post->sort_order = $request->input('sort_order');
             }
 
             // Обработка загрузки нового изображения
@@ -351,9 +371,13 @@ class BlogPostController extends Controller
                     'description' => $post->description,
                     'image' => $post->image,
                     'position' => $post->position,
+                    'sort_order' => $post->sort_order,
                     'created_at' => $post->created_at?->format('Y-m-d H:i:s'),
                     'updated_at' => $post->updated_at?->format('Y-m-d H:i:s'),
                     'slug' => $post->slug,
+                    'seo_title' => $post->seo_title,
+                    'seo_description' => $post->seo_description,
+                    'seo_image' => $post->seo_image,
                 ],
             ]);
         } catch (\Exception $e) {
@@ -493,6 +517,161 @@ class BlogPostController extends Controller
                     'line' => $e->getLine(),
                     'class' => get_class($e),
                 ] : null,
+            ], 500);
+        }
+    }
+
+    /**
+     * Update SEO metadata for a blog post
+     *
+     * @param Request $request
+     * @param string $slug
+     * @return JsonResponse
+     */
+    public function updateSEOMetadata(Request $request, string $slug): JsonResponse
+    {
+        Log::info('Запрос на обновление SEO метаданных поста блога', [
+            'slug' => $slug,
+            'data' => $request->except(['seo_image'])
+        ]);
+
+        $post = BlogPost::where('slug', $slug)->first();
+        
+        if (!$post) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Пост не найден'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'seo_title' => 'nullable|string|max:60',
+            'seo_description' => 'nullable|string|max:160',
+            'seo_image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка валидации',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $data = $request->only(['seo_title', 'seo_description']);
+
+            // Handle SEO image upload
+            if ($request->hasFile('seo_image')) {
+                // Delete old SEO image if exists
+                if ($post->seo_image) {
+                    $oldImagePath = str_replace('/storage/', '', $post->seo_image);
+                    if (Storage::disk('public')->exists($oldImagePath)) {
+                        Storage::disk('public')->delete($oldImagePath);
+                        Log::info('Старое SEO изображение поста удалено: ' . $oldImagePath);
+                    }
+                }
+
+                $path = $request->file('seo_image')->store('blog/seo', 'public');
+                $data['seo_image'] = '/storage/' . $path;
+                Log::info('Новое SEO изображение поста загружено: ' . $path);
+            }
+
+            $post->update($data);
+
+            Log::info('SEO метаданные поста блога успешно обновлены', [
+                'post_id' => $post->id,
+                'updated_data' => $data
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'SEO метаданные поста успешно обновлены',
+                'data' => [
+                    'seo_title' => $post->seo_title,
+                    'seo_description' => $post->seo_description,
+                    'seo_image' => $post->seo_image,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Ошибка при обновлении SEO метаданных поста: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка сервера при обновлении SEO метаданных'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get SEO metadata for a blog post
+     *
+     * @param string $slug
+     * @return JsonResponse
+     */
+    public function getSEOMetadata(string $slug): JsonResponse
+    {
+        $post = BlogPost::where('slug', $slug)->first();
+        
+        if (!$post) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Пост не найден'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'seo_title' => $post->seo_title,
+                'seo_description' => $post->seo_description,
+                'seo_image' => $post->seo_image,
+            ]
+        ]);
+    }
+
+    /**
+     * Update sort order for a blog post
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function updateSortOrder(Request $request, int $id): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'sort_order' => 'required|integer|min:0'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Ошибка валидации',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $post = BlogPost::findOrFail($id);
+            $post->sort_order = $request->sort_order;
+            $post->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Порядок поста успешно обновлен',
+                'data' => $post
+            ]);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Пост не найден'
+            ], 404);
+
+        } catch (\Exception $e) {
+            Log::error('Ошибка при обновлении порядка поста: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Произошла ошибка при обновлении порядка'
             ], 500);
         }
     }

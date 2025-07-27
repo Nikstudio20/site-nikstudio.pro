@@ -1,6 +1,9 @@
 "use client"
 
 import { useState, FormEvent, useEffect } from "react"
+
+// Принудительно делаем страницу динамической для продакшн сборки
+export const dynamic = 'force-dynamic'
 import { columns as getColumns, Project } from "./columns"
 import { DataTable } from "./data-table"
 import { Button } from "@/components/ui/button"
@@ -16,6 +19,9 @@ import {
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
+// import SEOEditor, { SEOData } from "@/components/SEOEditor"
+import { SEOData } from "@/components/SEOEditor"
+import { SEOSettings } from "@/lib/seo-metadata"
 
 interface ApiResponse {
   status: string;
@@ -44,18 +50,18 @@ interface CategoriesResponse {
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 function getImageUrl(imagePath: string | null): string {
-    if (!imagePath) return '';
-    if (imagePath.startsWith('http')) return imagePath;
-    if (imagePath.startsWith('/images/')) return imagePath;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (imagePath.startsWith('/storage/')) {
-      return `${apiUrl}${imagePath}`;
-    } else if (imagePath.startsWith('projects')) {
-      return `${apiUrl}/storage/${imagePath}`;
-    } else {
-      return `${apiUrl}/storage/projects/${imagePath}`;
-    }
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http')) return imagePath;
+  if (imagePath.startsWith('/images/')) return imagePath;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (imagePath.startsWith('/storage/')) {
+    return `${apiUrl}${imagePath}`;
+  } else if (imagePath.startsWith('projects')) {
+    return `${apiUrl}/storage/${imagePath}`;
+  } else {
+    return `${apiUrl}/storage/projects/${imagePath}`;
   }
+}
 
 async function getData(): Promise<Project[]> {
   try {
@@ -77,9 +83,9 @@ async function getData(): Promise<Project[]> {
 
 async function getCategories(): Promise<ProjectCategory[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/project-categories`, { 
-      cache: 'no-store', 
-      headers: { 'Accept': 'application/json' } 
+    const res = await fetch(`${API_BASE_URL}/project-categories`, {
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
     });
     if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
     const data: CategoriesResponse = await res.json();
@@ -87,6 +93,21 @@ async function getCategories(): Promise<ProjectCategory[]> {
   } catch (error) {
     console.error('Error fetching categories:', error);
     return [];
+  }
+}
+
+async function getGlobalSEOSettings(): Promise<SEOSettings | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/seo/settings`, {
+      cache: 'no-cache', // Используем no-cache вместо no-store для админки
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data || null;
+  } catch (error) {
+    console.error('Error fetching SEO settings:', error);
+    return null;
   }
 }
 
@@ -106,9 +127,14 @@ export default function AdminProjectsPageWrapper() {
   const [projectsPageImage, setProjectsPageImage] = useState<File | null>(null);
   const [logo, setLogo] = useState<File | null>(null);
 
+  // SEO states
+  const [seoData, setSeoData] = useState<SEOData>({});
+  const [_globalSettings, _setGlobalSettings] = useState<SEOSettings | null>(null);
+
   useEffect(() => {
     getData().then(setProjects);
     getCategories().then(setCategories);
+    getGlobalSEOSettings().then(_setGlobalSettings);
     checkApiConnection();
   }, []);
 
@@ -139,6 +165,7 @@ export default function AdminProjectsPageWrapper() {
     setMainImage(null);
     setProjectsPageImage(null);
     setLogo(null);
+    setSeoData({}); // Reset SEO data
 
     const fileInputs = document.querySelectorAll('input[type="file"]') as NodeListOf<HTMLInputElement>;
     fileInputs.forEach(input => {
@@ -183,10 +210,21 @@ export default function AdminProjectsPageWrapper() {
       // Обязательные изображения
       formData.append("main_image", mainImage);
       formData.append("projects_page_image", projectsPageImage);
-      
+
       // Логотип остается необязательным
       if (logo && logo.size > 0) {
         formData.append("logo", logo);
+      }
+
+      // Add SEO data
+      if (seoData.seo_title) {
+        formData.append("seo_title", seoData.seo_title);
+      }
+      if (seoData.seo_description) {
+        formData.append("seo_description", seoData.seo_description);
+      }
+      if (seoData.seo_image) {
+        formData.append("seo_image", seoData.seo_image);
       }
 
       const response = await fetch(`${API_BASE_URL}/projects`, {
@@ -198,6 +236,11 @@ export default function AdminProjectsPageWrapper() {
       });
 
       if (!response.ok) {
+        // Специальная обработка ошибки размера файла
+        if (response.status === 413) {
+          throw new Error("Размер файла превышает допустимый лимит (2 МБ для изображений)");
+        }
+
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.includes("application/json")) {
           const errorData = await response.json();
@@ -208,7 +251,7 @@ export default function AdminProjectsPageWrapper() {
             throw new Error(`Ошибки валидации: ${validationErrors}`);
           }
           throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
-        } else {          
+        } else {
           throw new Error(`Ошибка сервера: ${response.status} - ${response.statusText}`);
         }
       }
@@ -220,6 +263,10 @@ export default function AdminProjectsPageWrapper() {
         setOpen(false);
         resetForm();
         toast("Проект успешно создан");
+        // Автоматическое закрытие уведомления через 3 секунды
+        setTimeout(() => {
+          // Уведомление автоматически закроется
+        }, 3000);
       } else {
         toast(`Ошибка: ${result?.message || "Не удалось создать проект - неизвестная ошибка"}`);
       }
@@ -236,17 +283,78 @@ export default function AdminProjectsPageWrapper() {
     setCategoryIds(selectedOptions);
   };
 
+  const validateFileSize = (file: File): boolean => {
+    const maxSize = 2 * 1024 * 1024; // 2MB для изображений
+    return file.size <= maxSize;
+  };
+
   // ИСПРАВЛЕНИЕ: Улучшенная функция обработки файлов
-  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<File | null>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<File | null>>, isLogo: boolean = false) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.size > 0) {
-      // Проверяем, что файл действительно выбран и имеет размер
+      // Проверяем размер файла
+      if (!validateFileSize(file)) {
+        toast("Размер файла не должен превышать 2 МБ");
+        e.target.value = ''; // Очищаем input
+        setter(null);
+        return;
+      }
+
+      // Проверяем тип файла - для логотипа разрешаем SVG
+      const allowedTypes = isLogo
+        ? ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml']
+        : ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+      if (!allowedTypes.includes(file.type)) {
+        const formats = isLogo ? "JPG, PNG, WEBP, SVG" : "JPG, PNG, WEBP";
+        toast(`Разрешены только файлы форматов: ${formats}`);
+        e.target.value = ''; // Очищаем input
+        setter(null);
+        return;
+      }
+
       setter(file);
       console.log(`File selected: ${file.name}, size: ${file.size} bytes`);
     } else {
       setter(null);
       console.log('No file selected or file is empty');
     }
+  };
+
+  // SEO image upload handler
+  const _handleSEOImageUpload = async (file: File): Promise<string> => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(`${API_BASE_URL}/seo/upload-image`, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include',
+        mode: 'cors',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success && result.data?.url) {
+        return result.data.url;
+      } else {
+        throw new Error(result.message || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('SEO image upload error:', error);
+      throw error;
+    }
+  };
+
+  // Handle SEO data save
+  const _handleSEOSave = (newSeoData: SEOData) => {
+    setSeoData(newSeoData);
+    toast("SEO данные обновлены");
   };
 
   return (
@@ -307,48 +415,58 @@ export default function AdminProjectsPageWrapper() {
               </div>
               <div>
                 <Label htmlFor="main_image">Основное изображение *</Label>
-                <Input 
-                  id="main_image" 
-                  type="file" 
-                  name="main_image" 
-                  accept="image/*"
-                  onChange={handleFileChange(setMainImage)} 
-                  className="mt-2" 
+                <Input
+                  id="main_image"
+                  type="file"
+                  name="main_image"
+                  accept=".jpg,.jpeg,.png,.webp,.svg"
+                  onChange={handleFileChange(setMainImage, false)}
+                  className="mt-2"
                   required
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Максимальный размер: 2 МБ. Форматы: JPG, PNG, WEBP, SVG
+                </p>
                 {mainImage && (
-                  <p className="text-xs text-gray-500 mt-1">Выбран файл: {mainImage.name}</p>
+                  <p className="text-xs text-green-600 mt-1">Выбран файл: {mainImage.name}</p>
                 )}
               </div>
               <div>
                 <Label htmlFor="projects_page_image">Изображение на странице проектов *</Label>
-                <Input 
-                  id="projects_page_image" 
-                  type="file" 
-                  name="projects_page_image" 
-                  accept="image/*"
-                  onChange={handleFileChange(setProjectsPageImage)} 
-                  className="mt-2" 
+                <Input
+                  id="projects_page_image"
+                  type="file"
+                  name="projects_page_image"
+                  accept=".jpg,.jpeg,.png,.webp,.svg"
+                  onChange={handleFileChange(setProjectsPageImage, false)}
+                  className="mt-2"
                   required
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Максимальный размер: 2 МБ. Форматы: JPG, PNG, WEBP, SVG
+                </p>
                 {projectsPageImage && (
-                  <p className="text-xs text-gray-500 mt-1">Выбран файл: {projectsPageImage.name}</p>
+                  <p className="text-xs text-green-600 mt-1">Выбран файл: {projectsPageImage.name}</p>
                 )}
               </div>
               <div>
                 <Label htmlFor="logo">Логотип</Label>
-                <Input 
-                  id="logo" 
-                  type="file" 
-                  name="logo" 
-                  accept="image/*"
-                  onChange={handleFileChange(setLogo)} 
-                  className="mt-2" 
+                <Input
+                  id="logo"
+                  type="file"
+                  name="logo"
+                  accept=".jpg,.jpeg,.png,.webp,.svg"
+                  onChange={handleFileChange(setLogo, true)}
+                  className="mt-2"
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Максимальный размер: 2 МБ. Форматы: JPG, PNG, WEBP, SVG
+                </p>
                 {logo && (
-                  <p className="text-xs text-gray-500 mt-1">Выбран файл: {logo.name}</p>
+                  <p className="text-xs text-green-600 mt-1">Выбран файл: {logo.name}</p>
                 )}
               </div>
+
               <Button type="submit" disabled={isLoading} className="hover:cursor-pointer mt-2">
                 {isLoading ? "Создание..." : "Создать проект"}
               </Button>

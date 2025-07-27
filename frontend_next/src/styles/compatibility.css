@@ -1,0 +1,298 @@
+/**
+ * CSS Compatibility Layer
+ * Provides fallbacks and compatibility fixes for cross-browser support
+ */
+
+/* CSS Custom Properties Fallbacks */
+.compat-button {
+  /* Fallback values for older browsers */
+  background-color: #3b82f6;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  
+  /* Modern values using custom properties */
+  background-color: var(--color-primary, #3b82f6);
+  color: var(--color-text-inverse, #ffffff);
+  padding: var(--spacing-sm, 0.5rem) var(--spacing-md, 1rem);
+  border-radius: var(--border-radius-md, 0.25rem);
+  transition: var(--transition-fast, 150ms ease-in-out);
+}
+
+.compat-button:hover {
+  background-color: #2563eb;
+  background-color: var(--color-primary-hover, #2563eb);
+}
+
+/* CSS Grid Fallbacks using Flexbox */
+.compat-grid {
+  /* Flexbox fallback */
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  margin: -0.5rem;
+}
+
+/* Modern CSS Grid (will override flexbox in supporting browsers) */
+@supports (display: grid) {
+  .compat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 0;
+  }
+}
+
+.compat-grid-item {
+  /* Flexbox fallback */
+  -webkit-box-flex: 1;
+  -ms-flex: 1 1 250px;
+  flex: 1 1 250px;
+  padding: 0.5rem;
+  min-width: 250px;
+}
+
+@supports (display: grid) {
+  .compat-grid-item {
+    flex: none;
+    padding: 0;
+    min-width: auto;
+  }
+}
+
+/* Flexbox Compatibility */
+.compat-flex {
+  /* Old flexbox syntax */
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  
+  /* Flex direction */
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: row;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  
+  /* Alignment */
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+  
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+}
+
+.compat-flex-column {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+}
+
+.compat-flex-center {
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+/* Transform Compatibility */
+.compat-transform {
+  /* Vendor prefixes for transforms */
+  -webkit-transform: translateX(0);
+  -moz-transform: translateX(0);
+  -ms-transform: translateX(0);
+  -o-transform: translateX(0);
+  transform: translateX(0);
+  
+  /* Transition with prefixes */
+  -webkit-transition: -webkit-transform 0.3s ease;
+  -moz-transition: -moz-transform 0.3s ease;
+  -o-transition: -o-transform 0.3s ease;
+  transition: transform 0.3s ease;
+}
+
+/* Border Radius Compatibility */
+.compat-rounded {
+  /* Vendor prefixes for border-radius */
+  -webkit-border-radius: 0.5rem;
+  -moz-border-radius: 0.5rem;
+  border-radius: 0.5rem;
+}
+
+/* Box Shadow Compatibility */
+.compat-shadow {
+  /* Vendor prefixes for box-shadow */
+  -webkit-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient Compatibility */
+.compat-gradient {
+  /* Fallback background */
+  background: #3b82f6;
+  
+  /* Old WebKit syntax */
+  background: -webkit-gradient(linear, left top, left bottom, from(#3b82f6), to(#1d4ed8));
+  
+  /* Standard syntax */
+  background: -webkit-linear-gradient(top, #3b82f6, #1d4ed8);
+  background: -moz-linear-gradient(top, #3b82f6, #1d4ed8);
+  background: -o-linear-gradient(top, #3b82f6, #1d4ed8);
+  background: linear-gradient(to bottom, #3b82f6, #1d4ed8);
+}
+
+/* Filter Compatibility */
+.compat-blur {
+  /* Vendor prefixes for filter */
+  -webkit-filter: blur(4px);
+  -moz-filter: blur(4px);
+  -o-filter: blur(4px);
+  -ms-filter: blur(4px);
+  filter: blur(4px);
+}
+
+/* Appearance Compatibility */
+.compat-no-appearance {
+  /* Remove default styling */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* User Select Compatibility */
+.compat-no-select {
+  /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Placeholder Compatibility */
+.compat-input::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+.compat-input::-webkit-input-placeholder {
+  color: #9ca3af;
+}
+
+.compat-input::-moz-placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+.compat-input:-ms-input-placeholder {
+  color: #9ca3af;
+}
+
+.compat-input:-moz-placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+/* Scrollbar Compatibility */
+.compat-scrollbar {
+  /* WebKit scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.compat-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.compat-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.compat-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.compat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Focus Styles Compatibility */
+.compat-focus:focus {
+  outline: none;
+  /* Fallback focus ring */
+  box-shadow: 0 0 0 2px #3b82f6;
+  /* Modern focus ring */
+  box-shadow: 0 0 0 var(--focus-ring-width, 2px) var(--focus-ring-color, #3b82f6);
+}
+
+/* Media Query Compatibility */
+@media screen and (max-width: 768px) {
+  .compat-responsive {
+    /* Mobile-first responsive design */
+    padding: 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media screen and (min-width: 769px) {
+  .compat-responsive {
+    /* Desktop styles */
+    padding: 2rem;
+    font-size: 1rem;
+  }
+}
+
+/* Print Compatibility */
+@media print {
+  .compat-print-hidden {
+    display: none !important;
+  }
+  
+  .compat-print-visible {
+    display: block !important;
+  }
+}
+
+/* High Contrast Mode Compatibility */
+@media (prefers-contrast: high) {
+  .compat-high-contrast {
+    border: 2px solid;
+    background: transparent;
+  }
+}
+
+/* Reduced Motion Compatibility */
+@media (prefers-reduced-motion: reduce) {
+  .compat-motion-safe {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Dark Mode Compatibility */
+@media (prefers-color-scheme: dark) {
+  .compat-dark-mode {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+}

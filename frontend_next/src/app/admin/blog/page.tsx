@@ -1,6 +1,9 @@
 "use client"
 
 import { useState, FormEvent, useEffect } from "react"
+
+// Принудительно делаем страницу динамической для продакшн сборки
+export const dynamic = 'force-dynamic'
 import { columns, BlogPost } from "./columns"
 import { DataTable } from "./data-table"
 import { Button } from "@/components/ui/button"
@@ -17,6 +20,9 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
+// import SEOEditor, { SEOData } from "@/components/SEOEditor"
+import { SEOData } from "@/components/SEOEditor"
+import { SEOSettings } from "@/lib/seo-metadata"
 
 // Интерфейс для ответа API
 interface ApiResponse {
@@ -91,13 +97,30 @@ async function getData(): Promise<BlogPost[]> {
       ...post,
       image: getImageUrl(post.image),
       // Убедимся, что status существует, если нет - устанавливаем по умолчанию
-      status: post.status !== undefined ? post.status : true
+      status: post.status !== undefined ? post.status : true,
+      // Убедимся, что sort_order существует, если нет - устанавливаем по умолчанию
+      sort_order: post.sort_order !== undefined ? post.sort_order : 0
     })) || [];
     
     return postsWithCorrectImageUrls;
   } catch (error) {
     console.error('Error fetching blog posts:', error);
     return [];
+  }
+}
+
+async function getGlobalSEOSettings(): Promise<SEOSettings | null> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/seo/settings`, { 
+      cache: 'no-cache', // Используем no-cache вместо no-store для админки
+      headers: { 'Accept': 'application/json' } 
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.data || null;
+  } catch (error) {
+    console.error('Error fetching SEO settings:', error);
+    return null;
   }
 }
 
@@ -111,11 +134,17 @@ export default function AdminBlogPageWrapper() {
   const [title, setTitle] = useState("")
   const [position, setPosition] = useState("")
   const [description, setDescription] = useState("")
+  const [sortOrder, setSortOrder] = useState("0")
   const [image, setImage] = useState<File | null>(null)
+  
+  // SEO states
+  const [seoData, setSeoData] = useState<SEOData>({})
+  const [_globalSettings, _setGlobalSettings] = useState<SEOSettings | null>(null)
 
   // Загрузка данных и проверка API
   useEffect(() => {
     getData().then(setPosts)
+    getGlobalSEOSettings().then(_setGlobalSettings)
     
     // Проверка API соединения
     checkApiConnection()
@@ -159,8 +188,46 @@ export default function AdminBlogPageWrapper() {
     setTitle("")
     setPosition("")
     setDescription("")
+    setSortOrder("0")
     setImage(null)
+    setSeoData({}) // Reset SEO data
   }
+
+  // SEO image upload handler
+  const _handleSEOImageUpload = async (file: File): Promise<string> => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch(`${API_BASE_URL}/seo/upload-image`, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include',
+        mode: 'cors',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success && result.data?.url) {
+        return result.data.url;
+      } else {
+        throw new Error(result.message || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('SEO image upload error:', error);
+      throw error;
+    }
+  };
+
+  // Handle SEO data save
+  const _handleSEOSave = (newSeoData: SEOData) => {
+    setSeoData(newSeoData);
+    toast("SEO данные обновлены");
+  };
 
   // Обработчик отправки формы
   const handleSubmit = async (e: FormEvent) => {
@@ -178,10 +245,22 @@ export default function AdminBlogPageWrapper() {
       formData.append("title", title)
       formData.append("position", position)
       formData.append("description", description)
+      formData.append("sort_order", sortOrder)
       
       // Добавляем файл изображения, если он выбран
       if (image) {
         formData.append("image", image)
+      }
+
+      // Add SEO data
+      if (seoData.seo_title) {
+        formData.append("seo_title", seoData.seo_title);
+      }
+      if (seoData.seo_description) {
+        formData.append("seo_description", seoData.seo_description);
+      }
+      if (seoData.seo_image) {
+        formData.append("seo_image", seoData.seo_image);
       }
 
       // Выводим отладочную информацию
@@ -189,6 +268,7 @@ export default function AdminBlogPageWrapper() {
         title,
         position,
         description,
+        sortOrder,
         imageFileName: image?.name || "нет"
       });
       
@@ -345,6 +425,20 @@ export default function AdminBlogPageWrapper() {
                 />
               </div>
               <div>
+                <Label htmlFor="sort_order">Порядковый номер</Label>
+                <Input 
+                  id="sort_order" 
+                  name="sort_order" 
+                  type="number"
+                  min="0"
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  className="mt-2" 
+                  placeholder="0"
+                />
+                <p className="text-xs text-gray-500 mt-1">Меньшие числа отображаются первыми</p>
+              </div>
+              <div>
                 <Label htmlFor="description">Описание</Label>
                 <Textarea 
                   id="description" 
@@ -365,6 +459,7 @@ export default function AdminBlogPageWrapper() {
                   className="mt-2" 
                 />
               </div>
+             
               <Button 
                 type="submit" 
                 disabled={isLoading}

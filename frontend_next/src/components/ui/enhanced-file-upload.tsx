@@ -376,7 +376,7 @@ export const EnhancedFileUpload: React.FC<EnhancedFileUploadProps> = ({
 
       {/* File Size Limit Info */}
       <p className="text-xs text-gray-500 dark:text-gray-400">
-        Поддерживаемые форматы: {fileType === 'image' ? 'JPG, PNG, GIF, WebP' : 'MP4, WebM, OGG, MOV, AVI'}
+        Поддерживаемые форматы: {fileType === 'image' ? 'JPG, PNG, GIF, WebP, SVG' : 'MP4, WebM, OGG, MOV, AVI'}
       </p>
     </div>
   );

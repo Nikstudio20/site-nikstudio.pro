@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import Image from "next/image"
 import { SquarePen, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -29,6 +29,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+// import SEOEditor, { SEOData } from "@/components/SEOEditor"
+import { SEOData } from "@/components/SEOEditor"
+import { SEOSettings } from "@/lib/seo-metadata"
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
@@ -38,10 +41,14 @@ export type BlogPost = {
   description: string
   image: string
   position: string
+  sort_order: number
   created_at: string
   updated_at: string
   slug: string
   status: boolean | number | string // Добавляем поле status
+  seo_title?: string
+  seo_description?: string
+  seo_image?: string
 }
 
 interface UpdatePostResponse {
@@ -75,7 +82,72 @@ const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
   const [title, setTitle] = useState(post.title);
   const [position, setPosition] = useState(post.position);
   const [description, setDescription] = useState(post.description);
+  const [sortOrder, setSortOrder] = useState(post.sort_order.toString());
   const [image, setImage] = useState<File | null>(null);
+  
+  // SEO states
+  const [seoData, setSeoData] = useState<SEOData>({
+    seo_title: post.seo_title,
+    seo_description: post.seo_description,
+    seo_image: post.seo_image
+  });
+  const [_globalSettings, _setGlobalSettings] = useState<SEOSettings | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      fetchGlobalSEOSettings();
+    }
+  }, [open]);
+
+  const fetchGlobalSEOSettings = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/seo/settings`, { 
+        cache: 'no-cache', // Используем no-cache вместо no-store для админки
+        headers: { 'Accept': 'application/json' } 
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      _setGlobalSettings(data.data || null);
+    } catch (error) {
+      console.error('Error fetching SEO settings:', error);
+    }
+  };
+
+  // SEO image upload handler
+  const _handleSEOImageUpload = async (file: File): Promise<string> => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await fetch(`${API_BASE_URL}/seo/upload-image`, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include',
+        mode: 'cors',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success && result.data?.url) {
+        return result.data.url;
+      } else {
+        throw new Error(result.message || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('SEO image upload error:', error);
+      throw error;
+    }
+  };
+
+  // Handle SEO data save
+  const _handleSEOSave = (newSeoData: SEOData) => {
+    setSeoData(newSeoData);
+    toast("SEO данные обновлены");
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -97,7 +169,19 @@ const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
       formData.append("title", title);
       formData.append("position", position);
       formData.append("description", description);
+      formData.append("sort_order", sortOrder);
       if (image) formData.append("image", image);
+
+      // Add SEO data
+      if (seoData.seo_title) {
+        formData.append("seo_title", seoData.seo_title);
+      }
+      if (seoData.seo_description) {
+        formData.append("seo_description", seoData.seo_description);
+      }
+      if (seoData.seo_image) {
+        formData.append("seo_image", seoData.seo_image);
+      }
 
       const response = await fetch(`${API_BASE_URL}/blog-posts/update`, {
         method: "POST",
@@ -157,6 +241,20 @@ const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
               <Input id="position" name="position" className="mt-2" value={position} onChange={(e) => setPosition(e.target.value)} required />
             </div>
             <div>
+              <Label htmlFor="sort_order">Порядковый номер</Label>
+              <Input 
+                id="sort_order" 
+                name="sort_order" 
+                type="number" 
+                min="0" 
+                className="mt-2" 
+                value={sortOrder} 
+                onChange={(e) => setSortOrder(e.target.value)} 
+                placeholder="0"
+              />
+              <p className="text-xs text-gray-500 mt-1">Меньшие числа отображаются первыми</p>
+            </div>
+            <div>
               <Label htmlFor="description">Описание</Label>
               <Textarea id="description" name="description" className="mt-2" value={description} onChange={(e) => setDescription(e.target.value)} required />
             </div>
@@ -173,6 +271,7 @@ const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
               <Input id="image" type="file" name="image" onChange={handleImageChange} />
               <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы сохранить текущее изображение</p>
             </div>
+          
             <Button type="submit" disabled={isLoading} className="mt-2 cursor-pointer">
               {isLoading ? "Обновление..." : "Обновить статью"}
             </Button>
@@ -253,6 +352,113 @@ const DeleteBlogPostCell = ({ post }: { post: BlogPost }) => {
   );
 };
 
+const SortOrderCell = ({ post }: { post: BlogPost }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [sortOrder, setSortOrder] = useState(post.sort_order.toString());
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const handleSave = async () => {
+    if (sortOrder === post.sort_order.toString()) {
+      setIsEditing(false);
+      return;
+    }
+
+    setIsUpdating(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/blog-posts/${post.id}/sort-order`, {
+        method: "PATCH",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sort_order: parseInt(sortOrder) }),
+        credentials: 'include',
+        mode: 'cors',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result?.status === "success") {
+        setIsEditing(false);
+        window.location.reload();
+        toast("Порядок поста обновлен");
+      } else {
+        toast(`Ошибка: ${result?.message || "Не удалось обновить порядок"}`);
+      }
+    } catch (error) {
+      console.error("Ошибка при обновлении порядка:", error);
+      toast(`Произошла ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+      setSortOrder(post.sort_order.toString()); // Возвращаем исходное значение
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setSortOrder(post.sort_order.toString());
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      handleCancel();
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-1">
+        <Input
+          type="number"
+          min="0"
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-16 h-8 text-sm"
+          disabled={isUpdating}
+          autoFocus
+        />
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleSave}
+          disabled={isUpdating}
+          className="h-6 w-6 p-0"
+        >
+          ✓
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleCancel}
+          disabled={isUpdating}
+          className="h-6 w-6 p-0"
+        >
+          ✕
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div 
+      className="font-medium hover:text-[#DE063A] transition-colors duration-300 cursor-pointer px-2 py-1 rounded hover:bg-gray-100"
+      onClick={() => setIsEditing(true)}
+      title="Нажмите для редактирования"
+    >
+      {post.sort_order}
+    </div>
+  );
+};
+
 const StatusSwitchCell = ({ post }: { post: BlogPost }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [currentStatus, setCurrentStatus] = useState(() => {
@@ -320,9 +526,15 @@ export const columns: ColumnDef<BlogPost>[] = [
     ),
   },
   {
+    accessorKey: "sort_order",
+    header: "Порядок",
+    meta: { className: "w-[5%]" },
+    cell: ({ row }) => <SortOrderCell post={row.original} />,
+  },
+  {
     accessorKey: "image",
     header: "Изображение",
-    meta: { className: "w-[8%]" },
+    meta: { className: "w-[7%]" },
     cell: ({ row }) => {
       const imageUrl = row.getValue("image") as string;
       return (
@@ -341,7 +553,7 @@ export const columns: ColumnDef<BlogPost>[] = [
   {
     accessorKey: "position",
     header: "Должность",
-    meta: { className: "w-[11%]" },
+    meta: { className: "w-[10%]" },
     cell: ({ row }) => (
       <ClickableCell post={row.original}>
         <div className="hover:text-[#DE063A] transition-colors duration-300">
@@ -353,7 +565,7 @@ export const columns: ColumnDef<BlogPost>[] = [
   {
     accessorKey: "title",
     header: "Заголовок",
-    meta: { className: "w-[19%]" },
+    meta: { className: "w-[18%]" },
     cell: ({ row }) => (
       <ClickableCell post={row.original}>
         <div className="font-medium hover:text-[#DE063A] transition-colors duration-300">
@@ -365,7 +577,7 @@ export const columns: ColumnDef<BlogPost>[] = [
   {
     accessorKey: "description",
     header: "Описание",
-    meta: { className: "w-[20%]" },
+    meta: { className: "w-[19%]" },
     cell: ({ row }) => {
       const description = row.getValue("description") as string;
       return (
@@ -380,7 +592,7 @@ export const columns: ColumnDef<BlogPost>[] = [
   {
     accessorKey: "slug",
     header: "Slug",
-    meta: { className: "w-[15%]" },
+    meta: { className: "w-[14%]" },
     cell: ({ row }) => (
       <ClickableCell post={row.original}>
         <div className="hover:text-[#DE063A] transition-colors duration-300">

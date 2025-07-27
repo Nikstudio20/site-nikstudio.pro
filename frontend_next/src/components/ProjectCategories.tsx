@@ -95,7 +95,7 @@ const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className, onCate
   }
 
   return (
-    <section className={`w-full px-5 sm:px-12 lg:px-24 flex justify-center items-center -mt-[26px] sm:mt-10 ${className}`}>
+    <section className={`w-full px-5 sm:px-12 lg:px-24 flex justify-center items-center mt-[10px] sm:mt-10 ${className}`}>
       <div className="text-white text-[20px] sm:text-xl lg:text-[32px] font-light sm:font-normal font-geometria sm:font-inter leading-[100%] sm:leading-none flex flex-wrap justify-center gap-4 sm:gap-8 lg:gap-10">
         {/* Ссылка "Проекты" для показа всех проектов */}
         <span
@@ -110,7 +110,7 @@ const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className, onCate
           <span
             key={category.id}
             onClick={() => handleCategoryClick(category.id)}
-            className={`cursor-pointer transition-colors duration-300 ${selectedCategory === category.id ? 'text-[#DE063A]' : 'hover:text-[#DE063A]'}`}
+            className={` cursor-pointer transition-colors duration-300 ${selectedCategory === category.id ? 'text-[#DE063A]' : 'hover:text-[#DE063A]'}`}
           >
             {category.name}
           </span>

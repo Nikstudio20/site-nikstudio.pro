@@ -194,9 +194,9 @@ class ProjectController extends Controller
             'main_title' => 'required|string|max:255',
             'projects_page_title' => 'nullable|string|max:255',
             'year' => 'required|integer|min:1900|max:' . (date('Y') + 10),
-            'main_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'projects_page_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'main_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
+            'projects_page_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
+            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
         ]);
         
         // Кастомная валидация файлов
@@ -322,10 +322,10 @@ class ProjectController extends Controller
             $extension = strtolower($file->getClientOriginalExtension());
             
             // Определяем тип файла
-            $imageExtensions = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
+            $imageExtensions = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg'];
             $videoExtensions = ['mp4', 'mov', 'avi', 'wmv', 'flv', 'webm'];
             
-            $imageMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            $imageMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
             $videoMimeTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv', 'video/x-flv', 'video/webm'];
             
             $isImage = in_array($extension, $imageExtensions) || in_array($mimeType, $imageMimeTypes);
@@ -393,9 +393,9 @@ class ProjectController extends Controller
             'main_title' => 'sometimes|required|string|max:255',
             'projects_page_title' => 'nullable|string|max:255',
             'year' => 'sometimes|required|integer|min:1900|max:' . (date('Y') + 10),
-            'main_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'projects_page_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'main_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
+            'projects_page_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
+            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
         ]);
         
         // Кастомная валидация файлов
@@ -1373,6 +1373,114 @@ class ProjectController extends Controller
             Log::error("Ошибка удаления медиа-группы блока: " . $e->getMessage(), ['block_id' => $blockId, 'group_id' => $groupId]);
             return response()->json(['success' => false, 'message' => 'Ошибка сервера при удалении медиа.'], 500);
         }
+    }
+
+    /**
+     * Update SEO metadata for a project
+     *
+     * @param Request $request
+     * @param string $slug
+     * @return JsonResponse
+     */
+    public function updateSEOMetadata(Request $request, string $slug): JsonResponse
+    {
+        Log::info('Запрос на обновление SEO метаданных проекта', [
+            'slug' => $slug,
+            'data' => $request->except(['seo_image'])
+        ]);
+
+        $project = Project::where('slug', $slug)->first();
+        
+        if (!$project) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Проект не найден'
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'seo_title' => 'nullable|string|max:60',
+            'seo_description' => 'nullable|string|max:160',
+            'seo_image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif,webp,svg|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка валидации',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $data = $request->only(['seo_title', 'seo_description']);
+
+            // Handle SEO image upload
+            if ($request->hasFile('seo_image')) {
+                // Delete old SEO image if exists
+                if ($project->seo_image) {
+                    $oldImagePath = str_replace('/storage/', '', $project->seo_image);
+                    if (Storage::disk('public')->exists($oldImagePath)) {
+                        Storage::disk('public')->delete($oldImagePath);
+                        Log::info('Старое SEO изображение проекта удалено: ' . $oldImagePath);
+                    }
+                }
+
+                $path = $request->file('seo_image')->store('projects/seo', 'public');
+                $data['seo_image'] = '/storage/' . $path;
+                Log::info('Новое SEO изображение проекта загружено: ' . $path);
+            }
+
+            $project->update($data);
+
+            Log::info('SEO метаданные проекта успешно обновлены', [
+                'project_id' => $project->id,
+                'updated_data' => $data
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'SEO метаданные проекта успешно обновлены',
+                'data' => [
+                    'seo_title' => $project->seo_title,
+                    'seo_description' => $project->seo_description,
+                    'seo_image' => $project->seo_image,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Ошибка при обновлении SEO метаданных проекта: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка сервера при обновлении SEO метаданных'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get SEO metadata for a project
+     *
+     * @param string $slug
+     * @return JsonResponse
+     */
+    public function getSEOMetadata(string $slug): JsonResponse
+    {
+        $project = Project::where('slug', $slug)->first();
+        
+        if (!$project) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Проект не найден'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'seo_title' => $project->seo_title,
+                'seo_description' => $project->seo_description,
+                'seo_image' => $project->seo_image,
+            ]
+        ]);
     }
 
 }

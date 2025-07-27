@@ -24,9 +24,9 @@ export const formatFileSize = (bytes: number): string => {
 };
 
 export const validateImageFile = (file: File): boolean => {
-  const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+  const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
   const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
-  const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  const validMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
   return validExtensions.includes(fileExtension) && validMimeTypes.includes(file.type);
 };
 
@@ -54,7 +54,7 @@ export const SUCCESS_MESSAGES = {
 
 export const ERROR_MESSAGES = {
   FILE_TOO_LARGE: (limit: string) => `Размер файла превышает максимально допустимый лимит ${limit}`,
-  INVALID_IMAGE_FORMAT: (filename: string) => `${filename} не является допустимым изображением. Разрешены только форматы: jpg, jpeg, png, gif, webp`,
+  INVALID_IMAGE_FORMAT: (filename: string) => `${filename} не является допустимым изображением. Разрешены только форматы: jpg, jpeg, png, gif, webp, svg`,
   INVALID_VIDEO_FORMAT: (filename: string) => `${filename} не является допустимым видео. Разрешены только форматы: mp4, webm, ogg, mov, avi`,
   POSTER_REQUIRED: 'Пожалуйста, выберите постер для каждого видео файла',
   FILE_REQUIRED: 'Пожалуйста, выберите хотя бы один файл',

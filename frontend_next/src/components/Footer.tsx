@@ -176,22 +176,40 @@ export default function Footer() {
                 </h3>
                 <nav className="flex flex-col gap-2 lg:gap-4">
                   <Link
-                    href="#"
+                    href="tel:+79263314618"
+                    className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
+                  >
+                    +7 (926) 331-46-18
+                  </Link>
+                  <Link
+                    href="mailto:info@nikstudio.pro"
+                    className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
+                  >
+                    info@nikstudio.pro
+                  </Link>
+                  <Link
+                    href="https://www.instagram.com/nikstudio.pro/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
                   >
                     Instagram
                   </Link>
                   <Link
-                    href="#"
+                    href="https://m.vk.com/nikstudiopro?from=groups"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
                   >
                     Вконтакте
                   </Link>
                   <Link
-                    href="#"
+                    href="https://t.me/slavanikitin_msk"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
                   >
-                    Телеграмм
+                    Телеграм
                   </Link>
                 </nav>
               </div>

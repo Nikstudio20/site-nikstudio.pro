@@ -1,6 +1,9 @@
 "use client"
 
 import { useRouter } from 'next/navigation';
+
+// Принудительно делаем страницу динамической для продакшн сборки
+export const dynamic = 'force-dynamic'
 import React, { useEffect, useState, use, useCallback } from 'react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"

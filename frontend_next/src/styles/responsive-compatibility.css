@@ -1,0 +1,550 @@
+/**
+ * Responsive Design Compatibility CSS
+ * Mobile-first responsive design with cross-browser compatibility
+ */
+
+/* ==========================================================================
+   Base Responsive Setup
+   ========================================================================== */
+
+/* Ensure consistent box-sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Prevent horizontal scrolling */
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+  /* Prevent iOS bounce scrolling */
+  -webkit-overflow-scrolling: touch;
+  /* Improve text rendering on mobile */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ==========================================================================
+   Responsive Breakpoint Classes
+   ========================================================================== */
+
+/* Extra Small devices (phones, less than 640px) */
+.xs\:block { display: block !important; }
+.xs\:hidden { display: none !important; }
+.xs\:flex { display: flex !important; }
+.xs\:grid { display: grid !important; }
+
+.xs\:text-xs { font-size: 0.75rem !important; }
+.xs\:text-sm { font-size: 0.875rem !important; }
+.xs\:text-base { font-size: 1rem !important; }
+
+.xs\:p-2 { padding: 0.5rem !important; }
+.xs\:p-4 { padding: 1rem !important; }
+.xs\:px-4 { padding-left: 1rem !important; padding-right: 1rem !important; }
+.xs\:py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+
+.xs\:m-2 { margin: 0.5rem !important; }
+.xs\:m-4 { margin: 1rem !important; }
+.xs\:mx-auto { margin-left: auto !important; margin-right: auto !important; }
+
+/* Small devices (tablets, 640px and up) */
+@media screen and (min-width: 640px) {
+  .sm\:block { display: block !important; }
+  .sm\:hidden { display: none !important; }
+  .sm\:flex { display: flex !important; }
+  .sm\:grid { display: grid !important; }
+
+  .sm\:text-sm { font-size: 0.875rem !important; }
+  .sm\:text-base { font-size: 1rem !important; }
+  .sm\:text-lg { font-size: 1.125rem !important; }
+
+  .sm\:p-4 { padding: 1rem !important; }
+  .sm\:p-6 { padding: 1.5rem !important; }
+  .sm\:px-6 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+  .sm\:py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+
+  .sm\:m-4 { margin: 1rem !important; }
+  .sm\:m-6 { margin: 1.5rem !important; }
+  .sm\:mx-auto { margin-left: auto !important; margin-right: auto !important; }
+}
+
+/* Medium devices (small laptops, 768px and up) */
+@media screen and (min-width: 768px) {
+  .md\:block { display: block !important; }
+  .md\:hidden { display: none !important; }
+  .md\:flex { display: flex !important; }
+  .md\:grid { display: grid !important; }
+
+  .md\:text-base { font-size: 1rem !important; }
+  .md\:text-lg { font-size: 1.125rem !important; }
+  .md\:text-xl { font-size: 1.25rem !important; }
+
+  .md\:p-6 { padding: 1.5rem !important; }
+  .md\:p-8 { padding: 2rem !important; }
+  .md\:px-8 { padding-left: 2rem !important; padding-right: 2rem !important; }
+  .md\:py-6 { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+
+  .md\:m-6 { margin: 1.5rem !important; }
+  .md\:m-8 { margin: 2rem !important; }
+  .md\:mx-auto { margin-left: auto !important; margin-right: auto !important; }
+}
+
+/* Large devices (desktops, 1024px and up) */
+@media screen and (min-width: 1024px) {
+  .lg\:block { display: block !important; }
+  .lg\:hidden { display: none !important; }
+  .lg\:flex { display: flex !important; }
+  .lg\:grid { display: grid !important; }
+
+  .lg\:text-lg { font-size: 1.125rem !important; }
+  .lg\:text-xl { font-size: 1.25rem !important; }
+  .lg\:text-2xl { font-size: 1.5rem !important; }
+
+  .lg\:p-8 { padding: 2rem !important; }
+  .lg\:p-12 { padding: 3rem !important; }
+  .lg\:px-12 { padding-left: 3rem !important; padding-right: 3rem !important; }
+  .lg\:py-8 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
+
+  .lg\:m-8 { margin: 2rem !important; }
+  .lg\:m-12 { margin: 3rem !important; }
+  .lg\:mx-auto { margin-left: auto !important; margin-right: auto !important; }
+}
+
+/* Extra Large devices (large desktops, 1280px and up) */
+@media screen and (min-width: 1280px) {
+  .xl\:block { display: block !important; }
+  .xl\:hidden { display: none !important; }
+  .xl\:flex { display: flex !important; }
+  .xl\:grid { display: grid !important; }
+
+  .xl\:text-xl { font-size: 1.25rem !important; }
+  .xl\:text-2xl { font-size: 1.5rem !important; }
+  .xl\:text-3xl { font-size: 1.875rem !important; }
+
+  .xl\:p-12 { padding: 3rem !important; }
+  .xl\:p-16 { padding: 4rem !important; }
+  .xl\:px-16 { padding-left: 4rem !important; padding-right: 4rem !important; }
+  .xl\:py-12 { padding-top: 3rem !important; padding-bottom: 3rem !important; }
+}
+
+/* ==========================================================================
+   Touch-Friendly Interactions
+   ========================================================================== */
+
+/* Touch device specific styles */
+.touch button,
+.touch .btn,
+.touch input[type="button"],
+.touch input[type="submit"],
+.touch input[type="reset"] {
+  /* Minimum touch target size (44px recommended by Apple) */
+  min-height: 44px;
+  min-width: 44px;
+  padding: 12px 16px;
+  
+  /* Remove default button styles */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  
+  /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  
+  /* Improve touch response */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.touch input,
+.touch textarea,
+.touch select {
+  /* Minimum touch target size */
+  min-height: 44px;
+  padding: 12px;
+  
+  /* Prevent zoom on iOS */
+  font-size: 16px;
+  
+  /* Remove default styling */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  
+  /* Improve touch response */
+  touch-action: manipulation;
+}
+
+.touch a,
+.touch .link {
+  /* Minimum touch target size */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px;
+  
+  /* Remove tap highlight */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Active states for touch feedback */
+.touch button:active,
+.touch .btn:active,
+.touch input[type="button"]:active,
+.touch input[type="submit"]:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.touch a:active,
+.touch .link:active {
+  opacity: 0.7;
+  transition: opacity 0.1s ease;
+}
+
+/* Remove hover effects on touch devices */
+.touch *:hover {
+  background-color: inherit !important;
+  color: inherit !important;
+  border-color: inherit !important;
+}
+
+/* ==========================================================================
+   No-Touch (Desktop) Specific Styles
+   ========================================================================== */
+
+.no-touch button:hover,
+.no-touch .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.no-touch a:hover,
+.no-touch .link:hover {
+  text-decoration: underline;
+  transition: text-decoration 0.2s ease;
+}
+
+/* ==========================================================================
+   Responsive Images
+   ========================================================================== */
+
+/* Base responsive image styles */
+.responsive-img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.responsive-img-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.responsive-img-contain {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+/* Picture element fallback */
+picture {
+  display: block;
+  width: 100%;
+}
+
+picture img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ==========================================================================
+   Responsive Containers
+   ========================================================================== */
+
+.container-responsive {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media screen and (min-width: 640px) {
+  .container-responsive {
+    max-width: 640px;
+    padding: 0 1.5rem;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .container-responsive {
+    max-width: 768px;
+    padding: 0 2rem;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .container-responsive {
+    max-width: 1024px;
+    padding: 0 2rem;
+  }
+}
+
+@media screen and (min-width: 1280px) {
+  .container-responsive {
+    max-width: 1280px;
+    padding: 0 2rem;
+  }
+}
+
+@media screen and (min-width: 1536px) {
+  .container-responsive {
+    max-width: 1536px;
+    padding: 0 2rem;
+  }
+}
+
+/* ==========================================================================
+   Mobile-First Typography
+   ========================================================================== */
+
+.responsive-text {
+  /* Mobile first */
+  font-size: 0.875rem;
+  line-height: 1.25;
+}
+
+@media screen and (min-width: 640px) {
+  .responsive-text {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .responsive-text {
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
+}
+
+.responsive-heading {
+  /* Mobile first */
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+@media screen and (min-width: 640px) {
+  .responsive-heading {
+    font-size: 2rem;
+    line-height: 1.25;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .responsive-heading {
+    font-size: 2.5rem;
+    line-height: 1.2;
+  }
+}
+
+/* ==========================================================================
+   Responsive Spacing
+   ========================================================================== */
+
+.responsive-spacing {
+  /* Mobile first */
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media screen and (min-width: 640px) {
+  .responsive-spacing {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .responsive-spacing {
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* ==========================================================================
+   Responsive Grid Layouts
+   ========================================================================== */
+
+.responsive-grid {
+  display: grid;
+  gap: 1rem;
+  
+  /* Mobile: 1 column */
+  grid-template-columns: 1fr;
+}
+
+@media screen and (min-width: 640px) {
+  .responsive-grid {
+    /* Tablet: 2 columns */
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .responsive-grid {
+    /* Desktop: 3 columns */
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+.responsive-grid-auto {
+  display: grid;
+  gap: 1rem;
+  
+  /* Auto-fit with minimum column width */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+@media screen and (min-width: 640px) {
+  .responsive-grid-auto {
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .responsive-grid-auto {
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Mobile Safari Specific Fixes
+   ========================================================================== */
+
+/* Fix iOS Safari viewport height issues */
+@supports (-webkit-touch-callout: none) {
+  .full-height-mobile {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Fix iOS Safari input zoom */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Fix iOS Safari sticky positioning */
+@supports (-webkit-overflow-scrolling: touch) {
+  .sticky-ios {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+}
+
+/* ==========================================================================
+   High DPI / Retina Display Support
+   ========================================================================== */
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .retina-border {
+    border-width: 0.5px;
+  }
+  
+  .retina-text {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ==========================================================================
+   Orientation-Specific Styles
+   ========================================================================== */
+
+@media screen and (orientation: portrait) {
+  .portrait-only {
+    display: block !important;
+  }
+  
+  .landscape-only {
+    display: none !important;
+  }
+}
+
+@media screen and (orientation: landscape) {
+  .portrait-only {
+    display: none !important;
+  }
+  
+  .landscape-only {
+    display: block !important;
+  }
+}
+
+/* ==========================================================================
+   Accessibility and Reduced Motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .touch button:active,
+  .touch .btn:active,
+  .no-touch button:hover,
+  .no-touch .btn:hover {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+  .responsive-grid,
+  .responsive-grid-auto {
+    display: block !important;
+  }
+  
+  .responsive-grid > *,
+  .responsive-grid-auto > * {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+  
+  .touch button,
+  .touch .btn,
+  .no-touch button,
+  .no-touch .btn {
+    border: 1px solid #000 !important;
+    background: transparent !important;
+    color: #000 !important;
+  }
+}

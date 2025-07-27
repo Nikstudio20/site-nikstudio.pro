@@ -1,130 +1,115 @@
 ---
-inclusion: always
+inclusion: fileMatch
+fileMatchPattern: ['**/*.tsx', '**/*.ts']
 ---
 
-# UI Patterns and Components
+# UI Patterns & Component Standards
 
-## Design System
+## Design System Requirements
+- **Components**: shadcn/ui with Radix UI primitives exclusively
+- **Styling**: Tailwind CSS with mobile-first responsive design
+- **Icons**: Lucide React only
+- **Language**: ALL user-facing text MUST be in Russian
+- **Accessibility**: Proper ARIA labels and semantic HTML structure
 
-### Component Library
-- **Base**: Radix UI primitives for accessibility
-- **Styling**: Tailwind CSS with custom utility classes
-- **Icons**: Lucide React for consistent iconography
-- **Theming**: next-themes for dark/light mode support
+## Component Library Standards
+Use these shadcn/ui components consistently:
+- `Button` (variants: default, outline, destructive)
+- `Card` with CardHeader, CardTitle, CardDescription, CardContent
+- `Dialog` with DialogContent, DialogHeader, DialogFooter
+- `AlertDialog` for destructive action confirmations
+- `Input`, `Textarea`, `Select`, `Label` for all form elements
+- `Alert` with AlertDescription for notifications
 
-### Common UI Components
-- `Button` - Primary actions and interactions
-- `Card` - Content containers with header, content, and description
-- `Dialog` - Modal dialogs for forms and confirmations
-- `AlertDialog` - Confirmation dialogs for destructive actions
-- `Input` - Text input fields
-- `Textarea` - Multi-line text input
-- `Select` - Dropdown selection
-- `Label` - Form field labels
-- `Badge` - Status indicators and tags
-- `Alert` - Success, error, and info messages
+## File Upload Implementation
 
-## Form Patterns
-
-### File Upload Forms
+### Validation Pattern (MANDATORY)
 ```typescript
-// Standard file input pattern
+const validateFileSize = (file: File, type: 'image' | 'video'): boolean => {
+  const maxSize = type === 'image' ? 2 * 1024 * 1024 : 50 * 1024 * 1024;
+  return file.size <= maxSize;
+};
+```
+
+### File Input Structure
+```typescript
 <div className="space-y-2">
-  <Label htmlFor={`file-${index}`}>
-    {item.file_type === 'video' ? 'Видео файл' : 'Изображение'}
-  </Label>
+  <Label>{type === 'video' ? 'Видео файл' : 'Изображение'}</Label>
   <Input
-    id={`file-${index}`}
     type="file"
-    accept={item.file_type === 'video' ? 'video/*' : 'image/*'}
-    onChange={(e) => handleFileChange(index, e.target.files?.[0] || null)}
+    accept={type === 'video' ? '.mp4,.webm' : '.jpg,.png,.webp'}
+    onChange={handleFileChange}
   />
-  {/* File size validation message */}
   <p className="text-sm text-muted-foreground">
-    Максимальный размер: {getFileSizeLimit(item.file_type)}
+    Максимальный размер: {type === 'image' ? '2 МБ' : '50 МБ'}
   </p>
 </div>
 
-// Poster upload for videos
-{item.file_type === 'video' && (
+{/* REQUIRED poster for videos */}
+{type === 'video' && (
   <div className="space-y-2">
-    <Label htmlFor={`poster-${index}`}>Постер для видео</Label>
-    <Input
-      id={`poster-${index}`}
-      type="file"
-      accept="image/*"
-      onChange={(e) => handlePosterChange(index, e.target.files?.[0] || null)}
-    />
+    <Label>Постер для видео *</Label>
+    <Input type="file" accept=".jpg,.png,.webp" onChange={handlePosterChange} />
   </div>
 )}
 ```
 
-### Dialog Patterns
+## Dialog Patterns
+
+### Standard Dialog
 ```typescript
-// Standard dialog structure
-<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+<Dialog open={open} onOpenChange={setOpen}>
   <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
     <DialogHeader>
-      <DialogTitle>Dialog Title</DialogTitle>
-      <DialogDescription>Dialog description</DialogDescription>
+      <DialogTitle>Заголовок</DialogTitle>
+      <DialogDescription>Описание действия</DialogDescription>
     </DialogHeader>
-    
-    {/* Dialog content */}
-    
+    {/* Form content */}
     <DialogFooter>
-      <Button variant="outline" onClick={() => setDialogOpen(false)}>
+      <Button variant="outline" onClick={() => setOpen(false)}>
         Отмена
       </Button>
-      <Button onClick={handleSave} disabled={saving}>
-        {saving ? 'Сохранение...' : 'Сохранить'}
+      <Button onClick={handleSave} disabled={loading}>
+        {loading ? 'Сохранение...' : 'Сохранить'}
       </Button>
     </DialogFooter>
   </DialogContent>
 </Dialog>
 ```
 
-### Alert Dialog for Confirmations
+### Destructive Action Confirmation
 ```typescript
-<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+<AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
   <AlertDialogContent>
     <AlertDialogHeader>
       <AlertDialogTitle>Подтвердите удаление</AlertDialogTitle>
-      <AlertDialogDescription>
-        Это действие нельзя отменить. Группа будет удалена навсегда.
-      </AlertDialogDescription>
+      <AlertDialogDescription>Это действие нельзя отменить.</AlertDialogDescription>
     </AlertDialogHeader>
     <AlertDialogFooter>
       <AlertDialogCancel>Отмена</AlertDialogCancel>
-      <AlertDialogAction onClick={handleDelete}>
-        Удалить
-      </AlertDialogAction>
+      <AlertDialogAction onClick={handleDelete}>Удалить</AlertDialogAction>
     </AlertDialogFooter>
   </AlertDialogContent>
 </AlertDialog>
 ```
 
-## Layout Patterns
-
-### Admin Page Structure
+## Admin Layout Structure
 ```typescript
-// Standard admin page layout
 <div className="container mx-auto p-6">
-  {/* Header with navigation */}
   <div className="flex items-center gap-4 mb-6">
     <Button variant="outline" onClick={handleBack}>
       <ArrowLeft className="w-4 h-4 mr-2" />
       Назад
     </Button>
-    <h1 className="text-2xl font-bold">Page Title</h1>
+    <h1 className="text-2xl font-bold">Заголовок страницы</h1>
   </div>
 
-  {/* Success/Error alerts */}
+  {/* Auto-dismissing notifications */}
   {success && (
     <Alert className="mb-4">
       <AlertDescription>{success}</AlertDescription>
     </Alert>
   )}
-
   {error && (
     <Alert variant="destructive" className="mb-4">
       <AlertCircle className="h-4 w-4" />
@@ -132,53 +117,21 @@ inclusion: always
     </Alert>
   )}
 
-  {/* Main content */}
-  <div className="space-y-6">
-    {/* Content sections */}
-  </div>
+  <div className="space-y-6">{/* Page content */}</div>
 </div>
 ```
 
-### Card-based Content Organization
-```typescript
-<Card>
-  <CardHeader>
-    <div className="flex justify-between items-start">
-      <div>
-        <CardTitle>Section Title</CardTitle>
-        <CardDescription>Section description</CardDescription>
-      </div>
-      <div className="flex gap-2">
-        <Button size="sm" onClick={handleEdit}>
-          <SquarePen className="w-4 h-4 mr-2" />
-          Редактировать
-        </Button>
-        <Button size="sm" variant="destructive" onClick={handleDelete}>
-          <Trash2 className="w-4 h-4 mr-2" />
-          Удалить
-        </Button>
-      </div>
-    </div>
-  </CardHeader>
-  <CardContent>
-    {/* Card content */}
-  </CardContent>
-</Card>
-```
+## State Management Rules
+- Auto-clear messages after exactly 3 seconds using `setTimeout`
+- Show loading states for ALL async operations
+- Disable submit buttons during form processing
+- Wrap ALL API calls in try-catch blocks
+- Validate file size/type before upload attempts
+- Handle HTTP 413 errors specifically for file size limits
+- Use FormData for ALL file uploads
+- Display field-specific validation errors from API responses
 
-## State Management Patterns
-
-### Loading States
-- Show loading spinners during async operations
-- Disable buttons during form submission
-- Use skeleton loaders for content loading
-
-### Error Handling
-- Display user-friendly error messages
-- Use Alert components for system messages
-- Clear messages after 3 seconds automatically
-
-### Form Validation
-- Validate on client side before submission
-- Show specific error messages for each field
-- Highlight invalid fields with appropriate styling
+## Critical File Constraints
+- **Images**: 2MB max, jpg/png/webp only
+- **Videos**: 50MB max, mp4/webm only, poster image REQUIRED
+- **Validation**: Both client-side AND server-side validation mandatory

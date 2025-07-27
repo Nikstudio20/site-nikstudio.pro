@@ -2,6 +2,7 @@
 'use client'
 
 import Image from 'next/image'
+import LaravelImage from '@/components/LaravelImage'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import type { Swiper as SwiperType } from 'swiper';
 import { Navigation } from 'swiper/modules'
@@ -43,6 +44,10 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
   const lightboxNextRef = useRef<HTMLButtonElement>(null)
   const slideChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Состояние для обработки свайпа вверх
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null)
+  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null)
+
   // Функция для открытия лайтбокса с определенным слайдом
   const handleOpen = (slideIndex: number) => {
     setSelectedSlideIndex(slideIndex)
@@ -51,7 +56,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
 
   // Функция для поиска индекса слайда по src медиа
   const findSlideIndexBySrc = (src: string): number => {
-    return images.findIndex(slide => 
+    return images.findIndex(slide =>
       slide.items.some(item => item.src === src)
     )
   }
@@ -68,13 +73,13 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
   const handleVideoClick = (e: React.MouseEvent, src: string) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     // Проверяем, был ли клик по элементам управления видео
     const target = e.target as HTMLElement
     if (target.tagName === 'VIDEO' && !target.closest('[controls]')) {
       return
     }
-    
+
     // Если клик не по controls, открываем лайтбокс
     handleMediaClick(src)
   }
@@ -83,9 +88,9 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
   const handleLightboxMediaClick = (e: React.MouseEvent, mediaType: 'image' | 'video', mediaSrc: string) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     const currentSlide = images[selectedSlideIndex]
-    
+
     // Если это двойной слайд, обрабатываем увеличение/уменьшение отдельного изображения
     if (currentSlide.type === 'double') {
       if (enlargedMediaSrc === mediaSrc) {
@@ -97,7 +102,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
       }
       return
     }
-    
+
     if (mediaType === 'video') {
       // Для видео проверяем, был ли клик по области controls
       const target = e.target as HTMLElement
@@ -105,18 +110,18 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
         const rect = target.getBoundingClientRect()
         // const clickX = e.clientX - rect.left
         const clickY = e.clientY - rect.top
-        
+
         // Примерная область controls (обычно внизу видео)
         const controlsHeight = 40 // примерная высота панели управления
         const isControlsArea = clickY > rect.height - controlsHeight
-        
+
         if (isControlsArea) {
           // Если клик по области controls, не делаем ничего (позволяем видео обработать клик)
           return
         }
       }
     }
-    
+
     // Toggle размера для одиночного медиа
     setIsMediaFullHeight(!isMediaFullHeight)
   }
@@ -182,7 +187,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
     if (slideChangeTimeoutRef.current) {
       clearTimeout(slideChangeTimeoutRef.current);
     }
-    
+
     slideChangeTimeoutRef.current = setTimeout(() => {
       setCurrentIndex(swiper.realIndex);
     }, 50);
@@ -193,7 +198,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
     if (slideChangeTimeoutRef.current) {
       clearTimeout(slideChangeTimeoutRef.current);
     }
-    
+
     slideChangeTimeoutRef.current = setTimeout(() => {
       setSelectedSlideIndex(swiper.realIndex);
       setIsMediaFullHeight(false);
@@ -239,6 +244,34 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
     setIsOpen(false)
     setIsMediaFullHeight(false) // Сбрасываем размер при закрытии
     setEnlargedMediaSrc(null) // Сбрасываем увеличенное изображение
+  }
+
+  // Обработчики для свайпа вверх
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null) // Сбрасываем предыдущее значение
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    })
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY,
+    })
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return
+
+    const distanceX = touchStart.x - touchEnd.x
+    const distanceY = touchStart.y - touchEnd.y
+    const isUpSwipe = distanceY > 50 && Math.abs(distanceX) < Math.abs(distanceY)
+
+    if (isUpSwipe) {
+      handleCloseLightbox()
+    }
   }
 
   // Обработчик нажатия клавиши Escape
@@ -313,7 +346,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
                       onClick={() => handleMediaClick(media.src)}
                     >
                       {media.type === 'image' ? (
-                        <Image
+                        <LaravelImage
                           src={media.src}
                           alt={media.alt}
                           fill
@@ -333,14 +366,14 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
                             onLoadedMetadata={handleVideoEvent}
                             onCanPlay={handleVideoEvent}
                             onTimeUpdate={handleVideoEvent}
-                            style={{ 
+                            style={{
                               pointerEvents: 'auto'
                             }}
                           />
                           {/* Overlay для свайпа и лайтбокса - исключаем область controls */}
                           <div
                             className="absolute top-0 left-0 w-full cursor-zoom-in active:cursor-grabbing"
-                            style={{ 
+                            style={{
                               height: 'calc(100% - 80px)', // Оставляем нижнюю часть для controls
                               pointerEvents: 'auto',
                               backgroundColor: 'transparent',
@@ -375,7 +408,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
                   onClick={() => handleMediaClick(slide.items[0].src)}
                 >
                   {slide.items[0].type === 'image' ? (
-                    <Image
+                    <LaravelImage
                       src={slide.items[0].src}
                       alt={slide.items[0].alt}
                       fill
@@ -395,14 +428,14 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
                         onLoadedMetadata={handleVideoEvent}
                         onCanPlay={handleVideoEvent}
                         onTimeUpdate={handleVideoEvent}
-                        style={{ 
+                        style={{
                           pointerEvents: 'auto'
                         }}
                       />
                       {/* Overlay для свайпа и лайтбокса - исключаем область controls */}
                       <div
                         className="absolute top-0 left-0 w-full cursor-zoom-in active:cursor-grabbing"
-                        style={{ 
+                        style={{
                           height: 'calc(100% - 80px)', // Оставляем нижнюю часть для controls
                           pointerEvents: 'auto',
                           backgroundColor: 'transparent',
@@ -476,11 +509,10 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
             <button
               key={`dot-${index}`}
               onClick={() => handleDotClick(index)}
-              className={`rounded-full transition-all cursor-pointer duration-300 focus:outline-none focus:ring-2 focus:ring-white ${
-                index === currentIndex
-                  ? 'w-4 sm:w-5 h-4 sm:h-5 bg-[#0e1011] border border-color-white'
-                  : 'w-3 sm:w-4 h-3 sm:h-4 bg-[#5e6265] hover:bg-[#5e6265] flex flex-row items-center'
-              }`}
+              className={`rounded-full transition-all cursor-pointer duration-300 focus:outline-none focus:ring-2 focus:ring-white ${index === currentIndex
+                ? 'w-4 sm:w-5 h-4 sm:h-5 bg-[#0e1011] border border-color-white'
+                : 'w-3 sm:w-4 h-3 sm:h-4 bg-[#5e6265] hover:bg-[#5e6265] flex flex-row items-center'
+                }`}
               role="tab"
               aria-selected={index === currentIndex}
               aria-label={`Слайд ${index + 1}`}
@@ -492,9 +524,12 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
 
       {/* Полноэкранный лайтбокс с каруселью */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/95 flex items-center justify-center z-50"
           style={{ userSelect: 'none' }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Кнопка закрытия */}
           <button
@@ -504,7 +539,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
             style={{ userSelect: 'none' }}
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
 
@@ -534,48 +569,49 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
               {images.map((slide) => (
                 <SwiperSlide key={`lightbox-${slide.id}`} className="flex items-center justify-center" style={{ userSelect: 'none' }}>
                   {slide.type === 'double' ? (
-                    <div 
-                      className={`flex ${enlargedMediaSrc ? 'flex-col' : 'flex-row'} gap-4 w-full h-full items-center justify-center px-4 transition-all duration-300`} 
+                    <div
+                      className={`flex ${enlargedMediaSrc ? 'flex-col' : 'flex-row'} gap-4 w-full h-full items-center justify-center px-4 transition-all duration-300`}
                       style={{ userSelect: 'none' }}
                     >
                       {slide.items.map((media: MediaItem) => {
                         const isEnlarged = enlargedMediaSrc === media.src
                         const isOtherEnlarged = enlargedMediaSrc && enlargedMediaSrc !== media.src
-                        
+
                         return (
                           <div
                             key={`lightbox-${media.src}`}
-                            className={`${
-                              isEnlarged 
-                                ? 'w-full h-full' 
-                                : isOtherEnlarged 
-                                  ? 'hidden' 
-                                  : 'flex-1 h-full'
-                            } relative flex items-center justify-center cursor-zoom-in active:cursor-grabbing transition-all duration-300`}
+                            className={`${isEnlarged
+                              ? 'w-full h-full'
+                              : isOtherEnlarged
+                                ? 'hidden'
+                                : 'flex-1 h-full'
+                              } relative flex items-center justify-center cursor-zoom-in active:cursor-grabbing transition-all duration-300`}
                             style={{ userSelect: 'none' }}
                           >
                             {media.type === 'image' ? (
-                              <Image
-                                src={media.src}
-                                alt={media.alt}
-                                width={0}
-                                height={0}
-                                sizes={isEnlarged ? "100vw" : "50vw"}
-                                className={`object-contain ${
-                                  isEnlarged ? 'max-h-screen' : 'max-h-[90vh]'
-                                } w-auto h-auto max-w-full`}
-                                style={{ userSelect: 'none', pointerEvents: 'auto' }}
-                                draggable={false}
+                              <div 
                                 onClick={(e) => handleLightboxMediaClick(e, media.type, media.src)}
-                              />
+                                style={{ userSelect: 'none', pointerEvents: 'auto' }}
+                                className="cursor-zoom-in active:cursor-grabbing"
+                              >
+                                <LaravelImage
+                                  src={media.src}
+                                  alt={media.alt}
+                                  width={0}
+                                  height={0}
+                                  className={`object-contain ${isEnlarged ? 'max-h-screen' : 'max-h-[90vh]'
+                                    } w-auto h-auto max-w-full`}
+                                  onLoad={() => console.log('✅ Лайтбокс изображение загружено:', media.src)}
+                                  onError={() => console.error('❌ Ошибка лайтбокс изображения:', media.src)}
+                                />
+                              </div>
                             ) : (
                               <div className="relative">
                                 <video
                                   src={media.src}
                                   poster={media.poster}
-                                  className={`object-contain ${
-                                    isEnlarged ? 'max-h-screen' : 'max-h-[90vh]'
-                                  } max-w-full`}
+                                  className={`object-contain ${isEnlarged ? 'max-h-screen' : 'max-h-[90vh]'
+                                    } max-w-full`}
                                   controls
                                   controlsList="nodownload"
                                   preload="metadata"
@@ -584,7 +620,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
                                   onLoadedMetadata={handleVideoEvent}
                                   onCanPlay={handleVideoEvent}
                                   onTimeUpdate={handleVideoEvent}
-                                  style={{ 
+                                  style={{
                                     userSelect: 'none',
                                     pointerEvents: 'auto'
                                   }}
@@ -592,7 +628,7 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
                                 {/* Overlay для zoom - исключаем область controls */}
                                 <div
                                   className="absolute top-0 left-0 w-full cursor-zoom-in active:cursor-grabbing"
-                                  style={{ 
+                                  style={{
                                     height: 'calc(100% - 80px)', // Оставляем нижнюю часть для controls
                                     pointerEvents: 'auto',
                                     backgroundColor: 'transparent',
@@ -624,34 +660,34 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
                       })}
                     </div>
                   ) : (
-                    <div 
+                    <div
                       className="w-full h-full flex items-center justify-center px-4"
                       style={{ userSelect: 'none' }}
                     >
                       {slide.items[0].type === 'image' ? (
-                        <Image
-                          src={slide.items[0].src}
-                          alt={slide.items[0].alt}
-                          width={0}
-                          height={0}
-                          sizes="100vw"
-                          className={`object-contain ${
-                            isMediaFullHeight ? 'max-h-screen' : 'max-h-[90vh]'
-                          } w-auto h-auto max-w-full ${
-                            isMediaFullHeight ? 'cursor-zoom-out active:cursor-grabbing' : 'cursor-zoom-in active:cursor-grabbing'
-                          }`}
-                          style={{ userSelect: 'none', pointerEvents: 'auto' }}
-                          draggable={false}
+                        <div 
                           onClick={(e) => handleLightboxMediaClick(e, slide.items[0].type, slide.items[0].src)}
-                        />
+                          style={{ userSelect: 'none', pointerEvents: 'auto' }}
+                          className={isMediaFullHeight ? 'cursor-zoom-out active:cursor-grabbing' : 'cursor-zoom-in active:cursor-grabbing'}
+                        >
+                          <LaravelImage
+                            src={slide.items[0].src}
+                            alt={slide.items[0].alt}
+                            width={0}
+                            height={0}
+                            className={`object-contain ${isMediaFullHeight ? 'max-h-screen' : 'max-h-[90vh]'
+                              } w-auto h-auto max-w-full`}
+                            onLoad={() => console.log('✅ Полноэкранное изображение загружено:', slide.items[0].src)}
+                            onError={() => console.error('❌ Ошибка полноэкранного изображения:', slide.items[0].src)}
+                          />
+                        </div>
                       ) : (
                         <div className="relative">
                           <video
                             src={slide.items[0].src}
                             poster={slide.items[0].poster}
-                            className={`object-contain ${
-                              isMediaFullHeight ? 'max-h-screen' : 'max-h-[90vh]'
-                            } max-w-full`}
+                            className={`object-contain ${isMediaFullHeight ? 'max-h-screen' : 'max-h-[90vh]'
+                              } max-w-full`}
                             controls
                             controlsList="nodownload"
                             preload="metadata"
@@ -660,17 +696,16 @@ export default function CarouselWithLightbox({ images, className = "" }: Props) 
                             onLoadedMetadata={handleVideoEvent}
                             onCanPlay={handleVideoEvent}
                             onTimeUpdate={handleVideoEvent}
-                            style={{ 
+                            style={{
                               userSelect: 'none',
                               pointerEvents: 'auto'
                             }}
                           />
                           {/* Overlay для zoom - исключаем область controls */}
                           <div
-                            className={`absolute top-0 left-0 w-full ${
-                              isMediaFullHeight ? 'cursor-zoom-out active:cursor-grabbing' : 'cursor-zoom-in active:cursor-grabbing'
-                            }`}
-                            style={{ 
+                            className={`absolute top-0 left-0 w-full ${isMediaFullHeight ? 'cursor-zoom-out active:cursor-grabbing' : 'cursor-zoom-in active:cursor-grabbing'
+                              }`}
+                            style={{
                               height: 'calc(100% - 80px)', // Оставляем нижнюю часть для controls
                               pointerEvents: 'auto',
                               backgroundColor: 'transparent',

@@ -38,3 +38,23 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 })
+
+// Mock document.createElement for browser detection tests
+const originalCreateElement = document.createElement;
+document.createElement = vi.fn().mockImplementation((tagName: string) => {
+  if (tagName === 'video') {
+    return {
+      canPlayType: vi.fn(() => ''),
+      ...originalCreateElement.call(document, tagName)
+    };
+  }
+  if (tagName === 'canvas') {
+    return {
+      width: 1,
+      height: 1,
+      toDataURL: vi.fn(() => 'data:image/png'),
+      ...originalCreateElement.call(document, tagName)
+    };
+  }
+  return originalCreateElement.call(document, tagName);
+});
