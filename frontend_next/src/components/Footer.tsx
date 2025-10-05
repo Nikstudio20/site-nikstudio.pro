@@ -30,7 +30,9 @@ export default function Footer() {
     const fetchCategories = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/api/project-categories`);
+        const response = await fetch(`${apiUrl}/api/project-categories`, {
+          next: { revalidate: 3600 } // Cache for 1 hour
+        });
         
         if (!response.ok) {
           throw new Error('Ошибка при загрузке категорий');
@@ -76,6 +78,7 @@ export default function Footer() {
                   className="w-full max-w-[393.59px] h-auto"
                   width={393.59}
                   height={139.15}
+                  loading="lazy"
                 />
               </Link>
             </div>
@@ -175,42 +178,42 @@ export default function Footer() {
                   Социальные сети
                 </h3>
                 <nav className="flex flex-col gap-2 lg:gap-4">
-                  <Link
+                  <a
                     href="tel:+79263314618"
                     className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
                   >
                     +7 (926) 331-46-18
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="mailto:info@nikstudio.pro"
                     className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
                   >
                     info@nikstudio.pro
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="https://www.instagram.com/nikstudio.pro/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
                   >
                     Instagram
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="https://m.vk.com/nikstudiopro?from=groups"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
                   >
                     Вконтакте
-                  </Link>
-                  <Link
+                  </a>
+                  <a
                     href="https://t.me/slavanikitin_msk"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#0E1011] hover:text-[#DE063A] text-xl lg:text-[26px] font-inter font-semibold leading-[130%] w-full lg:w-[360px] lg:h-[34px] self-stretch flex-grow-0 transition-colors duration-300"
                   >
                     Телеграм
-                  </Link>
+                  </a>
                 </nav>
               </div>
             </div>

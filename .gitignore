@@ -1,3 +1,65 @@
-# Node modules внутри frontend
+# ===================================
+# Root Level Ignores
+# ===================================
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Test & Debug Files
+*.test.js
+*-test.js
+test-*.js
+final-test.*
+debug-*.js
+
+# Documentation (development history)
+*_SUMMARY.md
+*_STATUS.md
+*_FIX.md
+*_IMPLEMENTATION*.md
+*_GUIDE.md
+*_SYSTEM*.md
+*_COMPATIBILITY*.md
+*_DOCUMENTATION.md
+test-*.md
+restart-*.md
+
+# SQL Dumps (optional - uncomment if needed)
+# *.sql
+
+# Batch/Shell Scripts (optional)
+*.bat
+*.sh
+
+# ===================================
+# Frontend (Next.js)
+# ===================================
 /frontend_next/node_modules
 /frontend_next/.next
+/frontend_next/out
+/frontend_next/build
+/frontend_next/playwright-report
+/frontend_next/test-results
+/frontend_next/.env*.local
+
+# ===================================
+# Backend (Laravel)
+# ===================================
+/backend_laravel/vendor
+/backend_laravel/node_modules
+/backend_laravel/storage/logs/*.log
+/backend_laravel/public/storage
+/backend_laravel/.env
+
+# ===================================
+# Kiro IDE (optional - uncomment if not using)
+# ===================================
+# .kiro/

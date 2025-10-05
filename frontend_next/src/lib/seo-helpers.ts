@@ -95,7 +95,7 @@ async function fetchProjectData(slug: string): Promise<ContentWithSEO | null> {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     const response = await fetch(`${apiUrl}/api/projects/${slug}`, {
-      cache: 'no-store'
+      next: { revalidate: 1800 } // Cache for 30 minutes
     });
 
     if (!response.ok) {
@@ -135,7 +135,7 @@ async function fetchBlogPostData(slug: string): Promise<ContentWithSEO | null> {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     const response = await fetch(`${apiUrl}/api/blog-posts/${slug}`, {
-      cache: 'no-store'
+      next: { revalidate: 3600 } // Cache for 1 hour
     });
 
     if (!response.ok) {

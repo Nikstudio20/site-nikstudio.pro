@@ -30,7 +30,22 @@ const config = {
     'postcss-custom-properties': {
       // Additional custom properties processing
       preserve: true, // Keep original custom properties
-    }
+    },
+    // Add cssnano for production minification
+    ...(process.env.NODE_ENV === 'production' && {
+      'cssnano': {
+        preset: ['default', {
+          discardComments: {
+            removeAll: true, // Remove all comments in production
+          },
+          normalizeWhitespace: true,
+          minifyFontValues: true,
+          minifyGradients: true,
+          reduceIdents: false, // Keep animation names intact
+          zindex: false, // Don't optimize z-index values
+        }],
+      },
+    }),
   },
 };
 

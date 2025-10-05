@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     // Fetch blog post data for SEO metadata
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     const response = await fetch(`${apiUrl}/api/blog-posts/${slug}`, {
-      cache: 'no-store' // Ensure fresh data for SEO
+      next: { revalidate: 3600 } // ISR: Revalidate every hour
     });
 
     let blogPostData = null;
@@ -125,7 +125,7 @@ async function getBlogPost(slug: string): Promise<BlogPost> {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/blog-posts/${slug}`,
-      { cache: "no-store" }
+      { next: { revalidate: 3600 } } // ISR: Revalidate every hour
     );
 
     if (!res.ok) {
@@ -149,7 +149,7 @@ async function getAllBlogPosts(): Promise<BlogPost[]> {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/api/blog-posts`,
-      { cache: "no-store" }
+      { next: { revalidate: 3600 } } // ISR: Revalidate every hour
     );
 
     if (!res.ok) {

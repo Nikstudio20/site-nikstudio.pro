@@ -3,16 +3,28 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
 // import Link from 'next/link';
 import Header from '@/components/Header';
 import Header_mobile from "@/components/Header_mobile";
 import Footer from '@/components/Footer';
 import FooterMobile from "@/components/Footer_mobile";
 import ContactForm from '@/components/ContactForm';
-import CarouselWithLightboxBasic from '@/app/components/CarouselWithLightboxBasic';
 import StructuredDataComponent from '@/components/StructuredDataComponent';
 import { SEOMetadataGenerator } from '@/lib/seo-metadata';
 import { Project, ApiResponse, ProjectDetailHeroMedia, ProjectDetailBlockMedia } from './types';
+
+// Lazy load CarouselWithLightboxBasic with skeleton loader
+const CarouselWithLightboxBasic = dynamic(() => import('@/app/components/CarouselWithLightboxBasic'), {
+  loading: () => (
+    <div className="relative w-full h-[200px] sm:h-[500px] lg:h-[1080px] bg-[#181A1B] animate-pulse">
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-white/20 border-t-white/60 rounded-full animate-spin"></div>
+      </div>
+    </div>
+  ),
+  ssr: false,
+});
 
 // Утилитарная функция для нормализации путей к медиа файлам
 function normalizePath(path: string, isVideo: boolean = false): string {
@@ -128,7 +140,12 @@ export default function ProjectDetailClient() {
         setError(null);
 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-        const response = await fetch(`${apiUrl}/api/projects/${slug}`);
+        const response = await fetch(`${apiUrl}/api/projects/${slug}`, {
+          // Add caching for client-side requests
+          next: { revalidate: 1800 }, // Cache for 30 minutes
+          // Request deduplication
+          cache: 'force-cache'
+        });
 
         if (!response.ok) {
           if (response.status === 404) {

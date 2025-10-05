@@ -34,6 +34,7 @@ export default function MainContentSection() {
                 width={147.32} 
                 height={40.41} 
                 className="object-contain"
+                loading="lazy"
               />
             </div>
             <div className="bg-[#0E1011] rounded-lg flex items-center justify-center h-[72px]">
@@ -43,6 +44,7 @@ export default function MainContentSection() {
                 width={256} 
                 height={71.54} 
                 className="object-contain"
+                loading="lazy"
               />
             </div>
 
@@ -53,6 +55,7 @@ export default function MainContentSection() {
                 width={169.6} 
                 height={40} 
                 className="object-contain"
+                loading="lazy"
               />
             </div>
             <div className="bg-[#0E1011] rounded-lg flex items-center justify-center h-[72px]">
@@ -62,6 +65,7 @@ export default function MainContentSection() {
                 width={229.34} 
                 height={30.79} 
                 className="object-contain"
+                loading="lazy"
               />
             </div>
 
@@ -72,6 +76,7 @@ export default function MainContentSection() {
                 width={215.37} 
                 height={46.45} 
                 className="object-contain"
+                loading="lazy"
               />
             </div>
             
@@ -82,6 +87,7 @@ export default function MainContentSection() {
                 width={179} 
                 height={58.01} 
                 className="object-contain"
+                loading="lazy"
               />
             </div>
           </div>

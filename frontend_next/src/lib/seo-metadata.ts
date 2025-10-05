@@ -55,7 +55,7 @@ export interface GenerateMetadataProps {
   content: ContentWithSEO | null;
   globalSettings: SEOSettings | null;
   pageSettings?: PageSeoSettings | null;
-  pageType: 'project' | 'blog' | 'home' | 'projects_list' | 'blog_list';
+  pageType: 'project' | 'blog' | 'home' | 'projects_list' | 'blog_list' | 'media';
   slug?: string;
 }
 
@@ -70,9 +70,6 @@ export class SEOMetadataGenerator {
     twitter_card_type: 'summary_large_image'
   };
 
-  private static readonly TITLE_MAX_LENGTH = 60;
-  private static readonly DESCRIPTION_MAX_LENGTH = 160;
-
   /**
    * Generate complete metadata for Next.js pages with caching
    */
@@ -85,7 +82,12 @@ export class SEOMetadataGenerator {
       if (cachedMetadata) {
         seoPerformanceMonitor.recordCacheAccess('metadata', true);
         endTiming();
-        return this.buildNextjsMetadata(cachedMetadata, props.globalSettings);
+        return this.buildNextjsMetadata(
+          cachedMetadata,
+          props.globalSettings,
+          props.pageSettings || null,
+          props.pageType
+        );
       }
 
       seoPerformanceMonitor.recordCacheAccess('metadata', false);
@@ -94,7 +96,12 @@ export class SEOMetadataGenerator {
       // Cache the generated metadata
       seoCache.cachePageMetadata(props.pageType, props.slug, seoData);
       
-      const result = this.buildNextjsMetadata(seoData, props.globalSettings);
+      const result = this.buildNextjsMetadata(
+        seoData,
+        props.globalSettings,
+        props.pageSettings || null,
+        props.pageType
+      );
       endTiming();
       return result;
     } catch (error) {
@@ -106,7 +113,12 @@ export class SEOMetadataGenerator {
   /**
    * Build Next.js Metadata object from SEO data
    */
-  private static buildNextjsMetadata(seoData: SEOMetadata, globalSettings: SEOSettings | null): Metadata {
+  private static buildNextjsMetadata(
+    seoData: SEOMetadata,
+    globalSettings: SEOSettings | null,
+    pageSettings: PageSeoSettings | null,
+    pageType: string
+  ): Metadata {
     const twitterCardType = this.getGlobalSetting(globalSettings, 'twitter_card_type') as 'summary' | 'summary_large_image';
 
     // Generate optimized images for different platforms
@@ -118,7 +130,7 @@ export class SEOMetadataGenerator {
     return {
       title: seoData.title,
       description: seoData.description,
-      keywords: this.generateKeywords(seoData.type === 'article' ? 'project' : 'home'),
+      keywords: this.generateKeywords(pageSettings, pageType),
       openGraph: {
         title: seoData.title,
         description: seoData.description,
@@ -203,21 +215,20 @@ export class SEOMetadataGenerator {
   ): string {
     const siteTitle = this.getGlobalSetting(globalSettings, 'site_title');
     
-    // Use custom SEO title if available (for individual content)
-    if (content?.seo_title) {
-      return this.truncateText(content.seo_title, this.TITLE_MAX_LENGTH);
+    // For list pages and special pages (home, media) use pageSettings
+    if (pageSettings?.seo_title) {
+      return pageSettings.seo_title;
     }
 
-    // Use page-specific SEO title (for list pages)
-    if (pageSettings?.seo_title) {
-      return this.truncateText(pageSettings.seo_title, this.TITLE_MAX_LENGTH);
+    // For individual content use content.seo_title
+    if (content?.seo_title) {
+      return content.seo_title;
     }
 
     // Fallback to content title (for individual content)
     const contentTitle = content?.title || content?.main_title;
     if (contentTitle) {
-      const fullTitle = `${contentTitle} | ${siteTitle}`;
-      return this.truncateText(fullTitle, this.TITLE_MAX_LENGTH);
+      return `${contentTitle} | ${siteTitle}`;
     }
 
     // Default titles by page type
@@ -230,6 +241,8 @@ export class SEOMetadataGenerator {
         return `Проекты | ${siteTitle}`;
       case 'blog_list':
         return `Блог | ${siteTitle}`;
+      case 'media':
+        return `Медиа | ${siteTitle}`;
       case 'home':
       default:
         return siteTitle;
@@ -245,24 +258,24 @@ export class SEOMetadataGenerator {
     pageSettings: PageSeoSettings | null,
     _pageType: string
   ): string {
-    // Use custom SEO description if available (for individual content)
-    if (content?.seo_description) {
-      return this.truncateText(content.seo_description, this.DESCRIPTION_MAX_LENGTH);
+    // For list pages and special pages (home, media) use pageSettings
+    if (pageSettings?.seo_description) {
+      return pageSettings.seo_description;
     }
 
-    // Use page-specific SEO description (for list pages)
-    if (pageSettings?.seo_description) {
-      return this.truncateText(pageSettings.seo_description, this.DESCRIPTION_MAX_LENGTH);
+    // For individual content use content.seo_description
+    if (content?.seo_description) {
+      return content.seo_description;
     }
 
     // Fallback to content description (for individual content)
     if (content?.description) {
-      return this.truncateText(content.description, this.DESCRIPTION_MAX_LENGTH);
+      return content.description;
     }
 
     // Fallback to global settings
     const globalDescription = this.getGlobalSetting(globalSettings, 'site_description');
-    return this.truncateText(globalDescription, this.DESCRIPTION_MAX_LENGTH);
+    return globalDescription;
   }
 
   /**
@@ -360,14 +373,28 @@ export class SEOMetadataGenerator {
   /**
    * Generate keywords based on page type
    */
-  private static generateKeywords(pageType: string): string[] {
+  private static generateKeywords(
+    pageSettings: PageSeoSettings | null,
+    pageType: string
+  ): string[] {
+    // Use keywords from pageSettings if available
+    if (pageSettings?.seo_keywords && Array.isArray(pageSettings.seo_keywords)) {
+      return pageSettings.seo_keywords;
+    }
+
+    // Fallback to default keywords
     const baseKeywords = ['NIK Studio', 'дизайн', 'брендинг', 'визуализация'];
     
     switch (pageType) {
       case 'project':
         return [...baseKeywords, 'проекты', 'портфолио', 'кейсы'];
       case 'blog':
+      case 'blog_list':
         return [...baseKeywords, 'блог', 'статьи', 'новости'];
+      case 'projects_list':
+        return [...baseKeywords, 'проекты', 'портфолио', 'кейсы'];
+      case 'media':
+        return [...baseKeywords, 'медиа', 'галерея', 'видео'];
       case 'home':
       default:
         return [...baseKeywords, 'промышленный дизайн', '3д-анимация', 'видеопродакшн'];
@@ -386,24 +413,6 @@ export class SEOMetadataGenerator {
     }
     
     return (this.DEFAULT_SETTINGS[key] as SEOSettings[K]) || '' as SEOSettings[K];
-  }
-
-  /**
-   * Truncate text to specified length
-   */
-  private static truncateText(text: string, maxLength: number): string {
-    if (!text) return '';
-    if (text.length <= maxLength) return text;
-    
-    // Find the last space before the limit to avoid cutting words
-    const truncated = text.substring(0, maxLength);
-    const lastSpace = truncated.lastIndexOf(' ');
-    
-    if (lastSpace > 0) {
-      return truncated.substring(0, lastSpace) + '...';
-    }
-    
-    return truncated + '...';
   }
 
   /**

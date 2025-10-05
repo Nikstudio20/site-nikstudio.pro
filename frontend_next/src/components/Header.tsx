@@ -12,6 +12,7 @@ export default function Header() {
           width={82}
           height={30}
           className="text-[#DE063A]"
+          priority
         />
       </Link>
 

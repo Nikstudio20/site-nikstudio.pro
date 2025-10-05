@@ -160,6 +160,52 @@ export default function HomeContentClient() {
 
   const displayedProjects = showAllProjects ? projects : projects.slice(0, 4);
 
+  // Show skeleton during initial load to prevent CLS
+  if (heroVideoLoading && !homeContent) {
+    return (
+      <div className="flex flex-col lg:flex-row justify-center w-full relative">
+        {/* Left Side - Hero Image Skeleton */}
+        <div 
+          className="w-full lg:w-1/2 bg-gray-800 relative h-[246px] sm:h-[540px] md:h-[720px] lg:h-[1080px]"
+          style={{ aspectRatio: '1787/1810', minHeight: '246px' }}
+        />
+
+        {/* Right Side - Content Skeleton */}
+        <div className="w-full lg:w-1/2 flex flex-col justify-end">
+          <div className="flex flex-col p-5 sm:p-12 lg:p-24 gap-12 lg:pt-[204px] lg:pb-[64px] h-full">
+            <div className="flex flex-col items-center sm:items-start gap-12 lg:gap-[73px]">
+              {/* Logo Skeleton */}
+              <div 
+                className="hidden sm:block bg-gray-800 rounded"
+                style={{ width: '321.99px', height: '119.99px', minWidth: '321.99px', minHeight: '119.99px' }}
+              />
+
+              <div className="flex flex-col gap-8 lg:gap-10 lg:mt-[38px] w-full">
+                {/* Description Skeleton */}
+                <div 
+                  className="bg-gray-800 rounded w-full lg:w-[400px] xl:w-[500px] 2xl:w-[768px]"
+                  style={{ height: '90px' }}
+                />
+                
+                {/* Title Skeleton */}
+                <div 
+                  className="bg-gray-800 rounded w-full lg:w-[400px] xl:w-[500px] 2xl:w-[768px]"
+                  style={{ height: '124px' }}
+                />
+                
+                {/* Services List Skeleton */}
+                <div 
+                  className="bg-gray-800 rounded"
+                  style={{ height: '240px' }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Structured Data */}
@@ -170,8 +216,8 @@ export default function HomeContentClient() {
 
       {/* Hero */}
       <div className="flex flex-col lg:flex-row justify-center w-full relative">
-        {/* Left Side - Video/Image */}
-        <div className="w-full lg:w-1/2 bg-white relative h-[246px] sm:h-[540px] md:h-[720px] lg:h-[1080px]">
+        {/* Left Side - Video/Image - Fixed dimensions to prevent CLS */}
+        <div className="w-full lg:w-1/2 bg-white relative h-[246px] sm:h-[540px] md:h-[720px] lg:h-[1080px]" style={{ aspectRatio: '1787/1810' }}>
           {heroVideoLoading ? (
             // Loading state - show fallback image while loading
             <div className="relative w-full h-full overflow-hidden">
@@ -182,6 +228,9 @@ export default function HomeContentClient() {
                 width={1787}
                 height={1810}
                 priority
+                fetchPriority="high"
+                quality={90}
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
           ) : heroVideoError ? (
@@ -194,6 +243,9 @@ export default function HomeContentClient() {
                 width={1787}
                 height={1810}
                 priority
+                fetchPriority="high"
+                quality={90}
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
           ) : (
@@ -215,12 +267,13 @@ export default function HomeContentClient() {
           <div className="flex flex-col p-5 sm:p-12 lg:p-24 gap-12 lg:pt-[204px] lg:pb-[64px] h-full">
             <div className="flex flex-col items-center sm:items-start gap-12 lg:gap-[73px]">
               <Link href="/" className="hidden sm:block">
-                <div className="relative w-[321.99px] h-[119.99px] scale-75 sm:scale-100">
+                <div className="relative w-[321.99px] h-[119.99px] scale-75 sm:scale-100" style={{ minWidth: '321.99px', minHeight: '119.99px' }}>
                   <Image
                     src="/images/home/nik-logo-hero.svg"
                     alt="NIK Studio Logo"
                     fill
                     className="object-contain"
+                    priority
                   />
                 </div>
               </Link>
@@ -292,25 +345,28 @@ export default function HomeContentClient() {
             <div className="grid grid-cols-1 lg:grid-cols-2">
               {displayedProjects.map((project) => (
                 <Link href={`/projects/${project.slug}`} key={project.id} className="flex flex-col group">
-                  <div className="relative w-full aspect-square overflow-hidden">
+                  <div className="relative w-full aspect-square overflow-hidden" style={{ minHeight: '390px' }}>
                     <Image
                       src={getImageUrl(project.main_image)}
                       alt={project.main_title}
                       fill
                       className="object-cover opacity-70 h-[390px] sm:h-auto transition-transform duration-300 group-hover:scale-110"
+                      quality={85}
+                      sizes="(max-width: 1024px) 100vw, 50vw"
                       onError={(e) => {
                         console.error('Ошибка загрузки изображения:', project.main_image);
                         e.currentTarget.src = '/placeholder.jpg';
                       }}
                     />
                     {project.logo && (
-                      <div className="absolute inset-0 flex items-center justify-center scale-75 sm:scale-100">
+                      <div className="absolute inset-0 flex items-center justify-center scale-75 sm:scale-100" style={{ minHeight: '122px' }}>
                         <Image
                           src={getImageUrl(project.logo)}
                           alt={`${project.main_title} Logo`}
                           width={335}
                           height={122}
                           className="object-contain"
+                          quality={85}
                           onError={(e) => {
                             console.error('Ошибка загрузки логотипа:', project.logo);
                             e.currentTarget.style.display = 'none';
@@ -319,7 +375,7 @@ export default function HomeContentClient() {
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-8 px-5 sm:px-8 lg:px-12 -mt-[20px] sm:mt-0 group-hover:bg-white transition-colors duration-300">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-8 px-5 sm:px-8 lg:px-12 -mt-[20px] sm:mt-0 group-hover:bg-white transition-colors duration-300" style={{ minHeight: '80px' }}>
                     <h3 className="text-white font-inter font-medium sm:font-semibold text-[24px] sm:text-2xl lg:text-[40px] leading-[140%] sm:leading-tight tracking-[-1px] sm:tracking-normal group-hover:text-black transition-colors duration-300">
                       {project.main_title}
                     </h3>

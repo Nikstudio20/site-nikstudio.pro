@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 
+// Bundle analyzer configuration
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 const nextConfig: NextConfig = {
   // Image optimization configuration
   images: {
@@ -50,6 +55,10 @@ const nextConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn']
     } : false,
+    // Remove data-test attributes in production
+    reactRemoveProperties: process.env.NODE_ENV === 'production' ? {
+      properties: ['^data-test']
+    } : false,
   },
 
 
@@ -77,9 +86,32 @@ const nextConfig: NextConfig = {
     if (!dev && !isServer) {
       config.optimization = {
         ...config.optimization,
+        moduleIds: 'deterministic',
+        runtimeChunk: 'single',
         splitChunks: {
           chunks: 'all',
           cacheGroups: {
+            // Heavy libraries - highest priority
+            fullcalendar: {
+              test: /[\\/]node_modules[\\/]@fullcalendar[\\/]/,
+              name: 'fullcalendar',
+              priority: 20,
+            },
+            apexcharts: {
+              test: /[\\/]node_modules[\\/](apexcharts|react-apexcharts)[\\/]/,
+              name: 'apexcharts',
+              priority: 20,
+            },
+            carousel: {
+              test: /[\\/]node_modules[\\/]swiper[\\/]/,
+              name: 'carousel',
+              priority: 20,
+            },
+            radix: {
+              test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
+              name: 'radix-ui',
+              priority: 15,
+            },
             // Separate polyfills into their own chunk
             polyfills: {
               name: 'polyfills',
@@ -179,6 +211,12 @@ const nextConfig: NextConfig = {
   
   // Optimize for different deployment targets
   target: 'server',
+
+  // Enable compression
+  compress: true,
+
+  // Remove X-Powered-By header
+  poweredByHeader: false,
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

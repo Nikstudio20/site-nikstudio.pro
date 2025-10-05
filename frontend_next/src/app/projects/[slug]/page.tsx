@@ -21,24 +21,31 @@ interface ApiResponse {
   message?: string;
 }
 
+// Fetch project data with ISR
+async function getProjectData(slug: string) {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${apiUrl}/api/projects/${slug}`, {
+      next: { revalidate: 1800 } // ISR: Revalidate every 30 minutes
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data: ApiResponse = await response.json();
+    return data.success && data.data ? data.data : null;
+  } catch (error) {
+    console.error('Error fetching project data:', error);
+    return null;
+  }
+}
+
 // Generate metadata for project detail page
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   try {
     const { slug } = await params;
-
-    // Fetch project data for SEO metadata
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${apiUrl}/api/projects/${slug}`, {
-      cache: 'no-store' // Ensure fresh data for SEO
-    });
-
-    let projectData = null;
-    if (response.ok) {
-      const data: ApiResponse = await response.json();
-      if (data.success && data.data) {
-        projectData = data.data;
-      }
-    }
+    const projectData = await getProjectData(slug);
 
     // Fetch global SEO settings
     const globalSettings = await SEOMetadataGenerator.fetchGlobalSettings();
@@ -77,5 +84,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function ProjectPage({ params: _params }: { params: Promise<{ slug: string }> }) {
+  // Note: ProjectDetailClient still fetches data client-side for now
+  // This maintains existing functionality while metadata uses ISR
+  // Future optimization: Pass server-fetched data as props to client component
   return <ProjectDetailClient />;
 }

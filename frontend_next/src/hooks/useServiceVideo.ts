@@ -35,7 +35,7 @@ export const useServiceVideo = (serviceName: string) => {
 
         const response = await fetch(`${API_BASE_URL}/services/${serviceName}/video`, {
           headers: { 'Accept': 'application/json' },
-          cache: 'no-store'
+          next: { revalidate: 300 } // Cache for 5 minutes
         });
 
         if (response.ok) {

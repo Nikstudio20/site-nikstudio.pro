@@ -59,8 +59,10 @@ export default function About() {
             alt="NIK Studio Work Environment"
             fill
             className="object-cover object-center"
-            quality={100}
+            quality={90}
             priority
+            fetchPriority="high"
+            sizes="100vw"
           />
         </div>
       </section>
@@ -91,7 +93,9 @@ export default function About() {
               width={960}
               height={1260}
               className="w-full h-[360px] sm:h-auto object-cover"
-              quality={100}
+              quality={85}
+              loading="lazy"
+              sizes="(max-width: 1024px) 100vw, 50vw"
             />
           </div>
           <div className="w-full lg:w-1/2 flex flex-col justify-between">

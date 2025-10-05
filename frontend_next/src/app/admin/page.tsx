@@ -1,13 +1,59 @@
 "use client"
 
-import { Video } from "lucide-react";
+import dynamicImport from 'next/dynamic';
+import { Video, Loader2 } from "lucide-react";
 
 // Принудительно делаем админку динамической для продакшн сборки
 export const dynamic = 'force-dynamic'
-import { AdminHeroVideoManager } from "@/components/admin/AdminHeroVideoManager";
-import { ServiceVideoManager } from "@/components/admin/ServiceVideoManager";
-import { SEOStatusWidget } from "@/components/admin/SEOStatusWidget";
-import { SEOQuickActions } from "@/components/admin/SEOQuickActions";
+
+// Lazy load admin components with loading states
+const AdminHeroVideoManager = dynamicImport(
+  () => import("@/components/admin/AdminHeroVideoManager").then(mod => ({ default: mod.AdminHeroVideoManager })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center p-8 border rounded-lg">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+      </div>
+    ),
+    ssr: false
+  }
+);
+
+const ServiceVideoManager = dynamicImport(
+  () => import("@/components/admin/ServiceVideoManager").then(mod => ({ default: mod.ServiceVideoManager })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center p-8 border rounded-lg">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+      </div>
+    ),
+    ssr: false
+  }
+);
+
+const SEOStatusWidget = dynamicImport(
+  () => import("@/components/admin/SEOStatusWidget").then(mod => ({ default: mod.SEOStatusWidget })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center p-8 border rounded-lg">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+      </div>
+    ),
+    ssr: false
+  }
+);
+
+const SEOQuickActions = dynamicImport(
+  () => import("@/components/admin/SEOQuickActions").then(mod => ({ default: mod.SEOQuickActions })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center p-8 border rounded-lg">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+      </div>
+    ),
+    ssr: false
+  }
+);
 
 export default function AdminPage() {
   return (

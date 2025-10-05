@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,11 +31,46 @@ import {
   Edit,
   Trash2,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Loader2
 } from "lucide-react";
-import { ServiceBlockDialog } from './ServiceBlockDialog';
-import { TestimonialDialog } from './TestimonialDialog';
-import { ProcessStepDialog } from './ProcessStepDialog';
+
+// Lazy load admin dialog components with loading states
+const ServiceBlockDialog = dynamic(
+  () => import('./ServiceBlockDialog').then(mod => ({ default: mod.ServiceBlockDialog })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+      </div>
+    ),
+    ssr: false
+  }
+);
+
+const TestimonialDialog = dynamic(
+  () => import('./TestimonialDialog').then(mod => ({ default: mod.TestimonialDialog })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+      </div>
+    ),
+    ssr: false
+  }
+);
+
+const ProcessStepDialog = dynamic(
+  () => import('./ProcessStepDialog').then(mod => ({ default: mod.ProcessStepDialog })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+      </div>
+    ),
+    ssr: false
+  }
+);
 
 interface MediaPageAdminProps {
   onBack?: () => void;

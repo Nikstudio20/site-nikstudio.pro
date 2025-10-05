@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ProjectCategory {
   id: number;
@@ -13,7 +14,7 @@ interface ProjectCategory {
 
 interface ProjectCategoriesProps {
   className?: string;
-  onCategoryChange: (categoryId: number | null) => void;
+  onCategoryChange?: (categoryId: number | null) => void;
   selectedCategory: number | null;
 }
 
@@ -28,12 +29,15 @@ const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className, onCate
   const [categories, setCategories] = useState<ProjectCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/api/project-categories`);
+        const response = await fetch(`${apiUrl}/api/project-categories`, {
+          next: { revalidate: 3600 } // Cache for 1 hour
+        });
         
         if (!response.ok) {
           throw new Error('Ошибка при загрузке категорий');
@@ -71,7 +75,17 @@ const ProjectCategories: React.FC<ProjectCategoriesProps> = ({ className, onCate
 
   // Обработчик клика по категории
   const handleCategoryClick = (categoryId: number | null) => {
-    onCategoryChange(categoryId);
+    if (onCategoryChange) {
+      // Legacy callback support
+      onCategoryChange(categoryId);
+    } else {
+      // Use router navigation for ISR
+      if (categoryId === null) {
+        router.push('/projects');
+      } else {
+        router.push(`/projects?category_id=${categoryId}`);
+      }
+    }
   };
 
   if (loading) {

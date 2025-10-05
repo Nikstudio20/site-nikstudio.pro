@@ -4,6 +4,8 @@ module.exports = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/lib/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/styles/**/*.css",
   ],
   theme: {
     extend: {
@@ -17,4 +19,9 @@ module.exports = {
     },
   },
   plugins: [],
+  // Safelist for dynamically generated classes (if needed in future)
+  safelist: [
+    // Add any dynamically generated classes here
+    // Example: 'bg-red-500', 'text-blue-600'
+  ],
 };

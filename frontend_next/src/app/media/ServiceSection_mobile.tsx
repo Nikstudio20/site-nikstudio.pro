@@ -1,5 +1,18 @@
 "use client";
-import CarouselWithLightboxBasic from "../components/CarouselWithLightboxBasic";
+import dynamic from 'next/dynamic';
+import { useEffect, useRef, useState } from 'react';
+
+// Lazy load CarouselWithLightboxBasic with skeleton loader
+const CarouselWithLightboxBasic = dynamic(() => import("../components/CarouselWithLightboxBasic"), {
+  loading: () => (
+    <div className="relative w-full h-[200px] sm:h-[500px] lg:h-[1080px] bg-[#181A1B] animate-pulse">
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-white/20 border-t-white/60 rounded-full animate-spin"></div>
+      </div>
+    </div>
+  ),
+  ssr: false,
+});
 
 // Интерфейсы для типизации
 interface Slide {
@@ -26,6 +39,35 @@ interface Service {
 
 // Компонент для секции сервисов
 export default function ServiceSectionMobile({ service, className = "" }: { service: Service, className?: string }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  // Use IntersectionObserver to defer carousel initialization
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        });
+      },
+      {
+        rootMargin: '200px', // Start loading 200px before the element is visible
+        threshold: 0.01,
+      }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   // Функция для определения типа медиа по расширению файла (fallback)
   const getMediaType = (src: string, type?: string): 'image' | 'video' => {
     // Используем тип из API, если доступен
@@ -72,7 +114,7 @@ export default function ServiceSectionMobile({ service, className = "" }: { serv
   }).filter(slide => slide.items.length > 0) || [];
 
   return (
-    <section className={`bg-[#0e1011] w-full ${className}`}>
+    <section ref={sectionRef} className={`bg-[#0e1011] w-full ${className}`}>
 
       {/* Content Grid */}
       <div className="flex flex-col md:flex-row w-full gap-6 md:gap-4 lg:gap-24 py-16 md:py-24 lg:py-[96px] -mt-[12px]">
@@ -80,12 +122,20 @@ export default function ServiceSectionMobile({ service, className = "" }: { serv
           {service.title}
         </h2>
 
-        {/* CarouselWithLightboxBasic */}
+        {/* CarouselWithLightboxBasic - Only load when visible */}
         <div className="mt-[0px] sm:mt-20">
-          <CarouselWithLightboxBasic
-            images={carouselImages}
-            className="w-full"
-          />
+          {isVisible ? (
+            <CarouselWithLightboxBasic
+              images={carouselImages}
+              className="w-full"
+            />
+          ) : (
+            <div className="relative w-full h-[200px] sm:h-[500px] lg:h-[1080px] bg-[#181A1B]">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-white/40 text-lg">Загрузка...</div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-12 md:gap-20 pl-5 pr-[22px] mt-[25px] flex-1 -ml-">

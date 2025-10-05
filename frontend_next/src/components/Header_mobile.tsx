@@ -31,6 +31,7 @@ export default function Header_mobile() {
             width={163.33}
             height={60}
             priority
+            quality={100}
           />
         </Link>
       </div>
@@ -46,6 +47,7 @@ export default function Header_mobile() {
           alt={menuOpen ? "Закрыть меню" : "Открыть меню"}
           width={24}
           height={24}
+          priority
         />
       </button>
 

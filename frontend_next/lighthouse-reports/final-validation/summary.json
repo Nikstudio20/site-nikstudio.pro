@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Home",
+    "url": "http://localhost:3000",
+    "performanceScore": 96,
+    "metrics": {
+      "fcp": 969,
+      "lcp": 1181,
+      "tbt": 0,
+      "cls": 0,
+      "si": 969
+    }
+  },
+  {
+    "name": "About",
+    "url": "http://localhost:3000/about",
+    "performanceScore": 99,
+    "metrics": {
+      "fcp": 520,
+      "lcp": 987,
+      "tbt": 0,
+      "cls": 0,
+      "si": 529
+    }
+  },
+  {
+    "name": "Blog",
+    "url": "http://localhost:3000/blog",
+    "performanceScore": 96,
+    "metrics": {
+      "fcp": 811,
+      "lcp": 1268,
+      "tbt": 3,
+      "cls": 0,
+      "si": 811
+    }
+  },
+  {
+    "name": "Projects",
+    "url": "http://localhost:3000/projects",
+    "performanceScore": 98,
+    "metrics": {
+      "fcp": 525,
+      "lcp": 1053,
+      "tbt": 29,
+      "cls": 0.023,
+      "si": 525
+    }
+  },
+  {
+    "name": "Media",
+    "url": "http://localhost:3000/media",
+    "performanceScore": 92,
+    "metrics": {
+      "fcp": 502,
+      "lcp": 1429,
+      "tbt": 108,
+      "cls": 0,
+      "si": 1679
+    }
+  },
+  {
+    "name": "Contact",
+    "url": "http://localhost:3000/contact",
+    "performanceScore": 99,
+    "metrics": {
+      "fcp": 492,
+      "lcp": 866,
+      "tbt": 8,
+      "cls": 0,
+      "si": 560
+    }
+  }
+]

@@ -1,6 +1,25 @@
+'use client';
+
 import React from 'react';
 import Image from "next/image";
-import TestimonialCarousel from '@/components/TestimonialCarousel';
+import dynamic from 'next/dynamic';
+
+// Lazy load TestimonialCarousel with skeleton loader
+const TestimonialCarousel = dynamic(() => import('@/components/TestimonialCarousel'), {
+  loading: () => (
+    <div className="block sm:hidden relative overflow-hidden h-[347px] sm:h-[500px] md:h-[600px] lg:h-[696px] bg-[#181A1B] animate-pulse">
+      <div className="p-5 flex flex-col gap-4">
+        <div className="w-[30px] h-[19px] bg-white/20 rounded"></div>
+        <div className="mt-[60px] space-y-4">
+          <div className="h-8 bg-white/20 rounded w-3/4"></div>
+          <div className="h-4 bg-white/10 rounded w-full"></div>
+          <div className="h-4 bg-white/10 rounded w-5/6"></div>
+        </div>
+      </div>
+    </div>
+  ),
+  ssr: false,
+});
 
 export default function TestimonialsSection() {
   return (

@@ -3,6 +3,14 @@
 .env
 .env.backup
 .env.production
+.env.local
+
+# Test files
+test_*.php
+*_test.php
+verify_*.php
+fix_*.php
+*.test.mp4
 .phpactor.json
 .phpunit.result.cache
 /.fleet

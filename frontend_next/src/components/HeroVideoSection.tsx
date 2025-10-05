@@ -150,6 +150,9 @@ const HeroVideoSection: React.FC<HeroVideoSectionProps> = ({
           width={1787}
           height={1810}
           priority
+          fetchPriority="high"
+          quality={90}
+          sizes="(max-width: 768px) 100vw, 50vw"
         />
       ) : (
         <>
@@ -189,6 +192,9 @@ const HeroVideoSection: React.FC<HeroVideoSectionProps> = ({
                 width={1787}
                 height={1810}
                 priority
+                fetchPriority="high"
+                quality={90}
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
           )}

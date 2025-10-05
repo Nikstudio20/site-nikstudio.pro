@@ -10,6 +10,8 @@ interface LaravelImageProps {
   width?: number;
   height?: number;
   priority?: boolean;
+  quality?: number;
+  loading?: "lazy" | "eager";
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -22,6 +24,8 @@ export default function LaravelImage({
   width,
   height,
   priority = false,
+  quality = 75,
+  loading,
   onLoad,
   onError
 }: LaravelImageProps) {
@@ -75,7 +79,7 @@ export default function LaravelImage({
           style={imageStyle}
           onLoad={handleLoad}
           onError={handleError}
-          loading={priority ? 'eager' : 'lazy'}
+          loading={loading || (priority ? 'eager' : 'lazy')}
         />
         
         {/* Error state */}
@@ -98,6 +102,7 @@ export default function LaravelImage({
     onLoad: handleLoad,
     onError: handleError,
     priority,
+    quality,
     ...(fill ? { fill: true } : { width, height })
   };
 
