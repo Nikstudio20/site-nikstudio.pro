@@ -11,6 +11,7 @@ import StructuredDataComponent from '@/components/StructuredDataComponent';
 import { SEOMetadataGenerator } from '@/lib/seo-metadata';
 import { getMediaUrl } from "@/lib/media-utils";
 import ProjectsSection from '@/components/ProjectsSection';
+import { getHomepageContent, getContentValue, getImageUrl, type HomepageContentBySections } from '@/lib/homepage-content';
 
 interface Project {
   id: number;
@@ -100,6 +101,15 @@ export default async function HomeContentServer({ categoryId }: HomeContentServe
   const projects = await getProjects(categoryId);
   const globalSettings = await SEOMetadataGenerator.fetchGlobalSettings();
 
+  // Fetch homepage CMS content with fallback
+  let homepageContent: HomepageContentBySections | null = null;
+  try {
+    homepageContent = await getHomepageContent();
+  } catch (error) {
+    console.error('Error fetching homepage content, using fallback:', error);
+    // Will use fallback values in components
+  }
+
   const fallbackImage = homeContent?.hero_fallback_image_url 
     ? getMediaUrl(homeContent.hero_fallback_image_url, "/images/home/hero-image.png") 
     : "/images/home/hero-image.png";
@@ -132,7 +142,7 @@ export default async function HomeContentServer({ categoryId }: HomeContentServe
               <Link href="/" className="hidden sm:block">
                 <div className="relative w-[321.99px] h-[119.99px] scale-75 sm:scale-100" style={{ minWidth: '321.99px', minHeight: '119.99px' }}>
                   <Image
-                    src="/images/home/nik-logo-hero.svg"
+                    src={getImageUrl(homepageContent?.hero, 'hero_logo', '/images/home/nik-logo-hero.svg')}
                     alt="NIK Studio Logo"
                     fill
                     className="object-contain"
@@ -143,40 +153,49 @@ export default async function HomeContentServer({ categoryId }: HomeContentServe
 
               <div className="flex flex-col gap-8 lg:gap-10 lg:mt-[38px]">
                 <p className="text-white font-geometria text-[20px] sm:text-[30px] leading-[100%] w-full lg:w-[400px] xl:w-[500px] 2xl:w-[768px] w-full-3xl h-[90px] font-normal flex-none self-stretch">
-                  Комплексные решения для промышленных компаний / подготовка к отраслевым выставкам / сопровождение / вывод продукта на новый рынок
+                  {getContentValue(
+                    homepageContent?.hero,
+                    'hero_subtitle',
+                    'Комплексные решения для промышленных компаний / подготовка к отраслевым выставкам / сопровождение / вывод продукта на новый рынок'
+                  )}
                 </p>
                 <h1 className="text-white font-inter text-[32px] sm:text-[48px] leading-[100%] sm:leading-[130%] w-full lg:w-[400px] xl:w-[500px] 2xl:w-[768px] w-full-3xl h-[124px] font-semibold flex-none self-stretch sm:mt-15 xl:mt-15 2xl:mt-0">
-                  Превращаем сложные технологии в понятный визуал
+                  {getContentValue(
+                    homepageContent?.hero,
+                    'hero_title',
+                    'Превращаем сложные технологии в понятный визуал'
+                  )}
                 </h1>
-                <div className="text-white/60 font-inter text-[16px] sm:text-[30px] leading-[100%] h-[240px] font-light flex-none -mt-[40px] sm:mt-40 xl:mt-25 2xl:mt-0">
-                  мультимедиа<br />
-                  брендинг<br />
-                  дизайн / презентации<br />
-                  коммерческая фотогорафия<br />
-                  3д-визуализация и анимация<br />
-                  видеопродакшн<br />
-                  создание сайтов
-                </div>
+                <div 
+                  className="text-white/60 font-inter text-[16px] sm:text-[30px] leading-[100%] h-[240px] font-light flex-none -mt-[40px] sm:mt-40 xl:mt-25 2xl:mt-0"
+                  dangerouslySetInnerHTML={{
+                    __html: getContentValue(
+                      homepageContent?.hero,
+                      'hero_description',
+                      'мультимедиа<br />брендинг<br />дизайн / презентации<br />коммерческая фотогорафия<br />3д-визуализация и анимация<br />видеопродакшн<br />создание сайтов'
+                    )
+                  }}
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <MainContentSection />
+      <MainContentSection content={homepageContent?.main_content} />
 
       {/* Projects Section - Client component for interactivity */}
       <ProjectsSection initialProjects={projects} initialCategoryId={categoryId} />
 
       {/* Other sections */}
       <div className="hidden sm:block">
-        <ServicesSection />
+        <ServicesSection content={homepageContent} />
       </div>
       <div className="block sm:hidden">
-        <ServiceSectionMobile />
+        <ServiceSectionMobile content={homepageContent} />
       </div>
 
-      <TestimonialsSection />
+      <TestimonialsSection content={homepageContent} />
     </>
   );
 }

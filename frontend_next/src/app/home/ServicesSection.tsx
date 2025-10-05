@@ -2,13 +2,140 @@
 
 import Image from "next/image";
 import { useServiceVideo } from "@/hooks/useServiceVideo";
+import { getContentValue, getImageUrl, type HomepageContentBySections } from '@/lib/homepage-content';
 
 interface ServicesSectionProps {
   className?: string;
+  content?: HomepageContentBySections | null;
 }
 
-export default function ServicesSection({ className }: ServicesSectionProps) {
+export default function ServicesSection({ className, content }: ServicesSectionProps) {
   const { video: videoProductionVideo, loading: videoLoading } = useServiceVideo('video_production');
+  
+  // Define services data structure
+  const services = [
+    {
+      section: 'services_1',
+      titleKey: 'service_1_title',
+      descriptionKey: 'service_1_description',
+      subtitleKey: 'service_1_subtitle',
+      featuresKey: 'service_1_features',
+      imageKey: 'service_1_image',
+      layout: 'left',
+      bgColor: '',
+      fallback: {
+        title: 'решения для выставок',
+        description: 'Комплексный подход к дизайну и визуализации вашего присутствия на выставке.',
+        subtitle: 'Из производственников — в звёзды отрасли',
+        features: ['Концепция', 'Пространство', 'Мультимедиа', 'Сопровождение'],
+        image: '/images/home/service-1.jpg'
+      }
+    },
+    {
+      section: 'services_2',
+      titleKey: 'service_2_title',
+      descriptionKey: 'service_2_description',
+      subtitleKey: 'service_2_subtitle',
+      featuresKey: 'service_2_features',
+      imageKey: 'service_2_image',
+      layout: 'right',
+      bgColor: 'bg-[#181A1B]',
+      fallback: {
+        title: 'стратегия\nbrендинг',
+        description: 'Разработка индивидуальной маркетинговой стратегии визуализации с учётом специфики вашей отрасли.\nСоздание целостного визуального месседжа, дизайн-концепции, фирменного стиля, логотипа и брендинга.',
+        subtitle: 'Выделяющийся из массы, стильный, технологичный',
+        features: ['Концепция брендинга', 'Логотип', 'Позиционирование', 'Гайдлайн'],
+        image: '/images/home/service-2.jpg'
+      }
+    },
+    {
+      section: 'services_3',
+      titleKey: 'service_3_title',
+      descriptionKey: 'service_3_description',
+      subtitleKey: 'service_3_subtitle',
+      featuresKey: 'service_3_features',
+      imageKey: 'service_3_image',
+      layout: 'left',
+      bgColor: '',
+      fallback: {
+        title: 'ДИЗАЙН\nполиграфии',
+        description: 'Стильный и понятный дизайн, отражающий суть продукта, созданный точно под целевого клиента. Изготовление в точной цветопередачей.',
+        subtitle: 'Создание полиграфических материалов под ключ',
+        features: ['Презентации', 'Буклеты', 'Корпоративные журналы', ''],
+        image: '/images/home/service-3.jpg'
+      }
+    },
+    {
+      section: 'services_4',
+      titleKey: 'service_4_title',
+      descriptionKey: 'service_4_description',
+      subtitleKey: 'service_4_subtitle',
+      featuresKey: 'service_4_features',
+      imageKey: 'service_4_image',
+      layout: 'right',
+      bgColor: 'bg-[#181A1B]',
+      fallback: {
+        title: 'Фото',
+        description: 'Профессиональное фото продукта и процесса производства',
+        subtitle: 'Опыт более 15 лет',
+        features: ['Фото продукта', 'Портреты команды', 'Съёмка производства', 'Фото мероприятий'],
+        image: '/images/home/service-4.jpg'
+      }
+    },
+    {
+      section: 'services_5',
+      titleKey: 'service_5_title',
+      descriptionKey: 'service_5_description',
+      subtitleKey: 'service_5_subtitle',
+      featuresKey: 'service_5_features',
+      imageKey: 'service_5_image',
+      layout: 'left',
+      bgColor: '',
+      fallback: {
+        title: '3d графика',
+        description: 'Создание промышленного 3д-дизайна, анимация графики',
+        subtitle: 'TDM/ERP/CAD',
+        features: ['Доработка моделей', 'Текстурирование', 'Анимация 3д', 'Создание рендеров'],
+        image: '/images/home/service-5.jpg'
+      }
+    },
+    {
+      section: 'services_6',
+      titleKey: 'service_6_title',
+      descriptionKey: 'service_6_description',
+      subtitleKey: 'service_6_subtitle',
+      featuresKey: 'service_6_features',
+      imageKey: 'service_6_image',
+      layout: 'right',
+      bgColor: 'bg-[#181A1B]',
+      fallback: {
+        title: 'web-Сайты',
+        description: 'Эксклюзивные продуманные web-сайты, созданные на основе уникального контента: брендинг, фото, видео, 3д графика - всё в едином ключе.',
+        subtitle: 'Российские CMS',
+        features: ['Мобильная версия', 'Тестирование удобства', 'Современный дизайн', 'UI/UX аудит'],
+        image: '/images/home/service-6.jpg'
+      }
+    },
+    {
+      section: 'services_7',
+      titleKey: 'service_7_title',
+      descriptionKey: 'service_7_description',
+      subtitleKey: 'service_7_subtitle',
+      featuresKey: 'service_7_features',
+      imageKey: 'service_7_image',
+      layout: 'left',
+      bgColor: '',
+      isVideo: true,
+      fallback: {
+        title: 'видео\nпродакшн',
+        description: 'Большой опыт позволяет самим создавать сценарий и понятно демонстрировать преимущества вашей компании.',
+        subtitle: 'Профессиональная съёмка роликов',
+        features: ['Составим сценарий', 'Продумаем детали', 'Создадим стильный', 'информативный ролик'],
+        image: '/images/home/service-7.jpg'
+      }
+    }
+  ];
+
   return (
     <section className={`w-full bg-[#0E1011] flex flex-col mt-[28px] sm:mt-3 ${className || ''}`}>
       <div className="px-5 sm:px-12 lg:px-24 sm:py-24 flex flex-col gap-24">
@@ -33,302 +160,144 @@ export default function ServicesSection({ className }: ServicesSectionProps) {
 
       {/* Service Cards */}
       <div className="flex flex-col">
-        {/* Card 1 */}
-        <div className="flex flex-col lg:flex-row">
-          <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
-            <div className="flex flex-col justify-between flex-1">
-              <div className="flex flex-col gap-4">
-                <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none mt-[10px] sm:mt-0">
-                  решения для выставок
-                </h3>
-                <p className="w-full lg:w-[600px] 2xl:w-[800px] w-full-3xl h-[168px] font-inter text-[20px] sm:text-[40px] leading-[120%] sm:leading-[140%] tracking-[-1px] sm:tracking-normal text-white font-semibold flex-none order-1">
-                  Комплексный подход к дизайну и визуализации вашего присутствия на выставке.
-                </p>
-              </div>
-              <div className="flex flex-col gap-4 lg:gap-8 -mt-[76px] sm:mt-20 md:mt-11">
-                <h3 className="w-full lg:w-[500px] xl:w-[600px] 2xl:w-[691px] h-8 font-cabin text-[16px] sm:text-[32px] leading-[100%] text-white/60 font-normal flex-none order-0">
-                  Из производственников — в звёзды отрасли
-                </h3>
-                <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24 -mt-[12px] sm:mt-10 md:mt-0">
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Концепция</p>
-                    <p>Пространство</p>
-                  </div>
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Мультимедиа</p>
-                    <p>Сопровождение</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image
-              src="/images/home/service-1.jpg"
-              alt="Exhibition Solutions"
-              fill
-              className="object-cover"
-            />
-          </div>
-        </div>
+        {services.map((service, index) => {
+          const serviceContent = content?.[service.section as keyof HomepageContentBySections];
+          const title = getContentValue(serviceContent, service.titleKey, service.fallback.title);
+          const description = getContentValue(serviceContent, service.descriptionKey, service.fallback.description);
+          const subtitle = getContentValue(serviceContent, service.subtitleKey, service.fallback.subtitle);
+          const featuresStr = getContentValue(serviceContent, service.featuresKey, '');
+          const features = featuresStr ? JSON.parse(featuresStr) : service.fallback.features;
+          const imageUrl = getImageUrl(serviceContent, service.imageKey, service.fallback.image);
+          
+          // Split features into two columns (first half and second half)
+          const midPoint = Math.ceil(features.length / 2);
+          const firstColumn = features.slice(0, midPoint);
+          const secondColumn = features.slice(midPoint);
 
-        {/* Card 2 */}
-        <div className="flex flex-col lg:flex-row mt-[25px] sm:mt-0">
-          <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image
-              src="/images/home/service-2.jpg"
-              alt="Branding and Strategy"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24 bg-[#181A1B]">
-            <div className="flex flex-col justify-between flex-1">
-              <div className="flex flex-col gap-4">
-                <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none -mt-[40px] sm:mt-0">
-                  стратегия
-                  <br />брендинг
-                </h3>
-                <p className="w-full lg:w-[600px] 2xl:w-[800px] w-full-3xl h-[168px] font-inter text-[20px] sm:text-[40px] leading-[120%] sm:leading-[140%] tracking-[-1px] text-white font-semibold flex-none order-1">
-                  Разработка индивидуальной маркетинговой стратегии визуализации с учётом специфики вашей отрасли.<br />
-                  Создание целостного визуального месседжа, дизайн-концепции, фирменного стиля, логотипа и брендинга.
-                </p>
-              </div>
-              <div className="flex flex-col gap-4 lg:gap-8 mt-[44px] sm:mt-0">
-                <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
-                  Выделяющийся из массы, стильный, технологичный
-                </p>
-                <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Концепция брендинга</p>
-                    <p>Логотип</p>
-                  </div>
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Позиционирование</p>
-                    <p>Гайдлайн</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+          const isLeft = service.layout === 'left';
+          const hasMarginTop = service.layout === 'right';
 
-        {/* Card 3 */}
-        <div className="flex flex-col lg:flex-row">
-          <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
-            <div className="flex flex-col justify-between flex-1">
-              <div className="flex flex-col gap-4">
-                <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none mt-[10px] sm:mt-0">
-                  ДИЗАЙН
-                  <br />полиграфии
-                </h3>
-                <p className="text-white font-inter font-semibold text-[20px] sm:text-2xl lg:text-[40px] leading-[120%] sm:leading-[140%] max-w-[800px] max-w-full-3xl tracking-[-1px] sm:tracking-normal">
-                  Стильный и понятный дизайн, отражающий суть продукта, созданный точно под целевого клиента. Изготовление в точной цветопередачей.
-                </p>
-              </div>
-              <div className="flex flex-col gap-4 lg:gap-8 mt-[20px] sm:mt-14">
-                <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-tight">
-                  Создание полиграфических материалов под ключ
-                </p>
-                <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Презентации</p>
-                    <p>Буклеты</p>
-                  </div>
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Корпоративные журналы</p>
-                  </div>
+          return (
+            <div key={service.section} className={`flex flex-col lg:flex-row ${hasMarginTop ? 'mt-[25px] sm:mt-0' : ''}`}>
+              {/* Image on left for right layout */}
+              {!isLeft && (
+                <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
+                  {service.isVideo ? (
+                    videoLoading ? (
+                      <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                      </div>
+                    ) : videoProductionVideo?.video_url ? (
+                      <video
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                      >
+                        <source src={videoProductionVideo.video_url} type="video/mp4" />
+                        Ваш браузер не поддерживает видео.
+                      </video>
+                    ) : (
+                      <video
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                      >
+                        <source src="/video/Авиационный Буксировочный Комплекс Геркулес (АБК ГЕРКУЛЕС).mp4" type="video/mp4" />
+                        Ваш браузер не поддерживает видео.
+                      </video>
+                    )
+                  ) : (
+                    <Image
+                      src={imageUrl}
+                      alt={title}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
                 </div>
-              </div>
-            </div>
-          </div>
-          <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image
-              src="/images/home/service-3.jpg"
-              alt="Print Design"
-              fill
-              className="object-cover"
-            />
-          </div>
-        </div>
+              )}
 
-        {/* Card 4 */}
-        <div className="flex flex-col lg:flex-row mt-[25px] sm:mt-0">
-          <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image
-              src="/images/home/service-4.jpg"
-              alt="Photography"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24 bg-[#181A1B]">
-            <div className="flex flex-col justify-between flex-1">
-              <div className="flex flex-col gap-4">
-                <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none -mt-[40px] sm:mt-0">
-                  Фото
-                </h3>
-                <p className="text-white font-inter font-semibold text-[20px] sm:text-2xl lg:text-[40px] leading-[120%] sm:leading-[140%] tracking-[-1px] sm:tracking-normal max-w-[800px] max-w-full-3xl">
-                  Профессиональное фото продукта и процесса производства
-                </p>
-              </div>
-              <div className="flex flex-col gap-4 lg:gap-8  mt-[24px] sm:mt-0">
-                <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
-                  Опыт более 15 лет
-                </p>
-                <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Фото продукта</p>
-                    <p>Портреты команды</p>
+              {/* Content */}
+              <div className={`w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24 ${service.bgColor}`}>
+                <div className="flex flex-col justify-between flex-1">
+                  <div className="flex flex-col gap-4">
+                    <h3 
+                      className={`text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none ${isLeft ? 'mt-[10px] sm:mt-0' : '-mt-[40px] sm:mt-0'}`}
+                      dangerouslySetInnerHTML={{ __html: title.replace(/\n/g, '<br />') }}
+                    />
+                    <p 
+                      className="w-full lg:w-[600px] 2xl:w-[800px] w-full-3xl font-inter text-[20px] sm:text-[40px] leading-[120%] sm:leading-[140%] tracking-[-1px] sm:tracking-normal text-white font-semibold flex-none order-1"
+                      dangerouslySetInnerHTML={{ __html: description.replace(/\n/g, '<br />') }}
+                    />
                   </div>
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Съёмка производства</p>
-                    <p>Фото мероприятий</p>
+                  <div className={`flex flex-col gap-4 lg:gap-8 ${index === 0 ? '-mt-[76px] sm:mt-20 md:mt-11' : index === 1 ? 'mt-[44px] sm:mt-0' : index === 2 ? 'mt-[20px] sm:mt-14' : index === 3 ? 'mt-[24px] sm:mt-0' : 'mt-[20px] sm:mt-0'}`}>
+                    <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
+                      {subtitle}
+                    </p>
+                    <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
+                      <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
+                        {firstColumn.map((feature: string, idx: number) => (
+                          feature && <p key={idx}>{feature}</p>
+                        ))}
+                      </div>
+                      <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
+                        {secondColumn.map((feature: string, idx: number) => (
+                          feature && <p key={idx}>{feature}</p>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Card 5 */}
-        <div className="flex flex-col lg:flex-row">
-          <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
-            <div className="flex flex-col justify-between flex-1">
-              <div className="flex flex-col gap-4">
-                <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none mt-[10px] sm:mt-0">
-                  3d графика
-                </h3>
-                <p className="text-white font-inter font-semibold text-[20px] sm:text-2xl lg:text-[40px] leading-[120%] sm:leading-[140%] max-w-[800px] max-w-full-3xl tracking-[-1px] sm:tracking-normal">
-                  Создание промышленного 3д-дизайна, анимация графики
-                </p>
-              </div>
-              <div className="flex flex-col gap-4 lg:gap-8 mt-[20px] sm:mt-0">
-                <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-tight">
-                  TDM/ERP/CAD
-                </p>
-                <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Доработка моделей</p>
-                    <p>Текстурирование</p>
-                  </div>
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Анимация 3д</p>
-                    <p>Создание рендеров</p>
-                  </div>
+              {/* Image on right for left layout */}
+              {isLeft && (
+                <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
+                  {service.isVideo ? (
+                    videoLoading ? (
+                      <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                      </div>
+                    ) : videoProductionVideo?.video_url ? (
+                      <video
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                      >
+                        <source src={videoProductionVideo.video_url} type="video/mp4" />
+                        Ваш браузер не поддерживает видео.
+                      </video>
+                    ) : (
+                      <video
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                      >
+                        <source src="/video/Авиационный Буксировочный Комплекс Геркулес (АБК ГЕРКУЛЕС).mp4" type="video/mp4" />
+                        Ваш браузер не поддерживает видео.
+                      </video>
+                    )
+                  ) : (
+                    <Image
+                      src={imageUrl}
+                      alt={title}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
                 </div>
-              </div>
+              )}
             </div>
-          </div>
-          <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image
-              src="/images/home/service-5.jpg"
-              alt="3D Graphics"
-              fill
-              className="object-cover"
-            />
-          </div>
-        </div>
-
-        {/* Card 6 */}
-        <div className="flex flex-col lg:flex-row mt-[25px] sm:mt-0">
-          <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            <Image
-              src="/images/home/service-6.jpg"
-              alt="Web Design"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="w-full lg:w-3/5 px-6 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24 bg-[#181A1B]">
-            <div className="flex flex-col justify-between flex-1">
-              <div className="flex flex-col gap-4">
-                <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none -mt-[40px] sm:mt-0">
-                  web-Сайты
-                </h3>
-                <p className="text-white font-inter font-semibold text-[20px] sm:text-2xl lg:text-[40px] leading-[120%] sm:leading-[140%] tracking-[-1px] sm:tracking-normal max-w-[800px] max-w-full-3xl">
-                  Эксклюзивные продуманные web-сайты, созданные на основе уникального контента: брендинг, фото, видео, 3д графика - всё в едином ключе.
-                </p>
-              </div>
-              <div className="flex flex-col gap-4 lg:gap-8 mt-[24px] sm:mt-0">
-                <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
-                  Российские CMS
-                </p>
-                <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
-                    <p>Мобильная версия</p>
-                    <p>Тестирование удобства</p>
-                  </div>
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[100%] sm:leading-tight">
-                    <p>Современный дизайн</p>
-                    <p>UI/UX аудит</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 7 */}
-        <div className="flex flex-col lg:flex-row">
-          <div className="w-full lg:w-3/5 px-5 sm:px-12 lg:px-32 py-16 lg:py-32 flex flex-col justify-between gap-12 lg:gap-24">
-            <div className="flex flex-col justify-between flex-1">
-              <div className="flex flex-col gap-4">
-                <h3 className="text-white font-geometria font-bold text-[40px] sm:text-4xl xl:text-[80px] 2xl:text-[128px] uppercase leading-none mt-[10px] sm:mt-0">
-                  видео
-                  <br />продакшн
-                </h3>
-                <p className="text-white font-inter font-semibold text-[20px] sm:text-2xl lg:text-[40px] leading-[120%] sm:leading-[140%] max-w-[800px] max-w-full-3xl tracking-[-1px] sm:tracking-normal">
-                  Большой опыт позволяет самим создавать сценарий и понятно демонстрировать преимущества вашей компании.
-                </p>
-              </div>
-              <div className="flex flex-col gap-4 lg:gap-8 mt-[20px] sm:mt-0">
-                <p className="text-white/60 font-cabin text-[16px] sm:text-xl lg:text-[32px] leading-tight">
-                  Профессиональная съёмка роликов
-                </p>
-                <div className="grid grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-24">
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Составим сценарий</p>
-                    <p>Продумаем детали</p>
-                  </div>
-                  <div className="text-white font-inter font-semibold text-[16px] sm:text-xl lg:text-[32px] leading-[130%] sm:leading-tight">
-                    <p>Создадим стильный</p>
-                    <p>информативный ролик</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="relative w-full lg:w-2/5 h-[520px] sm:h-[400px] lg:h-[1080px]">
-            {videoLoading ? (
-              <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-              </div>
-            ) : videoProductionVideo?.video_url ? (
-              <video
-                className="w-full h-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-              >
-                <source src={videoProductionVideo.video_url} type="video/mp4" />
-                Ваш браузер не поддерживает видео.
-              </video>
-            ) : (
-              <video
-                className="w-full h-full object-cover"
-                autoPlay
-                muted
-                loop
-                playsInline
-              >
-                <source src="/video/Авиационный Буксировочный Комплекс Геркулес (АБК ГЕРКУЛЕС).mp4" type="video/mp4" />
-                Ваш браузер не поддерживает видео.
-              </video>
-            )}
-          </div>
-        </div>
+          );
+        })}
       </div>
     </section>
   );

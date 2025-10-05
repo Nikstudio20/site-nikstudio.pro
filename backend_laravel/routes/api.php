@@ -18,6 +18,13 @@ use App\Http\Controllers\Api\MediaServiceMediaController;
 use App\Http\Controllers\Api\MediaTestimonialsController;
 use App\Http\Controllers\Api\MediaProcessStepsController;
 use App\Http\Controllers\Api\MediaPagePublicController;
+use App\Http\Controllers\Api\HomepageContentController;
+use App\Http\Controllers\Api\AuthController;
+
+// Authentication routes
+Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -86,6 +93,21 @@ Route::get('/home', [HomeController::class, 'index']);
 Route::post('/home/hero-video', [HomeController::class, 'uploadHeroVideo']);
 Route::delete('/home/hero-video', [HomeController::class, 'deleteHeroVideo']);
 Route::post('/home/fallback-image', [HomeController::class, 'uploadFallbackImage']);
+
+// Маршруты для управления контентом главной страницы (CMS)
+// Публичные маршруты с базовым rate limiting
+Route::middleware(['throttle:60,1'])->group(function () {
+    Route::get('/homepage-content', [HomepageContentController::class, 'index']);
+    Route::get('/homepage-content/{section}', [HomepageContentController::class, 'getBySection']);
+});
+
+// Защищенные маршруты для обновления контента главной страницы
+// Более строгий rate limiting для операций изменения данных
+Route::middleware(['auth:sanctum', 'throttle:30,1'])->group(function () {
+    Route::post('/homepage-content', [HomepageContentController::class, 'bulkUpdate']);
+    Route::put('/homepage-content/{id}', [HomepageContentController::class, 'update']);
+    Route::post('/homepage-content/upload-image', [HomepageContentController::class, 'uploadImage']);
+});
 
 // Маршруты для управления видео услуг
 Route::get('/services/{serviceName}/video', [ServiceVideoController::class, 'show']);

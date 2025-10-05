@@ -107,6 +107,8 @@ const HeroVideoSection: React.FC<HeroVideoSectionProps> = ({
     // Ensure video plays when it's ready
     if (videoRef.current) {
       console.log('Video can play, attempting autoplay');
+      // Mark video as loaded when it can play
+      setIsVideoLoaded(true);
       videoRef.current.play().catch((error) => {
         console.error('Video autoplay failed:', {
           error: error.message,

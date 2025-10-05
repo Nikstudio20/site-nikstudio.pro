@@ -9,7 +9,8 @@ export function middleware(request: NextRequest) {
     // Проверяем наличие токена аутентификации
     const token = request.cookies.get('admin-token')
     
-    if (!token || token.value !== 'authenticated') {
+    // Проверяем, что токен существует и не пустой
+    if (!token || !token.value || token.value.trim() === '') {
       // Перенаправляем на страницу логина
       return NextResponse.redirect(new URL('/admin/login', request.url))
     }

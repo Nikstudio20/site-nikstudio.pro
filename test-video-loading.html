@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Video Loading</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        video {
+            width: 100%;
+            max-width: 640px;
+            border: 2px solid #ccc;
+        }
+        .info {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Hero Video Loading</h1>
+    
+    <div id="status" class="info">Загрузка информации о видео...</div>
+    
+    <div id="videoContainer"></div>
+    
+    <script>
+        async function testVideoLoading() {
+            const statusDiv = document.getElementById('status');
+            const videoContainer = document.getElementById('videoContainer');
+            
+            try {
+                // Fetch video info from API
+                statusDiv.textContent = 'Получение информации о видео из API...';
+                
+                const response = await fetch('http://localhost:8000/api/home');
+                const data = await response.json();
+                
+                console.log('API Response:', data);
+                
+                if (data.success && data.data.hero_video_url) {
+                    const videoUrl = data.data.hero_video_url;
+                    const fullVideoUrl = `http://localhost:8000${videoUrl}`;
+                    
+                    statusDiv.innerHTML = `
+                        <strong>✅ Видео найдено!</strong><br>
+                        URL: ${videoUrl}<br>
+                        Full URL: ${fullVideoUrl}
+                    `;
+                    statusDiv.className = 'info success';
+                    
+                    // Create video element
+                    const video = document.createElement('video');
+                    video.controls = true;
+                    video.autoplay = false;
+                    video.muted = true;
+                    video.src = fullVideoUrl;
+                    
+                    video.addEventListener('loadeddata', () => {
+                        console.log('✅ Video loaded successfully');
+                        statusDiv.innerHTML += '<br><strong>✅ Видео успешно загружено!</strong>';
+                    });
+                    
+                    video.addEventListener('error', (e) => {
+                        console.error('❌ Video error:', e);
+                        const error = video.error;
+                        let errorMsg = 'Unknown error';
+                        if (error) {
+                            switch (error.code) {
+                                case 1: errorMsg = 'MEDIA_ERR_ABORTED'; break;
+                                case 2: errorMsg = 'MEDIA_ERR_NETWORK'; break;
+                                case 3: errorMsg = 'MEDIA_ERR_DECODE'; break;
+                                case 4: errorMsg = 'MEDIA_ERR_SRC_NOT_SUPPORTED'; break;
+                            }
+                        }
+                        statusDiv.innerHTML = `
+                            <strong>❌ Ошибка загрузки видео!</strong><br>
+                            Error code: ${error ? error.code : 'unknown'}<br>
+                            Error type: ${errorMsg}<br>
+                            Video URL: ${fullVideoUrl}
+                        `;
+                        statusDiv.className = 'info error';
+                    });
+                    
+                    videoContainer.appendChild(video);
+                    
+                } else {
+                    statusDiv.innerHTML = '<strong>❌ Видео не найдено в API</strong>';
+                    statusDiv.className = 'info error';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = `<strong>❌ Ошибка:</strong> ${error.message}`;
+                statusDiv.className = 'info error';
+            }
+        }
+        
+        testVideoLoading();
+    </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 'use client';
 
 import React from "react";
-import { FileText, Home, BriefcaseBusiness, LayoutGrid, Settings, Monitor, LogOut } from "lucide-react";
+import { FileText, Home, BriefcaseBusiness, LayoutGrid, Settings, Monitor, LogOut, FileEdit } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from 'next/navigation'; // Импортируем хуки
@@ -20,9 +20,9 @@ import {
 // Menu items.
 const items = [
   {
-    title: "Главная",
-    url: "/admin",
-    icon: Home,
+    title: "Главная страница",
+    url: "/admin/homepage-editor",
+    icon: FileEdit,
   },
   {
     title: "Блог",
@@ -140,9 +140,7 @@ export function AppSidebar() {
             <SidebarMenu>
               {items.map((item) => {
                 // Определяем, является ли текущий пункт меню активным.
-                const isActive = item.url === '/admin'
-                  ? pathname === item.url
-                  : pathname.startsWith(item.url) && item.url !== '/admin';
+                const isActive = pathname.startsWith(item.url);
 
                 return (
                   <SidebarMenuItem key={item.title}>

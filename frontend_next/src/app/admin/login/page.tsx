@@ -29,7 +29,8 @@ export default function AdminLoginPage() {
         .find(row => row.startsWith('admin-token='))
         ?.split('=')[1];
       
-      if (token === 'authenticated') {
+      // Если токен существует и не пустой, перенаправляем на админку
+      if (token && token.trim() !== '') {
         router.push('/admin');
       }
     }
@@ -41,23 +42,61 @@ export default function AdminLoginPage() {
     setError(null);
 
     try {
-      // Простая проверка учетных данных
-      if (credentials.username === 'admin' && credentials.password === 'MLCdJIqUJyvFwV1') {
-        // Устанавливаем токен
-        if (typeof window !== 'undefined') {
-          document.cookie = 'admin-token=authenticated; path=/; max-age=86400'; // 24 часа
-          
-          // Принудительная перезагрузка для обновления middleware в продакшн
-          window.location.href = '/admin';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      
+      console.log('API URL:', apiUrl);
+      console.log('Credentials:', { email: credentials.username, password: '***' });
+      
+      if (!apiUrl) {
+        throw new Error('Ошибка конфигурации: API URL не определен');
+      }
+
+      const response = await fetch(`${apiUrl}/api/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          email: credentials.username,
+          password: credentials.password
+        }),
+        credentials: 'include',
+      });
+
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
+        
+        if (response.status === 422) {
+          setError('Неверные учетные данные');
+        } else {
+          setError(`Ошибка при входе в систему (${response.status})`);
         }
+        setTimeout(() => setError(null), 5000);
+        return;
+      }
+
+      const data = await response.json();
+      console.log('Login response:', { success: data.success, hasToken: !!data.token });
+      
+      if (data.success && data.token) {
+        // Сохраняем токен в cookie
+        document.cookie = `admin-token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
+        
+        // Перенаправляем на админ-панель
+        window.location.href = '/admin';
       } else {
-        setError('Неверные учетные данные');
-        // Автоматически скрываем ошибку через 3 секунды
+        setError('Ошибка получения токена');
         setTimeout(() => setError(null), 3000);
       }
-    } catch {
-      setError('Ошибка при входе в систему');
-      setTimeout(() => setError(null), 3000);
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Ошибка при входе в систему';
+      setError(`Ошибка: ${errorMessage}`);
+      setTimeout(() => setError(null), 5000);
     } finally {
       setLoading(false);
     }
@@ -94,7 +133,7 @@ export default function AdminLoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Имя пользователя</Label>
+                <Label htmlFor="username">Логин</Label>
                 <Input
                   id="username"
                   type="text"
