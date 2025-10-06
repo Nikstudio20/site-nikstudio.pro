@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Str;
+use Illuminate\Support\Facades\Http;
 use Exception;
 
 class HomepageContentController extends Controller
@@ -145,6 +146,9 @@ class HomepageContentController extends Controller
             }
             Cache::forget('homepage_content_all');
             
+            // Trigger Next.js revalidation
+            $this->revalidateNextJs('/');
+            
             Log::info('Homepage content bulk updated successfully', [
                 'items_count' => count($updatedItems),
                 'sections' => $affectedSections,
@@ -241,6 +245,9 @@ class HomepageContentController extends Controller
             // Clear cache for the section
             Cache::forget("homepage_content_{$content->section}");
             Cache::forget('homepage_content_all');
+            
+            // Trigger Next.js revalidation
+            $this->revalidateNextJs('/');
             
             Log::info('Homepage content item updated successfully', [
                 'id' => $id,
@@ -403,5 +410,33 @@ class HomepageContentController extends Controller
         $value = trim($value);
         
         return $value;
+    }
+    
+    /**
+     * Trigger Next.js revalidation for a specific path
+     * 
+     * @param string $path
+     * @return void
+     */
+    private function revalidateNextJs(string $path): void
+    {
+        try {
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+            
+            Http::timeout(5)->post("{$frontendUrl}/api/revalidate", [
+                'path' => $path
+            ]);
+            
+            Log::info('Next.js revalidation triggered', [
+                'path' => $path,
+                'frontend_url' => $frontendUrl
+            ]);
+        } catch (Exception $e) {
+            // Don't fail the main operation if revalidation fails
+            Log::warning('Failed to trigger Next.js revalidation', [
+                'path' => $path,
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 }

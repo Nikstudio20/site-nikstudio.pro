@@ -48,7 +48,7 @@ export function HeroLogoUploadExample() {
 
 // Example 2: Service image upload with custom max size
 export function ServiceImageUploadExample() {
-  const handleUpload = async (file: File): Promise<string> => {
+  const handleUpload = async (_file: File): Promise<string> => {
     // Upload logic here
     return '/path/to/uploaded/image.jpg';
   };
@@ -64,7 +64,7 @@ export function ServiceImageUploadExample() {
 
 // Example 3: Client logo upload (no current image)
 export function ClientLogoUploadExample() {
-  const handleUpload = async (file: File): Promise<string> => {
+  const handleUpload = async (_file: File): Promise<string> => {
     // Upload logic here
     return '/path/to/uploaded/logo.jpg';
   };
@@ -82,7 +82,7 @@ export function TestimonialPhotoUploadExample() {
   const [photoPath, setPhotoPath] = useState<string>('/images/testimonials/author.jpg');
   const [isDisabled, setIsDisabled] = useState(false);
 
-  const handleUpload = async (file: File): Promise<string> => {
+  const handleUpload = async (_file: File): Promise<string> => {
     setIsDisabled(true);
     try {
       // Upload logic here

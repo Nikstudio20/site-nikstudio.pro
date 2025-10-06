@@ -1,7 +1,7 @@
 'use client';
 
 import React from "react";
-import { FileText, Home, BriefcaseBusiness, LayoutGrid, Settings, Monitor, LogOut, FileEdit } from "lucide-react";
+import { FileText, BriefcaseBusiness, LayoutGrid, Settings, Monitor, LogOut, FileEdit } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from 'next/navigation'; // Импортируем хуки

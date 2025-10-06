@@ -27,7 +27,6 @@ describe('ImageUpload', () => {
       type: 'image/jpeg'
     });
     
-    const input = screen.getByRole('button', { name: /Выбрать изображение/i });
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
     
     fireEvent.change(fileInput, { target: { files: [largeFile] } });
