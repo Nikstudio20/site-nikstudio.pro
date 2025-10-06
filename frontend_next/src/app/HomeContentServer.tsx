@@ -47,7 +47,7 @@ async function getHomeContent(): Promise<HomeContent | null> {
     const url = `${apiUrl}/api/home`;
 
     const response = await fetch(url, {
-      next: { revalidate: 1800 } // ISR: Revalidate every 30 minutes
+      next: { revalidate: 0 } // Always fetch fresh data
     });
 
     if (!response.ok) {
@@ -77,7 +77,7 @@ async function getProjects(categoryId?: string | null): Promise<Project[]> {
     }
 
     const response = await fetch(url, {
-      next: { revalidate: 1800 } // ISR: Revalidate every 30 minutes
+      next: { revalidate: 0 } // Always fetch fresh data
     });
 
     if (!response.ok) {

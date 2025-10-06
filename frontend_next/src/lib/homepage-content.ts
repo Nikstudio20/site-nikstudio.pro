@@ -131,7 +131,7 @@ export async function getHomepageContent(): Promise<HomepageContentBySections | 
     }
 
     const response = await fetch(`${apiUrl}/api/homepage-content`, {
-      next: { revalidate: 1800 }, // ISR: 30 minutes (1800 seconds)
+      next: { revalidate: 0 }, // Always fetch fresh data
       headers: {
         'Accept': 'application/json',
       },
