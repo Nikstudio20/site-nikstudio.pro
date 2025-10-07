@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 // import SEOEditor, { SEOData } from "@/components/SEOEditor"
 import { SEOData } from "@/components/SEOEditor";
 import { SEOSettings } from "@/lib/seo-metadata";
+import apiClient from "@/lib/api";
 
 const ClickableCell = ({ children, slug }: { children: React.ReactNode; slug: string }) => {
   const router = useRouter();
@@ -137,27 +138,27 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
       const formData = new FormData();
       formData.append('image', file);
       
-      const response = await fetch(`${API_BASE_URL}/seo/upload-image`, {
-        method: 'POST',
-        body: formData,
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include',
-        mode: 'cors',
+      const response = await apiClient.post<{
+        success: boolean;
+        data?: { url: string };
+        message?: string;
+      }>('/seo/upload-image', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json' 
+        },
       });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = response.data;
       if (result.success && result.data?.url) {
         return result.data.url;
       } else {
         throw new Error(result.message || 'Upload failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('SEO image upload error:', error);
-      throw error;
+      const errorMessage = error.response?.data?.message || error.message || 'Upload failed';
+      throw new Error(errorMessage);
     }
   };
 
@@ -259,34 +260,12 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
         formData.append("seo_image", seoData.seo_image);
       }
 
-      const response = await fetch(`${API_BASE_URL}/projects/${project.id}`, {
-        method: "POST",
-        body: formData,
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include',
-        mode: 'cors',
+      await apiClient.post(`/projects/${project.id}`, formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json' 
+        },
       });
-
-      if (!response.ok) {
-        // Специальная обработка ошибки размера файла
-        if (response.status === 413) {
-          throw new Error("Размер файла превышает допустимый лимит (2 МБ для изображений)");
-        }
-        
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const errorData = await response.json();
-          if (errorData.errors) {
-            const validationErrors = Object.entries(errorData.errors)
-              .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-              .join('; ');
-            throw new Error(`Ошибки валидации: ${validationErrors}`);
-          }
-          throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
-        } else {
-          throw new Error(`Ошибка сервера: ${response.status} - ${response.statusText}`);
-        }
-      }
 
       toast("Проект успешно обновлен");
       setOpen(false);
@@ -294,8 +273,19 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
       setTimeout(() => {
         window.location.reload();
       }, 3000);
-    } catch (error) {
-      toast(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    } catch (error: any) {
+      // Обработка ошибок с сервера
+      if (error.response?.status === 413) {
+        toast("Размер файла превышает допустимый лимит (2 МБ для изображений)");
+      } else if (error.response?.status === 422 && error.response?.data?.errors) {
+        const validationErrors = Object.entries(error.response.data.errors)
+          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+          .join('; ');
+        toast(`Ошибки валидации: ${validationErrors}`);
+      } else {
+        const errorMessage = error.response?.data?.message || error.message || 'Неизвестная ошибка';
+        toast(`Ошибка: ${errorMessage}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -460,20 +450,12 @@ const DeleteProjectCell = ({ project }: { project: Project }) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/projects/${project.id}`, {
-        method: "DELETE",
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include',
-        mode: 'cors',
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.message || `Ошибка сервера: ${response.status}`);
-      }
+      await apiClient.delete(`/projects/${project.id}`);
       toast("Проект успешно удален");
       window.location.reload();
-    } catch (error) {
-      toast(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Неизвестная ошибка';
+      toast(`Ошибка: ${errorMessage}`);
     } finally {
       setIsDeleting(false);
     }

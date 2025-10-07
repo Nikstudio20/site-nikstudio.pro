@@ -67,6 +67,7 @@
     "simple-react-lightbox": "^3.6.8",
     "sonner": "^2.0.5",
     "swiper": "^11.2.10",
+    "swr": "^2.3.6",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {

@@ -9,30 +9,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, LogIn } from "lucide-react";
+import { post, saveTokenToCookie, getTokenFromCookie } from '@/lib/api';
 
 export default function AdminLoginPage() {
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
   });
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   // Проверяем, если уже аутентифицирован
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('admin-token='))
-        ?.split('=')[1];
-      
-      // Если токен существует и не пустой, перенаправляем на админку
-      if (token && token.trim() !== '') {
-        router.push('/admin');
-      }
+    const token = getTokenFromCookie();
+    
+    // Если токен существует и не пустой, перенаправляем на админку
+    if (token && token.trim() !== '') {
+      router.push('/admin');
     }
   }, [router]);
 
@@ -42,49 +40,53 @@ export default function AdminLoginPage() {
     setError(null);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      
-      console.log('API URL:', apiUrl);
       console.log('Credentials:', { email: credentials.username, password: '***' });
       
-      if (!apiUrl) {
-        throw new Error('Ошибка конфигурации: API URL не определен');
-      }
-
-      const response = await fetch(`${apiUrl}/api/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          email: credentials.username,
-          password: credentials.password
-        }),
-        credentials: 'include',
+      const data = await post<{
+        success: boolean;
+        token: string;
+        expires_at?: string;
+        user?: any;
+      }>('/api/login', {
+        email: credentials.username,
+        password: credentials.password,
+        remember: remember
       });
 
-      console.log('Response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Response error:', errorText);
-        
-        if (response.status === 422) {
-          setError('Неверные учетные данные');
-        } else {
-          setError(`Ошибка при входе в систему (${response.status})`);
-        }
-        setTimeout(() => setError(null), 5000);
-        return;
-      }
-
-      const data = await response.json();
       console.log('Login response:', { success: data.success, hasToken: !!data.token });
       
       if (data.success && data.token) {
-        // Сохраняем токен в cookie
-        document.cookie = `admin-token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
+        // Определяем max-age для cookie в зависимости от remember и expires_at
+        let maxAge = 60 * 60 * 8; // 8 часов по умолчанию
+        let expiresAt: Date;
+        
+        if (data.expires_at) {
+          // Вычисляем разницу между expires_at и текущим временем
+          expiresAt = new Date(data.expires_at);
+          const now = new Date();
+          const diffInSeconds = Math.floor((expiresAt.getTime() - now.getTime()) / 1000);
+          
+          if (diffInSeconds > 0) {
+            maxAge = diffInSeconds;
+          }
+        } else if (remember) {
+          // Если expires_at не пришел, но remember включен, используем 30 дней
+          maxAge = 60 * 60 * 24 * 30; // 30 дней
+          expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + 30);
+        } else {
+          // По умолчанию 8 часов
+          expiresAt = new Date();
+          expiresAt.setHours(expiresAt.getHours() + 8);
+        }
+        
+        // Сохраняем токен в cookie с правильным max-age
+        saveTokenToCookie(data.token, maxAge);
+        
+        // Сохраняем время истечения токена для useTokenRefresh hook
+        const expiresAtStr = expiresAt.toISOString();
+        localStorage.setItem('admin-token-expires-at', expiresAtStr);
+        document.cookie = `admin-token-expires-at=${encodeURIComponent(expiresAtStr)}; path=/; max-age=${maxAge}`;
         
         // Перенаправляем на админ-панель
         window.location.href = '/admin';
@@ -92,10 +94,17 @@ export default function AdminLoginPage() {
         setError('Ошибка получения токена');
         setTimeout(() => setError(null), 3000);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Ошибка при входе в систему';
-      setError(`Ошибка: ${errorMessage}`);
+      
+      // Обработка ошибок валидации (422)
+      if (error.response?.status === 422) {
+        setError('Неверные учетные данные');
+      } else {
+        const errorMessage = error.response?.data?.message || error.message || 'Ошибка при входе в систему';
+        setError(`Ошибка: ${errorMessage}`);
+      }
+      
       setTimeout(() => setError(null), 5000);
     } finally {
       setLoading(false);
@@ -131,12 +140,14 @@ export default function AdminLoginPage() {
               </Alert>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} method="post" className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username">Логин</Label>
                 <Input
                   id="username"
+                  name="username"
                   type="text"
+                  autoComplete="username"
                   value={credentials.username}
                   onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
                   placeholder="admin"
@@ -148,12 +159,28 @@ export default function AdminLoginPage() {
                 <Label htmlFor="password">Пароль</Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   value={credentials.password}
                   onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="••••••••"
                   required
                 />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="remember"
+                  checked={remember}
+                  onCheckedChange={setRemember}
+                />
+                <Label 
+                  htmlFor="remember" 
+                  className="text-sm font-normal cursor-pointer"
+                >
+                  Запомнить меня
+                </Label>
               </div>
 
               <Button 

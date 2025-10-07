@@ -18,6 +18,7 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|string',
             'password' => 'required',
+            'remember' => 'boolean',
         ]);
 
         // Try to find user by email or name
@@ -34,8 +35,18 @@ class AuthController extends Controller
         // Delete old tokens
         $user->tokens()->delete();
 
-        // Create new token
-        $token = $user->createToken('admin-token')->plainTextToken;
+        // Determine token expiration based on remember me option
+        $remember = $request->boolean('remember', false);
+        $expirationMinutes = $remember 
+            ? (int) config('sanctum.remember_expiration', 43200) // 30 days
+            : (int) config('sanctum.expiration', 480); // 8 hours
+
+        // Calculate expiration timestamp
+        $expiresAt = now()->addMinutes($expirationMinutes);
+
+        // Create new token with expiration
+        $tokenResult = $user->createToken('admin-token', ['*'], $expiresAt);
+        $token = $tokenResult->plainTextToken;
 
         return response()->json([
             'success' => true,
@@ -44,7 +55,8 @@ class AuthController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-            ]
+            ],
+            'expires_at' => $expiresAt->toIso8601String(),
         ]);
     }
 
@@ -69,6 +81,42 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'user' => $request->user()
+        ]);
+    }
+
+    /**
+     * Change user password
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+            'new_password_confirmation' => 'required|string',
+        ], [
+            'current_password.required' => 'Текущий пароль обязателен',
+            'new_password.required' => 'Новый пароль обязателен',
+            'new_password.min' => 'Пароль должен содержать минимум 8 символов',
+            'new_password.confirmed' => 'Пароли не совпадают',
+            'new_password_confirmation.required' => 'Подтверждение пароля обязательно',
+        ]);
+
+        $user = $request->user();
+
+        // Check if current password is correct
+        if (!Hash::check($request->current_password, $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Текущий пароль неверен'],
+            ]);
+        }
+
+        // Update password with hashing
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Пароль успешно изменён',
         ]);
     }
 }

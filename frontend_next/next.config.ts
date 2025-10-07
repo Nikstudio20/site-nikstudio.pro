@@ -152,13 +152,89 @@ const nextConfig: NextConfig = {
     return config;
   },
 
-  // Headers for better browser compatibility
+  // Headers for better browser compatibility and caching
   async headers() {
     return [
+      // Static assets - 1 year cache
       {
-        source: '/(.*)',
+        source: '/images/:path*',
         headers: [
-          // Security headers
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      {
+        source: '/video/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      {
+        source: '/:path*.svg',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      // Next.js static files - 1 year cache
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      // Next.js images - 1 year cache
+      {
+        source: '/_next/image/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
+          }
+        ]
+      },
+      // API routes - no cache
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate'
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache'
+          },
+          {
+            key: 'Expires',
+            value: '0'
+          }
+        ]
+      },
+      // HTML pages - no cache (for dynamic content)
+      {
+        source: '/:path*.html',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate'
+          }
+        ]
+      },
+      // Default security headers for all routes
+      {
+        source: '/:path*',
+        headers: [
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff'
@@ -170,21 +246,6 @@ const nextConfig: NextConfig = {
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block'
-          },
-          // Cache control for static assets
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable'
-          }
-        ]
-      },
-      {
-        source: '/api/(.*)',
-        headers: [
-          // API-specific headers
-          {
-            key: 'Cache-Control',
-            value: 'no-cache, no-store, must-revalidate'
           }
         ]
       }

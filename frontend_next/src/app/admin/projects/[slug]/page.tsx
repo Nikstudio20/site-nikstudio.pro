@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 // Принудительно делаем страницу динамической для продакшн сборки
 export const dynamic = 'force-dynamic'
 import React, { useEffect, useState, use, useCallback } from 'react';
+import Image from 'next/image';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -1654,10 +1655,11 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                         <div key={index} className="relative bg-gray-50 rounded-lg overflow-hidden">
                           {item.type === 'image' ? (
                             <div className="aspect-video relative">
-                              <img
+                              <Image
                                 src={item.src}
                                 alt={item.alt || 'Hero image'}
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
                               />
                               <div className="absolute top-2 right-2">
                                 <Badge variant="outline" className="bg-white/80">
@@ -1996,10 +1998,11 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                           <span className="font-medium">Текущий постер:</span>
                         </div>
                         <div className="relative w-32 h-20 bg-gray-100 rounded-lg overflow-hidden">
-                          <img
+                          <Image
                             src={normalizePath(item.poster_path)}
                             alt="Текущий постер"
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
@@ -2331,11 +2334,12 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                     )}
                     {/* Show current poster image preview */}
                     {item.poster_path && (
-                      <div className="mt-2">
-                        <img
+                      <div className="mt-2 relative w-32 h-20">
+                        <Image
                           src={normalizePath(item.poster_path)}
                           alt="Текущий постер"
-                          className="w-32 h-20 object-cover rounded border"
+                          fill
+                          className="object-cover rounded border"
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
                           }}
@@ -2445,10 +2449,11 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
                                 {group.items && group.items.length > 0 ? group.items.map((item: any, index: number) => (
                                   <div key={index} className="relative bg-gray-100 rounded-lg overflow-hidden aspect-video">
                                     {item.type === 'image' ? (
-                                      <img
+                                      <Image
                                         src={item.src}
                                         alt={item.alt || ''}
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        className="object-cover"
                                         onError={(e) => {
                                           console.error('Ошибка загрузки изображения:', item.src);
                                           e.currentTarget.style.display = 'none';

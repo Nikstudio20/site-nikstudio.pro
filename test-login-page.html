@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест логина</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест логина</h1>
+    <form id="loginForm">
+        <div class="form-group">
+            <label for="email">Email или имя пользователя:</label>
+            <input type="text" id="email" value="admin@example.com" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" value="password" required>
+        </div>
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="remember"> Запомнить меня
+            </label>
+        </div>
+        <button type="submit">Войти</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = 'Отправка запроса...';
+            resultDiv.className = 'result';
+
+            try {
+                const response = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password, remember }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = 
+                        `✓ Успешный вход!\n\n` +
+                        `Пользователь: ${data.user.name}\n` +
+                        `Email: ${data.user.email}\n` +
+                        `Токен: ${data.token.substring(0, 50)}...\n` +
+                        `Истекает: ${data.expires_at}\n\n` +
+                        `Теперь можете перейти на http://localhost:3000/admin/login`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = 
+                        `✗ Ошибка входа\n\n` +
+                        `Статус: ${response.status}\n` +
+                        `Ответ: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = 
+                    `✗ Ошибка запроса\n\n` +
+                    `${error.message}\n\n` +
+                    `Убедитесь, что backend запущен на ${API_URL}`;
+            }
+        });
+    </script>
+</body>
+</html>

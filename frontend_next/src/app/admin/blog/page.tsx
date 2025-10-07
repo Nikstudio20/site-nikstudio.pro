@@ -5,8 +5,8 @@ import { useState, FormEvent, useEffect } from "react"
 // Принудительно делаем страницу динамической для продакшн сборки
 export const dynamic = 'force-dynamic'
 import { columns, BlogPost } from "./columns"
-import { DataTable } from "./data-table"
 import { Button } from "@/components/ui/button"
+import { DataTable } from "./data-table"
 import { PlusCircle } from "lucide-react"
 import {
   Dialog,

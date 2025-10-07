@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { 
   Save, 
@@ -16,12 +18,49 @@ import {
   CheckCircle, 
   Settings,
   List,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Loader2
 } from "lucide-react";
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { ServiceFeaturesManager } from './ServiceFeaturesManager';
-import { ServiceMediaManager } from './ServiceMediaManager';
+
+// Динамический импорт DndProvider для оптимизации bundle size
+const DndProviderWrapper = dynamic(
+  () => import('./DndProviderWrapper').then(mod => ({ default: mod.DndProviderWrapper })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+      </div>
+    ),
+    ssr: false
+  }
+);
+
+// Динамический импорт тяжелых компонентов с drag-and-drop
+const ServiceFeaturesManager = dynamic(
+  () => import('./ServiceFeaturesManager').then(mod => ({ default: mod.ServiceFeaturesManager })),
+  {
+    loading: () => (
+      <div className="space-y-4">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
+    ),
+    ssr: false
+  }
+);
+
+const ServiceMediaManager = dynamic(
+  () => import('./ServiceMediaManager').then(mod => ({ default: mod.ServiceMediaManager })),
+  {
+    loading: () => (
+      <div className="space-y-4">
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-32 w-full" />
+      </div>
+    ),
+    ssr: false
+  }
+);
 
 interface ServiceBlockDialogProps {
   open: boolean;
@@ -402,7 +441,7 @@ export function ServiceBlockDialog({ open, onOpenChange, service, onSave }: Serv
   const isEdit = service && service.id;
 
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndProviderWrapper>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -526,6 +565,6 @@ export function ServiceBlockDialog({ open, onOpenChange, service, onSave }: Serv
         </div>
         </DialogContent>
       </Dialog>
-    </DndProvider>
+    </DndProviderWrapper>
   );
 }

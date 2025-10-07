@@ -1,7 +1,7 @@
 'use client';
 
 import React from "react";
-import { FileText, BriefcaseBusiness, LayoutGrid, Settings, Monitor, LogOut, FileEdit } from "lucide-react";
+import { FileText, BriefcaseBusiness, LayoutGrid, Settings, Monitor, LogOut, FileEdit, Key } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from 'next/navigation'; // Импортируем хуки
@@ -104,8 +104,28 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
           
-          {/* Кнопка выхода */}
+          {/* Настройки */}
           <SidebarGroup className="mt-auto">
+            <SidebarGroupLabel>Настройки</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link
+                      href="/admin/settings/change-password"
+                      className="hover:!text-[#DE063A]"
+                    >
+                      <Key />
+                      <span>Сменить пароль</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          
+          {/* Кнопка выхода */}
+          <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -161,8 +181,29 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         
-        {/* Кнопка выхода */}
+        {/* Настройки */}
         <SidebarGroup className="mt-auto">
+          <SidebarGroupLabel>Настройки</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link
+                    href="/admin/settings/change-password"
+                    className={`${pathname === '/admin/settings/change-password' ? "text-[#DE063A]" : ""
+                      } hover:!text-[#DE063A]`}
+                  >
+                    <Key />
+                    <span>Сменить пароль</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        
+        {/* Кнопка выхода */}
+        <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>

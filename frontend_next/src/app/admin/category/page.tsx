@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 
 // Принудительно делаем страницу динамической для продакшн сборки
 export const dynamic = 'force-dynamic'
@@ -23,26 +23,11 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-
-interface ProjectCategory {
-  id: number
-  name: string
-  slug: string
-  sort_order?: number
-  created_at: string
-  updated_at: string
-}
-
-interface ApiResponse {
-  status?: string
-  data?: ProjectCategory[]
-  message?: string
-}
-
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`
+import { post, put, del } from '@/lib/api'
+import { useCategories, ProjectCategory } from '@/hooks/useCategories'
 
 // Компонент для создания категории
-const CreateCategoryDialog = ({ onUpdate }: { onUpdate: () => void }) => {
+const CreateCategoryDialog = ({ onUpdate }: { onUpdate: () => Promise<void> }) => {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [name, setName] = useState('')
@@ -56,25 +41,9 @@ const CreateCategoryDialog = ({ onUpdate }: { onUpdate: () => void }) => {
         throw new Error("Название категории обязательно для заполнения")
       }
 
-      const response = await fetch(`${API_BASE_URL}/project-categories`, {
-        method: "POST",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: name.trim(),
-        }),
-        credentials: 'include',
-        mode: 'cors',
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `Ошибка сервера: ${response.status}`)
-      }
-
-      const result = await response.json()
+      const result = await post<{ status: string; message?: string }>('/project-categories', {
+        name: name.trim(),
+      });
 
       if (result?.status === "success") {
         setOpen(false)
@@ -84,9 +53,10 @@ const CreateCategoryDialog = ({ onUpdate }: { onUpdate: () => void }) => {
       } else {
         toast.error(`Ошибка: ${result?.message || "Не удалось создать категорию"}`)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Ошибка при создании категории:", error)
-      toast.error(`Произошла ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
+      const errorMessage = error.response?.data?.message || error.message || 'Неизвестная ошибка';
+      toast.error(`Произошла ошибка: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
@@ -145,7 +115,7 @@ const CreateCategoryDialog = ({ onUpdate }: { onUpdate: () => void }) => {
 }
 
 // Компонент для редактирования категории
-const EditCategoryDialog = ({ category, onUpdate }: { category: ProjectCategory; onUpdate: () => void }) => {
+const EditCategoryDialog = ({ category, onUpdate }: { category: ProjectCategory; onUpdate: () => Promise<void> }) => {
     const [open, setOpen] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
     const [name, setName] = useState(category.name)
@@ -170,43 +140,10 @@ const EditCategoryDialog = ({ category, onUpdate }: { category: ProjectCategory;
   
         console.log('Обновление категории:', { id: category.id, name: name.trim() })
   
-        const response = await fetch(`${API_BASE_URL}/project-categories/${category.id}`, {
-          method: "PUT",
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: name.trim(),
-          }),
-          credentials: 'include',
-          mode: 'cors',
-        })
+        const result = await put<{ status: string; message?: string }>(`/project-categories/${category.id}`, {
+          name: name.trim(),
+        });
   
-        console.log('Ответ сервера:', response.status)
-  
-        if (!response.ok) {
-          let errorMessage = `Ошибка сервера: ${response.status}`
-          
-          try {
-            const errorData = await response.json()
-            console.error('Ошибка сервера:', errorData)
-            
-            if (errorData.message) {
-              errorMessage = errorData.message
-            } else if (errorData.errors) {
-              // Обработка ошибок валидации Laravel
-              const validationErrors = Object.values(errorData.errors).flat()
-              errorMessage = validationErrors.join(', ')
-            }
-          } catch (parseError) {
-            console.error('Ошибка парсинга JSON:', parseError)
-          }
-          
-          throw new Error(errorMessage)
-        }
-  
-        const result = await response.json()
         console.log('Результат обновления:', result)
   
         if (result?.status === "success") {
@@ -218,9 +155,17 @@ const EditCategoryDialog = ({ category, onUpdate }: { category: ProjectCategory;
           console.error('Ошибка API:', errorMessage)
           toast.error(`Ошибка: ${errorMessage}`)
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Ошибка при обновлении категории:", error)
-        toast.error(`Произошла ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
+        
+        // Обработка ошибок валидации
+        if (error.response?.data?.errors) {
+          const validationErrors = Object.values(error.response.data.errors).flat();
+          toast.error(`Ошибки валидации: ${validationErrors.join(', ')}`);
+        } else {
+          const errorMessage = error.response?.data?.message || error.message || 'Неизвестная ошибка';
+          toast.error(`Произошла ошибка: ${errorMessage}`);
+        }
       } finally {
         setIsLoading(false)
       }
@@ -280,7 +225,7 @@ const EditCategoryDialog = ({ category, onUpdate }: { category: ProjectCategory;
   }
 
 // Компонент для удаления категории
-const DeleteCategoryDialog = ({ category, onDelete }: { category: ProjectCategory; onDelete: () => void }) => {
+const DeleteCategoryDialog = ({ category, onDelete }: { category: ProjectCategory; onDelete: () => Promise<void> }) => {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
@@ -290,22 +235,7 @@ const DeleteCategoryDialog = ({ category, onDelete }: { category: ProjectCategor
         throw new Error("ID категории не найден")
       }
 
-      const response = await fetch(`${API_BASE_URL}/project-categories/${category.id}`, {
-        method: "DELETE",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        mode: 'cors',
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `Ошибка сервера: ${response.status}`)
-      }
-
-      const result = await response.json()
+      const result = await del<{ status: string; message?: string }>(`/project-categories/${category.id}`);
 
       if (result?.status === "success") {
         onDelete()
@@ -313,9 +243,10 @@ const DeleteCategoryDialog = ({ category, onDelete }: { category: ProjectCategor
       } else {
         toast.error(`Ошибка: ${result?.message || "Не удалось удалить категорию"}`)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Ошибка при удалении категории:", error)
-      toast.error(`Произошла ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
+      const errorMessage = error.response?.data?.message || error.message || 'Неизвестная ошибка';
+      toast.error(`Произошла ошибка: ${errorMessage}`)
     } finally {
       setIsDeleting(false)
     }
@@ -358,80 +289,30 @@ const DeleteCategoryDialog = ({ category, onDelete }: { category: ProjectCategor
 }
 
 export default function ProjectCategoriesPage() {
-  const [categories, setCategories] = useState<ProjectCategory[]>([])
-  const [loading, setLoading] = useState(true)
+  // Используем SWR hook для кэширования категорий
+  const { categories, isLoading: loading, isError, mutate } = useCategories()
   const [error, setError] = useState<string | null>(null)
 
-  const fetchCategories = useCallback(async () => {
-    try {
-      setLoading(true)
+  // Обновляем локальную ошибку при изменении isError
+  useEffect(() => {
+    if (isError) {
+      setError('Ошибка при загрузке категорий')
+    } else {
       setError(null)
-
-      const response = await fetch(`${API_BASE_URL}/project-categories`, {
-        headers: {
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        mode: 'cors',
-      })
-
-      if (!response.ok) {
-        throw new Error(`Ошибка загрузки категорий: ${response.status}`)
-      }
-
-      const data: ApiResponse = await response.json()
-      
-      console.log('Ответ от API:', data)
-
-      let categoriesData: ProjectCategory[] = []
-      
-      if (data.status === 'success' && data.data) {
-        categoriesData = data.data
-      } else if (data.data && Array.isArray(data.data)) {
-        categoriesData = data.data
-      } else if (Array.isArray(data)) {
-        categoriesData = data as ProjectCategory[]
-      } else {
-        throw new Error(data.message || 'Не удалось загрузить категории')
-      }
-
-      // Сортировка по sort_order, если поле есть
-      categoriesData.sort((a, b) => {
-        const orderA = a.sort_order ?? 999
-        const orderB = b.sort_order ?? 999
-        return orderA - orderB
-      })
-
-      setCategories(categoriesData)
-    } catch (err) {
-      console.error('Ошибка при загрузке категорий:', err)
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка')
-    } finally {
-      setLoading(false)
     }
-  }, [])
+  }, [isError])
+
+  // Функция для обновления данных после изменений
+  const fetchCategories = async () => {
+    await mutate()
+  }
 
   // Функция для обновления порядка сортировки
   const updateSortOrder = async (categoryId: number, newOrder: number) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/project-categories/${categoryId}/sort-order`, {
-        method: "PUT",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sort_order: newOrder,
-        }),
-        credentials: 'include',
-        mode: 'cors',
-      })
-
-      if (!response.ok) {
-        throw new Error(`Ошибка обновления порядка: ${response.status}`)
-      }
-
-      const result = await response.json()
+      const result = await put<{ status: string; message?: string }>(`/project-categories/${categoryId}/sort-order`, {
+        sort_order: newOrder,
+      });
       
       if (result?.status === "success") {
         fetchCategories() // Перезагружаем список
@@ -439,9 +320,10 @@ export default function ProjectCategoriesPage() {
       } else {
         toast.error(`Ошибка: ${result?.message || "Не удалось обновить порядок"}`)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Ошибка при обновлении порядка:", error)
-      toast.error(`Произошла ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
+      const errorMessage = error.response?.data?.message || error.message || 'Неизвестная ошибка';
+      toast.error(`Произошла ошибка: ${errorMessage}`)
     }
   }
 
@@ -474,10 +356,6 @@ export default function ProjectCategoriesPage() {
     await updateSortOrder(currentCategory.id, nextOrder)
     await updateSortOrder(nextCategory.id, currentOrder)
   }
-
-  useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories])
 
   if (loading) {
     return (

@@ -4,9 +4,12 @@ import { useState, FormEvent, useEffect } from "react"
 
 // Принудительно делаем страницу динамической для продакшн сборки
 export const dynamic = 'force-dynamic'
-import { columns as getColumns, Project } from "./columns"
-import { DataTable } from "./data-table"
+import { columns as getColumns } from "./columns"
 import { Button } from "@/components/ui/button"
+import { useProjects, type Project } from "@/hooks/useProjects"
+import { useCategories } from "@/hooks/useCategories"
+import { useSEOSettings } from "@/hooks/useSEOSettings"
+import { DataTable } from "./data-table"
 import { PlusCircle } from "lucide-react"
 import {
   Dialog,
@@ -21,12 +24,7 @@ import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 // import SEOEditor, { SEOData } from "@/components/SEOEditor"
 import { SEOData } from "@/components/SEOEditor"
-import { SEOSettings } from "@/lib/seo-metadata"
-
-interface ApiResponse {
-  status: string;
-  data: Project[];
-}
+import apiClient from "@/lib/api"
 
 interface CreateProjectResponse {
   success: boolean;
@@ -35,86 +33,13 @@ interface CreateProjectResponse {
   errors?: Record<string, string[]>;
 }
 
-interface ProjectCategory {
-  id: number;
-  name: string;
-  slug: string;
-  sort_order: number;
-}
-
-interface CategoriesResponse {
-  status: string;
-  data: ProjectCategory[];
-}
-
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
-
-function getImageUrl(imagePath: string | null): string {
-  if (!imagePath) return '';
-  if (imagePath.startsWith('http')) return imagePath;
-  if (imagePath.startsWith('/images/')) return imagePath;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (imagePath.startsWith('/storage/')) {
-    return `${apiUrl}${imagePath}`;
-  } else if (imagePath.startsWith('projects')) {
-    return `${apiUrl}/storage/${imagePath}`;
-  } else {
-    return `${apiUrl}/storage/projects/${imagePath}`;
-  }
-}
-
-async function getData(): Promise<Project[]> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/projects`, { cache: 'no-store', headers: { 'Accept': 'application/json' } });
-    if (!res.ok) throw new Error(`Failed to fetch projects: ${res.status}`);
-    const data: ApiResponse = await res.json();
-    const projectsWithCorrectImageUrls = data.data?.map(project => ({
-      ...project,
-      main_image: getImageUrl(project.main_image ?? null),
-      projects_page_image: getImageUrl(project.projects_page_image ?? null),
-      logo: getImageUrl(project.logo ?? null),
-    })) || [];
-    return projectsWithCorrectImageUrls;
-  } catch (error) {
-    console.error('Error fetching projects:', error);
-    return [];
-  }
-}
-
-async function getCategories(): Promise<ProjectCategory[]> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/project-categories`, {
-      cache: 'no-store',
-      headers: { 'Accept': 'application/json' }
-    });
-    if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
-    const data: CategoriesResponse = await res.json();
-    return data.data || [];
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return [];
-  }
-}
-
-async function getGlobalSEOSettings(): Promise<SEOSettings | null> {
-  try {
-    const res = await fetch(`${API_BASE_URL}/seo/settings`, {
-      cache: 'no-cache', // Используем no-cache вместо no-store для админки
-      headers: { 'Accept': 'application/json' }
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data || null;
-  } catch (error) {
-    console.error('Error fetching SEO settings:', error);
-    return null;
-  }
-}
-
 export default function AdminProjectsPageWrapper() {
+  // Используем SWR hooks для кэширования данных
+  const { projects, mutate: mutateProjects } = useProjects();
+  const { categories } = useCategories();
+  const { settings: _globalSettings } = useSEOSettings();
+  
   const [open, setOpen] = useState(false);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [categories, setCategories] = useState<ProjectCategory[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [apiStatus, setApiStatus] = useState<string | null>(null);
 
@@ -129,19 +54,16 @@ export default function AdminProjectsPageWrapper() {
 
   // SEO states
   const [seoData, setSeoData] = useState<SEOData>({});
-  const [_globalSettings, _setGlobalSettings] = useState<SEOSettings | null>(null);
 
   useEffect(() => {
-    getData().then(setProjects);
-    getCategories().then(setCategories);
-    getGlobalSEOSettings().then(_setGlobalSettings);
     checkApiConnection();
   }, []);
 
   const checkApiConnection = async () => {
     try {
       setApiStatus('Проверка соединения...');
-      const res = await fetch(`${API_BASE_URL}/projects`, { method: 'GET', headers: { 'Accept': 'application/json' } });
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${apiUrl}/api/projects`, { method: 'GET', headers: { 'Accept': 'application/json' } });
       if (res.ok) {
         try {
           await res.json();
@@ -227,39 +149,17 @@ export default function AdminProjectsPageWrapper() {
         formData.append("seo_image", seoData.seo_image);
       }
 
-      const response = await fetch(`${API_BASE_URL}/projects`, {
-        method: "POST",
-        body: formData,
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include',
-        mode: 'cors',
+      const response = await apiClient.post<CreateProjectResponse>('/projects', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json' 
+        },
       });
 
-      if (!response.ok) {
-        // Специальная обработка ошибки размера файла
-        if (response.status === 413) {
-          throw new Error("Размер файла превышает допустимый лимит (2 МБ для изображений)");
-        }
-
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-          const errorData = await response.json();
-          if (errorData.errors) {
-            const validationErrors = Object.entries(errorData.errors)
-              .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-              .join('; ');
-            throw new Error(`Ошибки валидации: ${validationErrors}`);
-          }
-          throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
-        } else {
-          throw new Error(`Ошибка сервера: ${response.status} - ${response.statusText}`);
-        }
-      }
-
-      const result: CreateProjectResponse = await response.json();
+      const result = response.data;
       if (result && result.success === true) {
-        const updatedProjects = await getData();
-        setProjects(updatedProjects);
+        // Обновляем кэш SWR вместо ручной загрузки
+        await mutateProjects();
         setOpen(false);
         resetForm();
         toast("Проект успешно создан");
@@ -270,8 +170,19 @@ export default function AdminProjectsPageWrapper() {
       } else {
         toast(`Ошибка: ${result?.message || "Не удалось создать проект - неизвестная ошибка"}`);
       }
-    } catch (error) {
-      toast(`Произошла ошибка при отправке данных: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+    } catch (error: any) {
+      // Обработка ошибок с сервера
+      if (error.response?.status === 413) {
+        toast("Размер файла превышает допустимый лимит (2 МБ для изображений)");
+      } else if (error.response?.status === 422 && error.response?.data?.errors) {
+        const validationErrors = Object.entries(error.response.data.errors)
+          .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+          .join('; ');
+        toast(`Ошибки валидации: ${validationErrors}`);
+      } else {
+        const errorMessage = error.response?.data?.message || error.message || 'Неизвестная ошибка';
+        toast(`Произошла ошибка при отправке данных: ${errorMessage}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -327,27 +238,27 @@ export default function AdminProjectsPageWrapper() {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch(`${API_BASE_URL}/seo/upload-image`, {
-        method: 'POST',
-        body: formData,
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include',
-        mode: 'cors',
+      const response = await apiClient.post<{
+        success: boolean;
+        data?: { url: string };
+        message?: string;
+      }>('/seo/upload-image', formData, {
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json' 
+        },
       });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = response.data;
       if (result.success && result.data?.url) {
         return result.data.url;
       } else {
         throw new Error(result.message || 'Upload failed');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('SEO image upload error:', error);
-      throw error;
+      const errorMessage = error.response?.data?.message || error.message || 'Upload failed';
+      throw new Error(errorMessage);
     }
   };
 
@@ -480,7 +391,7 @@ export default function AdminProjectsPageWrapper() {
 
       <div className="w-full px-6 pb-6">
         {projects.length > 0 ? (
-          <DataTable columns={getColumns()} data={projects} />
+          <DataTable columns={getColumns()} data={projects as any} />
         ) : (
           <div className="flex flex-col items-center justify-center p-8 text-center border rounded-md bg-gray-50">
             <h3 className="text-lg font-medium">Нет проектов</h3>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 
 // Принудительно делаем страницу динамической для продакшн сборки
 export const dynamic = 'force-dynamic'
+import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -316,11 +317,14 @@ export default function GlobalSEOSettingsPage() {
               {currentImageUrl && (
                 <div className="mt-2">
                   <p className="text-sm text-muted-foreground mb-2">Текущее изображение:</p>
-                  <img
-                    src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${currentImageUrl}`}
-                    alt="Текущее изображение по умолчанию"
-                    className="max-w-xs h-auto border rounded"
-                  />
+                  <div className="relative w-full max-w-xs h-48">
+                    <Image
+                      src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${currentImageUrl}`}
+                      alt="Текущее изображение по умолчанию"
+                      fill
+                      className="object-contain border rounded"
+                    />
+                  </div>
                 </div>
               )}
             </div>

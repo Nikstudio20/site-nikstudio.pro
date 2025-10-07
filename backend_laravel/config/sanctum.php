@@ -47,7 +47,20 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => env('SANCTUM_TOKEN_EXPIRATION', 480),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Remember Me Expiration Minutes
+    |--------------------------------------------------------------------------
+    |
+    | This value controls the number of minutes until a "remember me" token
+    | will be considered expired. This is used when the user checks the
+    | "remember me" option during login.
+    |
+    */
+
+    'remember_expiration' => env('SANCTUM_REMEMBER_EXPIRATION', 43200),
 
     /*
     |--------------------------------------------------------------------------

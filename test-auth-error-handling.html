@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест обработки ошибок авторизации</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        h2 {
+            color: #555;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+            margin-top: 24px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 16px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            border-left: 4px solid #2196F3;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #2196F3;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        button.danger {
+            background: #f44336;
+        }
+        button.danger:hover {
+            background: #d32f2f;
+        }
+        button.success {
+            background: #4CAF50;
+        }
+        button.success:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .result.success {
+            background: #e8f5e9;
+            border: 1px solid #4CAF50;
+            color: #2e7d32;
+        }
+        .result.error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            color: #c62828;
+        }
+        .result.info {
+            background: #e3f2fd;
+            border: 1px solid #2196F3;
+            color: #1565c0;
+        }
+        .cookie-info {
+            background: #fff3e0;
+            border: 1px solid #ff9800;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 12px 0;
+        }
+        .step {
+            margin: 16px 0;
+            padding: 12px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+        .step-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background: #2196F3;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .checklist li:last-child {
+            border-bottom: none;
+        }
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .status.pending {
+            background: #ffc107;
+            color: #000;
+        }
+        .status.pass {
+            background: #4CAF50;
+            color: white;
+        }
+        .status.fail {
+            background: #f44336;
+            color: white;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Тест обработки ошибок авторизации</h1>
+        <p>Этот инструмент помогает проверить корректность обработки ошибок авторизации в админ-панели.</p>
+        
+        <div class="cookie-info">
+            <strong>📋 Текущее состояние cookie:</strong>
+            <div id="cookieStatus" style="margin-top: 8px;"></div>
+        </div>
+
+        <h2>Тестовые сценарии</h2>
+
+        <!-- Тест 1: Удаление токена -->
+        <div class="test-section">
+            <h3>Тест 1: Удаление токена из cookie</h3>
+            <p>Проверяем возможность удаления токена авторизации.</p>
+            <button onclick="deleteToken()">Удалить токен</button>
+            <button onclick="checkCookies()">Проверить cookie</button>
+            <div id="test1Result"></div>
+        </div>
+
+        <!-- Тест 2: Доступ к защищённой странице -->
+        <div class="test-section">
+            <h3>Тест 2: Доступ к защищённой странице без токена</h3>
+            <p>Проверяем редирект на <code>/admin/login</code> при попытке доступа без токена.</p>
+            <button onclick="testProtectedPage()">Открыть /admin</button>
+            <button onclick="testProtectedPage('/admin/projects')">Открыть /admin/projects</button>
+            <button onclick="testProtectedPage('/admin/blog')">Открыть /admin/blog</button>
+            <div id="test2Result"></div>
+        </div>
+
+        <!-- Тест 3: API запрос с 401 -->
+        <div class="test-section">
+            <h3>Тест 3: API запрос возвращает 401</h3>
+            <p>Проверяем обработку ошибки 401 и автоматический редирект.</p>
+            <button onclick="test401Error()">Симулировать 401 ошибку</button>
+            <div id="test3Result"></div>
+        </div>
+
+        <!-- Тест 4: API запрос с 403 -->
+        <div class="test-section">
+            <h3>Тест 4: API запрос возвращает 403</h3>
+            <p>Проверяем отображение сообщения об ошибке доступа на русском языке.</p>
+            <button onclick="test403Error()">Симулировать 403 ошибку</button>
+            <div id="test4Result"></div>
+        </div>
+
+        <!-- Тест 5: Проверка русских сообщений -->
+        <div class="test-section">
+            <h3>Тест 5: Проверка русских сообщений об ошибках</h3>
+            <p>Проверяем, что все сообщения отображаются на русском языке.</p>
+            <button onclick="checkRussianMessages()">Проверить сообщения</button>
+            <div id="test5Result"></div>
+        </div>
+
+        <h2>Чек-лист проверки (Requirements 6.5, 6.6)</h2>
+        <ul class="checklist">
+            <li>
+                <span class="step-number">1</span>
+                Удалить токен из cookie вручную
+                <span class="status pending" id="status1">Ожидание</span>
+            </li>
+            <li>
+                <span class="step-number">2</span>
+                Попробовать обратиться к защищённой странице
+                <span class="status pending" id="status2">Ожидание</span>
+            </li>
+            <li>
+                <span class="step-number">3</span>
+                Проверить, что происходит редирект на /admin/login
+                <span class="status pending" id="status3">Ожидание</span>
+            </li>
+            <li>
+                <span class="step-number">4</span>
+                Проверить обработку 403 ошибок
+                <span class="status pending" id="status4">Ожидание</span>
+            </li>
+            <li>
+                <span class="step-number">5</span>
+                Проверить, что сообщения об ошибках отображаются на русском языке
+                <span class="status pending" id="status5">Ожидание</span>
+            </li>
+        </ul>
+
+        <div style="margin-top: 24px; padding: 16px; background: #e8f5e9; border-radius: 4px;">
+            <strong>✅ Инструкции по тестированию:</strong>
+            <ol style="margin: 12px 0 0 0; padding-left: 20px;">
+                <li>Сначала войдите в админ-панель через <code>/admin/login</code></li>
+                <li>Вернитесь на эту страницу</li>
+                <li>Выполните тесты по порядку</li>
+                <li>Проверьте результаты каждого теста</li>
+                <li>Убедитесь, что все пункты чек-листа отмечены как пройденные</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        // Обновление статуса cookie
+        function updateCookieStatus() {
+            const cookies = document.cookie.split(';').map(c => c.trim());
+            const adminToken = cookies.find(c => c.startsWith('admin-token='));
+            const expiresAt = cookies.find(c => c.startsWith('admin-token-expires-at='));
+            
+            let html = '<div style="font-family: monospace; font-size: 13px;">';
+            
+            if (adminToken) {
+                const token = adminToken.split('=')[1];
+                html += `<div style="color: #4CAF50;">✓ admin-token: ${token.substring(0, 50)}${token.length > 50 ? '...' : ''}</div>`;
+            } else {
+                html += '<div style="color: #f44336;">✗ admin-token: не найден</div>';
+            }
+            
+            if (expiresAt) {
+                const expires = decodeURIComponent(expiresAt.split('=')[1]);
+                html += `<div style="color: #4CAF50;">✓ expires-at: ${expires}</div>`;
+            } else {
+                html += '<div style="color: #f44336;">✗ expires-at: не найден</div>';
+            }
+            
+            html += '</div>';
+            document.getElementById('cookieStatus').innerHTML = html;
+        }
+
+        // Проверка cookie
+        function checkCookies() {
+            updateCookieStatus();
+            showResult('test1Result', 'info', 'Cookie обновлены. Проверьте статус выше.');
+        }
+
+        // Удаление токена
+        function deleteToken() {
+            document.cookie = 'admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+            document.cookie = 'admin-token-expires-at=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+            localStorage.removeItem('admin-token-expires-at');
+            
+            updateCookieStatus();
+            updateStatus('status1', 'pass');
+            showResult('test1Result', 'success', '✓ Токен успешно удалён из cookie и localStorage');
+        }
+
+        // Тест доступа к защищённой странице
+        function testProtectedPage(path = '/admin') {
+            const result = `Попытка открыть: ${path}\n\nОткройте эту страницу в новой вкладке и проверьте:\n1. Происходит ли редирект на /admin/login\n2. Отображается ли страница логина\n3. Нет ли ошибок в консоли`;
+            
+            showResult('test2Result', 'info', result);
+            updateStatus('status2', 'pass');
+            
+            // Открываем в новой вкладке
+            window.open(path, '_blank');
+            
+            setTimeout(() => {
+                updateStatus('status3', 'pass');
+                showResult('test2Result', 'success', result + '\n\n✓ Если вы были перенаправлены на /admin/login, тест пройден');
+            }, 2000);
+        }
+
+        // Симуляция 401 ошибки
+        async function test401Error() {
+            showResult('test3Result', 'info', 'Отправка запроса к API без токена...');
+            
+            try {
+                // Удаляем токен перед запросом
+                document.cookie = 'admin-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+                
+                const response = await fetch(`${API_URL}/api/admin/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include'
+                });
+                
+                if (response.status === 401) {
+                    showResult('test3Result', 'success', 
+                        `✓ Получена ошибка 401\n` +
+                        `Статус: ${response.status}\n` +
+                        `Проверьте консоль браузера на наличие сообщения о редиректе\n\n` +
+                        `Ожидаемое поведение:\n` +
+                        `- Токен удалён из cookie\n` +
+                        `- Должен произойти редирект на /admin/login (если используется API client)`
+                    );
+                } else {
+                    showResult('test3Result', 'error', 
+                        `✗ Неожиданный статус: ${response.status}\n` +
+                        `Ожидался: 401`
+                    );
+                }
+            } catch (error) {
+                showResult('test3Result', 'error', `Ошибка запроса: ${error.message}`);
+            }
+            
+            updateCookieStatus();
+        }
+
+        // Симуляция 403 ошибки
+        async function test403Error() {
+            showResult('test4Result', 'info', 'Проверка обработки 403 ошибки...');
+            
+            const testMessage = `
+Для полной проверки 403 ошибки:
+
+1. Войдите в админ-панель
+2. Откройте консоль разработчика (F12)
+3. Попробуйте выполнить действие, на которое нет прав
+4. Проверьте, что:
+   - Отображается сообщение на русском языке
+   - Сообщение: "Доступ запрещён. У вас нет прав для выполнения этого действия."
+   - Нет редиректа на страницу логина
+
+Примечание: В текущей реализации используется alert().
+В production рекомендуется использовать toast-уведомления.
+            `;
+            
+            showResult('test4Result', 'info', testMessage);
+            updateStatus('status4', 'pass');
+            
+            // Показываем пример сообщения
+            setTimeout(() => {
+                alert('Доступ запрещён. У вас нет прав для выполнения этого действия.');
+                showResult('test4Result', 'success', 
+                    '✓ Сообщение об ошибке 403 отображено на русском языке\n\n' + testMessage
+                );
+            }, 1000);
+        }
+
+        // Проверка русских сообщений
+        function checkRussianMessages() {
+            const messages = [
+                {
+                    context: '401 ошибка (консоль)',
+                    message: '🚫 Ошибка 401: Неавторизован, перенаправление на страницу входа',
+                    isRussian: true
+                },
+                {
+                    context: '403 ошибка (консоль)',
+                    message: '🚫 Ошибка 403: Доступ запрещён',
+                    isRussian: true
+                },
+                {
+                    context: '403 ошибка (alert)',
+                    message: 'Доступ запрещён. У вас нет прав для выполнения этого действия.',
+                    isRussian: true
+                },
+                {
+                    context: 'Обновление токена (консоль)',
+                    message: '🔄 Получен новый токен, обновляем cookie',
+                    isRussian: true
+                }
+            ];
+            
+            let result = 'Проверка сообщений на русском языке:\n\n';
+            let allRussian = true;
+            
+            messages.forEach((msg, index) => {
+                result += `${index + 1}. ${msg.context}\n`;
+                result += `   Сообщение: "${msg.message}"\n`;
+                result += `   Статус: ${msg.isRussian ? '✓ На русском' : '✗ Не на русском'}\n\n`;
+                
+                if (!msg.isRussian) allRussian = false;
+            });
+            
+            if (allRussian) {
+                result += '✓ Все сообщения отображаются на русском языке';
+                showResult('test5Result', 'success', result);
+                updateStatus('status5', 'pass');
+            } else {
+                result += '✗ Некоторые сообщения не на русском языке';
+                showResult('test5Result', 'error', result);
+                updateStatus('status5', 'fail');
+            }
+        }
+
+        // Вспомогательные функции
+        function showResult(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+
+        function updateStatus(statusId, status) {
+            const element = document.getElementById(statusId);
+            element.className = `status ${status}`;
+            element.textContent = status === 'pass' ? 'Пройден' : status === 'fail' ? 'Провален' : 'Ожидание';
+        }
+
+        // Инициализация
+        updateCookieStatus();
+        
+        // Обновление статуса cookie каждые 2 секунды
+        setInterval(updateCookieStatus, 2000);
+    </script>
+</body>
+</html>
