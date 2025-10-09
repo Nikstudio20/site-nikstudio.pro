@@ -48,8 +48,8 @@ export const ServiceVideoManager: React.FC = () => {
       setLoading(true);
       console.log(`Fetching service video data for: ${serviceName}`);
 
-      const axiosResponse = await apiClient.get(`/api/services/${serviceName}/video`);
-      const response: ApiResponse = axiosResponse.data;
+      const axiosResponse = await apiClient.get<ApiResponse>(`/api/services/${serviceName}/video`);
+      const response = axiosResponse.data;
       
       setCurrentVideo(response.data || null);
       console.log('Successfully fetched service video data');
@@ -69,7 +69,7 @@ export const ServiceVideoManager: React.FC = () => {
   }, [serviceName]);
 
   // Upload new service video
-  const handleVideoUpload = async (file: File, onProgress?: (progress: number) => void) => {
+  const handleVideoUpload = async (file: File, _onProgress?: (progress: number) => void) => {
     setUploading(true);
     setError(null);
     setSuccess(null);
@@ -88,23 +88,14 @@ export const ServiceVideoManager: React.FC = () => {
       formData.append('video', file);
 
       // Upload using apiClient with progress tracking
-      const axiosResponse = await apiClient.post(`/api/services/${serviceName}/video`, formData, {
+      const axiosResponse = await apiClient.post<ApiResponse>(`/api/services/${serviceName}/video`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        onUploadProgress: (progressEvent: any) => {
-          if (progressEvent.total) {
-            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(progress);
-            if (onProgress) {
-              onProgress(progress);
-            }
-          }
-        },
         timeout: 300000, // 5 minutes timeout
-      });
+      } as any);
 
-      const response: ApiResponse = axiosResponse.data;
+      const response = axiosResponse.data;
 
       if (response.success) {
         setSuccess('Видео услуги успешно загружено!');
@@ -163,8 +154,8 @@ export const ServiceVideoManager: React.FC = () => {
       setError(null);
       setSuccess(null);
 
-      const axiosResponse = await apiClient.delete(`/api/services/${serviceName}/video`);
-      const response: ApiResponse = axiosResponse.data;
+      const axiosResponse = await apiClient.delete<ApiResponse>(`/api/services/${serviceName}/video`);
+      const response = axiosResponse.data;
 
       if (response.success) {
         setSuccess('Видео услуги успешно удалено!');

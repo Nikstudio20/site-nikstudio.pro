@@ -54,8 +54,8 @@ export const AdminHeroVideoManager: React.FC = () => {
       const token = document.cookie.split(';').find(c => c.trim().startsWith('admin-token='));
       console.log(`[AdminHeroVideoManager] Token exists:`, !!token);
 
-      const axiosResponse = await apiClient.get('/api/home');
-      const response: ApiResponse = axiosResponse.data;
+      const axiosResponse = await apiClient.get<ApiResponse>('/api/home');
+      const response = axiosResponse.data;
       
       setCurrentVideo(response.data || null);
       console.log('[AdminHeroVideoManager] Successfully fetched current video data:', response.data);
@@ -95,7 +95,7 @@ export const AdminHeroVideoManager: React.FC = () => {
   }, []);
 
   // Upload new hero video with progress tracking and retry logic
-  const handleVideoUpload = async (file: File, onProgress?: (progress: number) => void) => {
+  const handleVideoUpload = async (file: File, _onProgress?: (progress: number) => void) => {
     setUploading(true);
     setError(null);
     setSuccess(null);
@@ -119,24 +119,15 @@ export const AdminHeroVideoManager: React.FC = () => {
       formData.append('hero_video', file);
 
       // Upload using apiClient with progress tracking
-      const axiosResponse = await apiClient.post('/api/home/hero-video', formData, {
+      const axiosResponse = await apiClient.post<ApiResponse>('/api/home/hero-video', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        onUploadProgress: (progressEvent: any) => {
-          if (progressEvent.total) {
-            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(progress);
-            if (onProgress) {
-              onProgress(progress);
-            }
-          }
-        },
         timeout: 300000, // 5 minutes timeout
-      });
+      } as any);
 
       // apiClient.post возвращает полный axios response, нужно взять data
-      const response: ApiResponse = axiosResponse.data;
+      const response = axiosResponse.data;
       
       console.log('[AdminHeroVideoManager] Upload response:', response);
 
@@ -209,8 +200,8 @@ export const AdminHeroVideoManager: React.FC = () => {
       const token = document.cookie.split(';').find(c => c.trim().startsWith('admin-token='));
       console.log('[AdminHeroVideoManager] Token exists for delete:', !!token);
 
-      const axiosResponse = await apiClient.delete('/api/home/hero-video');
-      const response: ApiResponse = axiosResponse.data;
+      const axiosResponse = await apiClient.delete<ApiResponse>('/api/home/hero-video');
+      const response = axiosResponse.data;
 
       if (response.success) {
         setSuccess('Видео успешно удалено!');

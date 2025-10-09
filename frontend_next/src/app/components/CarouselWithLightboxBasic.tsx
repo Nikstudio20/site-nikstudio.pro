@@ -44,8 +44,8 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
   const slideChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Refs для обработки свайпа вверх (не вызывают re-render)
-  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
-  const touchEndRef = useRef<{ x: number; y: number } | null>(null)
+  const _touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const _touchEndRef = useRef<{ x: number; y: number } | null>(null)
 
   // Функция для открытия лайтбокса с определенным слайдом
   const handleOpen = (slideIndex: number) => {
@@ -186,25 +186,25 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
 
   // Обработчики для свайпа вверх
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null) // Сбрасываем предыдущее значение
-    setTouchStart({
+    _touchEndRef.current = null // Сбрасываем предыдущее значение
+    _touchStartRef.current = {
       x: e.targetTouches[0].clientX,
       y: e.targetTouches[0].clientY,
-    })
+    }
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd({
+    _touchEndRef.current = {
       x: e.targetTouches[0].clientX,
       y: e.targetTouches[0].clientY,
-    })
+    }
   }
 
   const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return
+    if (!_touchStartRef.current || !_touchEndRef.current) return
     
-    const distanceX = touchStart.x - touchEnd.x
-    const distanceY = touchStart.y - touchEnd.y
+    const distanceX = _touchStartRef.current.x - _touchEndRef.current.x
+    const distanceY = _touchStartRef.current.y - _touchEndRef.current.y
     const isUpSwipe = distanceY > 50 && Math.abs(distanceX) < Math.abs(distanceY)
     
     if (isUpSwipe) {
