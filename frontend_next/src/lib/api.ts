@@ -50,6 +50,13 @@ apiClient.interceptors.request.use(
   (config: any) => {
     const token = getTokenFromCookie();
     
+    console.log('[API Client] Request interceptor:', {
+      url: config.url,
+      method: config.method,
+      hasToken: !!token,
+      tokenPreview: token ? token.substring(0, 20) + '...' : 'NO TOKEN'
+    });
+    
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -57,6 +64,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error: any) => {
+    console.error('[API Client] Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -64,12 +72,18 @@ apiClient.interceptors.request.use(
 // Response interceptor - обработка ответов и ошибок
 apiClient.interceptors.response.use(
   (response: any) => {
+    console.log('[API Client] Response received:', {
+      url: response.config.url,
+      status: response.status,
+      hasNewToken: !!response.headers['x-new-token']
+    });
+    
     // Проверяем наличие нового токена в заголовке X-New-Token
     const newToken = response.headers['x-new-token'];
     const newExpiresAt = response.headers['x-token-expires-at'];
     
     if (newToken) {
-      console.log('🔄 Получен новый токен, обновляем cookie');
+      console.log('[API Client] 🔄 Получен новый токен, обновляем cookie');
       
       // Вычисляем max-age из expires_at
       let maxAge = 60 * 60 * 8; // 8 часов по умолчанию
@@ -96,9 +110,17 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error: any) => {
+    console.error('[API Client] Response error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      message: error.message,
+      data: error.response?.data
+    });
+    
     // Обработка 401 ошибки - неавторизован
     if (error.response?.status === 401) {
-      console.log('🚫 Ошибка 401: Неавторизован, перенаправление на страницу входа');
+      console.log('[API Client] 🚫 Ошибка 401: Неавторизован, перенаправление на страницу входа');
       
       // Удаляем токен
       removeTokenFromCookie();

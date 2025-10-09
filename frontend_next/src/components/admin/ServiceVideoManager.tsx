@@ -8,6 +8,7 @@ import { AlertCircle, CheckCircle, Video, Upload, Trash2, Loader2 } from "lucide
 import { VideoUploadForm } from "./VideoUploadForm";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getVideoUrl, formatFileSize, getVideoFormat } from "@/lib/media-utils";
+import apiClient from "@/lib/api";
 
 
 interface ServiceVideo {
@@ -29,8 +30,6 @@ interface ApiResponse {
   errors?: Record<string, string[]>;
 }
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
-
 export const ServiceVideoManager: React.FC = () => {
   const [currentVideo, setCurrentVideo] = useState<ServiceVideo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,23 +48,20 @@ export const ServiceVideoManager: React.FC = () => {
       setLoading(true);
       console.log(`Fetching service video data for: ${serviceName}`);
 
-      const response = await fetch(`${API_BASE_URL}/services/${serviceName}/video`, {
-        headers: { 'Accept': 'application/json' },
-        cache: 'no-store'
-      });
-
-      if (response.ok) {
-        const data: ApiResponse = await response.json();
-        setCurrentVideo(data.data || null);
-        console.log('Successfully fetched service video data');
-      } else if (response.status === 404) {
-        console.log('No service video data found (404)');
-        setCurrentVideo(null);
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (err) {
+      const axiosResponse = await apiClient.get(`/api/services/${serviceName}/video`);
+      const response: ApiResponse = axiosResponse.data;
+      
+      setCurrentVideo(response.data || null);
+      console.log('Successfully fetched service video data');
+    } catch (err: any) {
       console.error('Error fetching service video:', err);
+      
+      if (err.response?.status === 404) {
+        // 404 - это нормально, просто нет видео
+        setCurrentVideo(null);
+        return;
+      }
+      
       setError('Ошибка при загрузке данных о видео услуги');
     } finally {
       setLoading(false);
@@ -74,12 +70,12 @@ export const ServiceVideoManager: React.FC = () => {
 
   // Upload new service video
   const handleVideoUpload = async (file: File, onProgress?: (progress: number) => void) => {
-    return new Promise<void>((resolve, reject) => {
-      setUploading(true);
-      setError(null);
-      setSuccess(null);
-      setUploadProgress(0);
+    setUploading(true);
+    setError(null);
+    setSuccess(null);
+    setUploadProgress(0);
 
+    try {
       console.log('Starting service video upload:', {
         serviceName,
         fileName: file.name,
@@ -91,105 +87,73 @@ export const ServiceVideoManager: React.FC = () => {
       const formData = new FormData();
       formData.append('video', file);
 
-      const xhr = new XMLHttpRequest();
-
-      // Track upload progress
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          setUploadProgress(progress);
-          if (onProgress) {
-            onProgress(progress);
-          }
-        }
-      });
-
-      // Handle successful upload
-      xhr.addEventListener('load', async () => {
-        try {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            const data: ApiResponse = JSON.parse(xhr.responseText);
-
-            if (data.success) {
-              setSuccess('Видео услуги успешно загружено!');
-              await fetchCurrentVideo();
-
-              // Clear success message after 3 seconds
-              setTimeout(() => setSuccess(null), 3000);
-              resolve();
-            } else {
-              const errorMessage = data.message || 'Ошибка при загрузке видео';
-              if (data.errors) {
-                const validationErrors = Object.entries(data.errors)
-                  .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-                  .join('; ');
-                setError(`${errorMessage}. ${validationErrors}`);
-              } else {
-                setError(errorMessage);
-              }
-              reject(new Error(errorMessage));
+      // Upload using apiClient with progress tracking
+      const axiosResponse = await apiClient.post(`/api/services/${serviceName}/video`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent: any) => {
+          if (progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(progress);
+            if (onProgress) {
+              onProgress(progress);
             }
-          } else {
-            let errorMessage = 'Ошибка при загрузке видео';
-
-            if (xhr.status === 413) {
-              errorMessage = 'Файл слишком большой. Максимальный размер: 50 MB';
-            } else if (xhr.status === 422) {
-              try {
-                const data: ApiResponse = JSON.parse(xhr.responseText);
-                errorMessage = data.message || 'Неверный формат файла';
-                if (data.errors) {
-                  const validationErrors = Object.entries(data.errors)
-                    .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-                    .join('; ');
-                  errorMessage = `${errorMessage}. ${validationErrors}`;
-                }
-              } catch {
-                errorMessage = 'Ошибка валидации файла';
-              }
-            } else if (xhr.status >= 500) {
-              errorMessage = 'Ошибка сервера. Попробуйте позже';
-            }
-
-            setError(errorMessage);
-            reject(new Error(errorMessage));
           }
-        } catch (err) {
-          console.error('Error processing upload response:', err);
-          setError('Ошибка при обработке ответа сервера');
-          reject(err);
-        } finally {
-          setUploading(false);
-          setUploadProgress(0);
+        },
+        timeout: 300000, // 5 minutes timeout
+      });
+
+      const response: ApiResponse = axiosResponse.data;
+
+      if (response.success) {
+        setSuccess('Видео услуги успешно загружено!');
+        await fetchCurrentVideo();
+
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(null), 3000);
+      } else {
+        const errorMessage = response.message || 'Ошибка при загрузке видео';
+        if (response.errors) {
+          const validationErrors = Object.entries(response.errors)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+            .join('; ');
+          setError(`${errorMessage}. ${validationErrors}`);
+        } else {
+          setError(errorMessage);
         }
-      });
+      }
+    } catch (err: any) {
+      console.error('Upload error:', err);
 
-      // Handle upload errors
-      xhr.addEventListener('error', () => {
-        console.error('Service video upload error occurred');
-        setError('Ошибка сети при загрузке видео. Проверьте подключение к интернету');
-        setUploading(false);
-        setUploadProgress(0);
-        reject(new Error('Network error'));
-      });
+      // Handle HTTP error status codes
+      let errorMessage = 'Ошибка при загрузке видео';
 
-      // Handle upload timeout
-      xhr.addEventListener('timeout', () => {
-        console.error('Service video upload timeout occurred');
-        setError('Превышено время ожидания загрузки. Попробуйте позже');
-        setUploading(false);
-        setUploadProgress(0);
-        reject(new Error('Upload timeout'));
-      });
+      if (err.response?.status === 413) {
+        errorMessage = 'Файл слишком большой. Максимальный размер: 50 MB';
+      } else if (err.response?.status === 422) {
+        const data = err.response.data;
+        errorMessage = data.message || 'Неверный формат файла';
+        if (data.errors) {
+          const validationErrors = Object.entries(data.errors)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+            .join('; ');
+          errorMessage = `${errorMessage}. ${validationErrors}`;
+        }
+      } else if (err.response?.status >= 500) {
+        errorMessage = 'Ошибка сервера. Попробуйте позже';
+      } else if (err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK') {
+        errorMessage = 'Ошибка сети при загрузке видео. Проверьте подключение к интернету';
+      } else if (err.message?.includes('timeout')) {
+        errorMessage = 'Превышено время ожидания загрузки. Попробуйте позже';
+      }
 
-      // Configure and send request
-      xhr.open('POST', `${API_BASE_URL}/services/${serviceName}/video`);
-      xhr.setRequestHeader('Accept', 'application/json');
-      xhr.timeout = 300000; // 5 minutes timeout
-      xhr.withCredentials = true;
-
-      xhr.send(formData);
-    });
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   // Delete current service video
@@ -199,15 +163,10 @@ export const ServiceVideoManager: React.FC = () => {
       setError(null);
       setSuccess(null);
 
-      const response = await fetch(`${API_BASE_URL}/services/${serviceName}/video`, {
-        method: 'DELETE',
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include'
-      });
+      const axiosResponse = await apiClient.delete(`/api/services/${serviceName}/video`);
+      const response: ApiResponse = axiosResponse.data;
 
-      const data: ApiResponse = await response.json();
-
-      if (response.ok && data.success) {
+      if (response.success) {
         setSuccess('Видео услуги успешно удалено!');
         setCurrentVideo(null);
         setDeleteDialogOpen(false);
@@ -215,11 +174,12 @@ export const ServiceVideoManager: React.FC = () => {
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(null), 3000);
       } else {
-        setError(data.message || 'Ошибка при удалении видео');
+        setError(response.message || 'Ошибка при удалении видео');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Delete error:', err);
-      setError('Произошла ошибка при удалении видео');
+      const errorMessage = err.response?.data?.message || 'Произошла ошибка при удалении видео';
+      setError(errorMessage);
     } finally {
       setDeleting(false);
     }

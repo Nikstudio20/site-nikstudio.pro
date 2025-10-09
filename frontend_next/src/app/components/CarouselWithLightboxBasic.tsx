@@ -43,9 +43,9 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
   const lightboxNextRef = useRef<HTMLButtonElement>(null)
   const slideChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Состояние для обработки свайпа вверх
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null)
-  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null)
+  // Refs для обработки свайпа вверх (не вызывают re-render)
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null)
+  const touchEndRef = useRef<{ x: number; y: number } | null>(null)
 
   // Функция для открытия лайтбокса с определенным слайдом
   const handleOpen = (slideIndex: number) => {
@@ -68,27 +68,12 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
     }
   }
 
-  // Обработчик клика на видео в обычном режиме
-  const handleVideoClick = (e: React.MouseEvent, src: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    // Проверяем, был ли клик по элементам управления видео
-    const target = e.target as HTMLElement
-    if (target.tagName === 'VIDEO' && !target.closest('[controls]')) {
-      return
-    }
-    
-    // Если клик не по controls, открываем лайтбокс
-    handleMediaClick(src)
-  }
-
-  // Обработчик клика для медиа в лайтбоксе
+  // Обработчик двойного клика для медиа в лайтбоксе
   const handleLightboxMediaClick = (e: React.MouseEvent, mediaType: 'image' | 'video', mediaSrc: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
     const currentSlide = images[selectedSlideIndex]
+    
+    // Для двойного клика не нужны дополнительные проверки области контролов
+    // так как двойной клик не конфликтует с работой контролов
     
     // Если это двойной слайд, обрабатываем увеличение/уменьшение отдельного изображения
     if (currentSlide.type === 'double') {
@@ -102,54 +87,11 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
       return
     }
     
-    if (mediaType === 'video') {
-      // Для видео проверяем, был ли клик по области controls
-      const target = e.target as HTMLElement
-      if (target.tagName === 'VIDEO') {
-        const rect = target.getBoundingClientRect()
-        // const clickX = e.clientX - rect.left
-        const clickY = e.clientY - rect.top
-        
-        // Примерная область controls (обычно внизу видео)
-        const controlsHeight = 40 // примерная высота панели управления
-        const isControlsArea = clickY > rect.height - controlsHeight
-        
-        if (isControlsArea) {
-          // Если клик по области controls, не делаем ничего (позволяем видео обработать клик)
-          return
-        }
-      }
-    }
-    
     // Toggle размера для одиночного медиа
     setIsMediaFullHeight(!isMediaFullHeight)
   }
 
-  // Обработчик событий видео для предотвращения скрытия контролов
-  const handleVideoPlay = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    e.stopPropagation()
-    const video = e.currentTarget
-    // Принудительно показываем контролы при воспроизведении
-    video.setAttribute('controls', 'true')
-    video.style.pointerEvents = 'auto'
-  }
 
-  const handleVideoPause = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    e.stopPropagation()
-    const video = e.currentTarget
-    // Убеждаемся, что контролы остаются видимыми
-    video.setAttribute('controls', 'true')
-    video.style.pointerEvents = 'auto'
-  }
-
-  // Обработчик для предотвращения скрытия контролов при различных событиях
-  const handleVideoEvent = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    e.stopPropagation()
-    const video = e.currentTarget
-    // Принудительно сохраняем контролы
-    video.setAttribute('controls', 'true')
-    video.style.pointerEvents = 'auto'
-  }
 
   // Переход к нужному слайду при открытии лайтбокса (только при первом открытии)
   useEffect(() => {
@@ -330,6 +272,11 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
           speed={300}
           preventInteractionOnTransition={true}
           resistanceRatio={0.85}
+          noSwipingClass="swiper-no-swiping"
+          noSwipingSelector=".swiper-no-swiping"
+          touchStartPreventDefault={false}
+          touchStartForcePreventDefault={false}
+          touchMoveStopPropagation={false}
         >
           {images.filter(slide => slide.items && slide.items.length > 0).map((slide, _slideIndex) => (
             <SwiperSlide key={slide.id}>
@@ -339,7 +286,13 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
                     <div
                       key={media.src}
                       className="w-full h-[200px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in active:cursor-grabbing"
-                      onClick={() => handleMediaClick(media.src)}
+                      onClick={(e) => {
+                        // Не открываем лайтбокс если клик был по video элементу
+                        if (e.target instanceof HTMLVideoElement || (e.target as HTMLElement).closest('video')) {
+                          return;
+                        }
+                        handleMediaClick(media.src);
+                      }}
                     >
                       {media.type === 'image' ? (
                         <img
@@ -348,51 +301,21 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
                           className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                         />
                       ) : (
-                        <>
-                          <video
-                            src={media.src}
-                            poster={media.poster}
-                            className="absolute inset-0 w-full h-full object-cover"
-                            controls
-                            controlsList="nodownload"
-                            preload="metadata"
-                            onPlay={handleVideoPlay}
-                            onPause={handleVideoPause}
-                            onLoadedMetadata={handleVideoEvent}
-                            onCanPlay={handleVideoEvent}
-                            onTimeUpdate={handleVideoEvent}
-                            style={{ 
-                              pointerEvents: 'auto'
-                            }}
-                          />
-                          {/* Overlay для свайпа и лайтбокса - исключаем область controls */}
-                          <div
-                            className="absolute top-0 left-0 w-full cursor-zoom-in active:cursor-grabbing"
-                            style={{ 
-                              height: 'calc(100% - 80px)', // Оставляем нижнюю часть для controls
-                              pointerEvents: 'auto',
-                              backgroundColor: 'transparent',
-                              zIndex: 1
-                            }}
-                            onClick={(e) => handleVideoClick(e, media.src)}
-                            onMouseDown={(e) => {
-                              e.preventDefault()
-                              // Передаем событие родительскому контейнеру для свайпа
-                              const parentDiv = e.currentTarget.parentElement
-                              if (parentDiv) {
-                                const mouseEvent = new MouseEvent('mousedown', {
-                                  bubbles: true,
-                                  cancelable: true,
-                                  clientX: e.clientX,
-                                  clientY: e.clientY,
-                                  button: e.button,
-                                  buttons: e.buttons
-                                })
-                                parentDiv.dispatchEvent(mouseEvent)
-                              }
-                            }}
-                          />
-                        </>
+                        <video
+                          key={`video-double-${media.src}`}
+                          src={media.src}
+                          poster={media.poster}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          controls
+                          controlsList="nodownload"
+                          preload="metadata"
+                          playsInline
+                          onClick={(e) => e.stopPropagation()}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onMouseUp={(e) => e.stopPropagation()}
+                          onTouchStart={(e) => e.stopPropagation()}
+                          onTouchEnd={(e) => e.stopPropagation()}
+                        />
                       )}
                     </div>
                   ))}
@@ -400,7 +323,13 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
               ) : slide.items[0] && slide.items[0].src && slide.items[0].src.trim() ? (
                 <div
                   className="w-full h-[200px] sm:h-[500px] lg:h-[1080px] relative cursor-zoom-in active:cursor-grabbing"
-                  onClick={() => handleMediaClick(slide.items[0].src)}
+                  onClick={(e) => {
+                    // Не открываем лайтбокс если клик был по video элементу
+                    if (e.target instanceof HTMLVideoElement || (e.target as HTMLElement).closest('video')) {
+                      return;
+                    }
+                    handleMediaClick(slide.items[0].src);
+                  }}
                 >
                   {slide.items[0].type === 'image' ? (
                     <img
@@ -409,51 +338,21 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
                       className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                     />
                   ) : (
-                    <>
-                      <video
-                        src={slide.items[0].src}
-                        poster={slide.items[0].poster}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        controls
-                        controlsList="nodownload"
-                        preload="metadata"
-                        onPlay={handleVideoPlay}
-                        onPause={handleVideoPause}
-                        onLoadedMetadata={handleVideoEvent}
-                        onCanPlay={handleVideoEvent}
-                        onTimeUpdate={handleVideoEvent}
-                        style={{ 
-                          pointerEvents: 'auto'
-                        }}
-                      />
-                      {/* Overlay для свайпа и лайтбокса - исключаем область controls */}
-                      <div
-                        className="absolute top-0 left-0 w-full cursor-zoom-in active:cursor-grabbing"
-                        style={{ 
-                          height: 'calc(100% - 80px)', // Оставляем нижнюю часть для controls
-                          pointerEvents: 'auto',
-                          backgroundColor: 'transparent',
-                          zIndex: 1
-                        }}
-                        onClick={(e) => handleVideoClick(e, slide.items[0].src)}
-                        onMouseDown={(e) => {
-                          e.preventDefault()
-                          // Передаем событие родительскому контейнеру для свайпа
-                          const parentDiv = e.currentTarget.parentElement
-                          if (parentDiv) {
-                            const mouseEvent = new MouseEvent('mousedown', {
-                              bubbles: true,
-                              cancelable: true,
-                              clientX: e.clientX,
-                              clientY: e.clientY,
-                              button: e.button,
-                              buttons: e.buttons
-                            })
-                            parentDiv.dispatchEvent(mouseEvent)
-                          }
-                        }}
-                      />
-                    </>
+                    <video
+                      key={`video-single-${slide.items[0].src}`}
+                      src={slide.items[0].src}
+                      poster={slide.items[0].poster}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      controls
+                      controlsList="nodownload"
+                      preload="metadata"
+                      playsInline
+                      onClick={(e) => e.stopPropagation()}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onMouseUp={(e) => e.stopPropagation()}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      onTouchEnd={(e) => e.stopPropagation()}
+                    />
                   )}
                 </div>
               ) : null}
@@ -560,6 +459,11 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
               freeMode={false}
               watchSlidesProgress={false}
               resistanceRatio={0.85}
+              noSwipingClass="swiper-no-swiping"
+              noSwipingSelector=".swiper-no-swiping"
+              touchStartPreventDefault={false}
+              touchStartForcePreventDefault={false}
+              touchMoveStopPropagation={false}
             >
               {images.filter(slide => slide.items && slide.items.length > 0).map((slide) => (
                 <SwiperSlide key={`lightbox-${slide.id}`} className="flex items-center justify-center" style={{ userSelect: 'none' }}>
@@ -596,55 +500,22 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
                                 onClick={(e) => handleLightboxMediaClick(e, media.type, media.src)}
                               />
                             ) : (
-                              <div className="relative">
-                                <video
-                                  src={media.src}
-                                  poster={media.poster}
-                                  className={`object-contain ${
-                                    isEnlarged ? 'max-h-screen' : 'max-h-[90vh]'
-                                  } max-w-full`}
-                                  controls
-                                  controlsList="nodownload"
-                                  preload="metadata"
-                                  onPlay={handleVideoPlay}
-                                  onPause={handleVideoPause}
-                                  onLoadedMetadata={handleVideoEvent}
-                                  onCanPlay={handleVideoEvent}
-                                  onTimeUpdate={handleVideoEvent}
-                                  style={{ 
-                                    userSelect: 'none',
-                                    pointerEvents: 'auto'
-                                  }}
-                                />
-                                {/* Overlay для zoom - исключаем область controls */}
-                                <div
-                                  className="absolute top-0 left-0 w-full cursor-zoom-in active:cursor-grabbing"
-                                  style={{ 
-                                    height: 'calc(100% - 80px)', // Оставляем нижнюю часть для controls
-                                    pointerEvents: 'auto',
-                                    backgroundColor: 'transparent',
-                                    zIndex: 1,
-                                    userSelect: 'none'
-                                  }}
-                                  onClick={(e) => handleLightboxMediaClick(e, media.type, media.src)}
-                                  onMouseDown={(e) => {
-                                    e.preventDefault()
-                                    // Передаем событие родительскому контейнеру для свайпа
-                                    const parentDiv = e.currentTarget.parentElement?.parentElement?.parentElement
-                                    if (parentDiv) {
-                                      const mouseEvent = new MouseEvent('mousedown', {
-                                        bubbles: true,
-                                        cancelable: true,
-                                        clientX: e.clientX,
-                                        clientY: e.clientY,
-                                        button: e.button,
-                                        buttons: e.buttons
-                                      })
-                                      parentDiv.dispatchEvent(mouseEvent)
-                                    }
-                                  }}
-                                />
-                              </div>
+                              <video
+                                key={`lightbox-video-double-${media.src}`}
+                                src={media.src}
+                                poster={media.poster}
+                                className={`object-contain ${
+                                  isEnlarged ? 'max-h-screen' : 'max-h-[90vh]'
+                                } max-w-full`}
+                                controls
+                                controlsList="nodownload"
+                                preload="metadata"
+                                playsInline
+                                onDoubleClick={(e) => handleLightboxMediaClick(e, media.type, media.src)}
+                                style={{ 
+                                  userSelect: 'none'
+                                }}
+                              />
                             )}
                           </div>
                         )
@@ -669,57 +540,22 @@ export default function CarouselWithLightboxBasic({ images, className = "" }: Pr
                           onClick={(e) => handleLightboxMediaClick(e, slide.items[0].type, slide.items[0].src)}
                         />
                       ) : (
-                        <div className="relative">
-                          <video
-                            src={slide.items[0].src}
-                            poster={slide.items[0].poster}
-                            className={`object-contain ${
-                              isMediaFullHeight ? 'max-h-screen' : 'max-h-[90vh]'
-                            } max-w-full`}
-                            controls
-                            controlsList="nodownload"
-                            preload="metadata"
-                            onPlay={handleVideoPlay}
-                            onPause={handleVideoPause}
-                            onLoadedMetadata={handleVideoEvent}
-                            onCanPlay={handleVideoEvent}
-                            onTimeUpdate={handleVideoEvent}
-                            style={{ 
-                              userSelect: 'none',
-                              pointerEvents: 'auto'
-                            }}
-                          />
-                          {/* Overlay для zoom - исключаем область controls */}
-                          <div
-                            className={`absolute top-0 left-0 w-full ${
-                              isMediaFullHeight ? 'cursor-zoom-out active:cursor-grabbing' : 'cursor-zoom-in active:cursor-grabbing'
-                            }`}
-                            style={{ 
-                              height: 'calc(100% - 80px)', // Оставляем нижнюю часть для controls
-                              pointerEvents: 'auto',
-                              backgroundColor: 'transparent',
-                              zIndex: 1,
-                              userSelect: 'none'
-                            }}
-                            onClick={(e) => handleLightboxMediaClick(e, slide.items[0].type, slide.items[0].src)}
-                            onMouseDown={(e) => {
-                              e.preventDefault()
-                              // Передаем событие родительскому контейнеру для свайпа
-                              const parentDiv = e.currentTarget.parentElement?.parentElement?.parentElement
-                              if (parentDiv) {
-                                const mouseEvent = new MouseEvent('mousedown', {
-                                  bubbles: true,
-                                  cancelable: true,
-                                  clientX: e.clientX,
-                                  clientY: e.clientY,
-                                  button: e.button,
-                                  buttons: e.buttons
-                                })
-                                parentDiv.dispatchEvent(mouseEvent)
-                              }
-                            }}
-                          />
-                        </div>
+                        <video
+                          key={`lightbox-video-single-${slide.items[0].src}`}
+                          src={slide.items[0].src}
+                          poster={slide.items[0].poster}
+                          className={`object-contain ${
+                            isMediaFullHeight ? 'max-h-screen' : 'max-h-[90vh]'
+                          } max-w-full`}
+                          controls
+                          controlsList="nodownload"
+                          preload="metadata"
+                          playsInline
+                          onDoubleClick={(e) => handleLightboxMediaClick(e, slide.items[0].type, slide.items[0].src)}
+                          style={{ 
+                            userSelect: 'none'
+                          }}
+                        />
                       )}
                     </div>
                   )}

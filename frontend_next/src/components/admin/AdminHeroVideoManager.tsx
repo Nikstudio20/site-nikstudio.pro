@@ -9,6 +9,7 @@ import { VideoUploadForm } from "./VideoUploadForm";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { getVideoUrl, formatFileSize, getVideoFormat } from "@/lib/media-utils";
 import { fileUploadUtils } from "@/lib/file-upload-compatibility";
+import apiClient from "@/lib/api";
 
 interface HomeContent {
   id: number;
@@ -29,8 +30,6 @@ interface ApiResponse {
   errors?: Record<string, string[]>;
 }
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
-
 // Network error retry configuration
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 2000; // 2 seconds
@@ -44,35 +43,33 @@ export const AdminHeroVideoManager: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [retryAttempt, setRetryAttempt] = useState(0);
 
   // Fetch current hero video data with retry logic
   const fetchCurrentVideo = useCallback(async (attempt = 1) => {
     try {
       setLoading(true);
-      console.log(`Fetching current video data (attempt ${attempt})`);
+      console.log(`[AdminHeroVideoManager] Fetching current video data (attempt ${attempt})`);
+      
+      // Debug: проверяем наличие токена
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('admin-token='));
+      console.log(`[AdminHeroVideoManager] Token exists:`, !!token);
 
-      const response = await fetch(`${API_BASE_URL}/home`, {
-        headers: { 'Accept': 'application/json' },
-        cache: 'no-store'
+      const axiosResponse = await apiClient.get('/api/home');
+      const response: ApiResponse = axiosResponse.data;
+      
+      setCurrentVideo(response.data || null);
+      console.log('[AdminHeroVideoManager] Successfully fetched current video data:', response.data);
+    } catch (err: any) {
+      console.error(`[AdminHeroVideoManager] Error fetching current video (attempt ${attempt}):`, {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        message: err.message,
+        data: err.response?.data
       });
 
-      if (response.ok) {
-        const data: ApiResponse = await response.json();
-        setCurrentVideo(data.data || null);
-        console.log('Successfully fetched current video data');
-      } else if (response.status === 404) {
-        console.log('No current video data found (404)');
-        setCurrentVideo(null);
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (err) {
-      console.error(`Error fetching current video (attempt ${attempt}):`, err);
-
       // Retry logic for network errors
-      if (attempt < MAX_RETRY_ATTEMPTS && err instanceof Error &&
-        (err.message.includes('fetch') || err.message.includes('network') || err.message.includes('NetworkError'))) {
+      if (attempt < MAX_RETRY_ATTEMPTS && 
+        (err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK' || err.message?.includes('network'))) {
         console.log(`Retrying in ${RETRY_DELAY}ms...`);
         setTimeout(() => {
           fetchCurrentVideo(attempt + 1);
@@ -82,12 +79,14 @@ export const AdminHeroVideoManager: React.FC = () => {
 
       // Set error message based on error type
       let errorMessage = 'Ошибка при загрузке данных о текущем видео';
-      if (err instanceof Error) {
-        if (err.message.includes('fetch') || err.message.includes('network')) {
-          errorMessage = 'Ошибка сети. Проверьте подключение к интернету';
-        } else if (err.message.includes('timeout')) {
-          errorMessage = 'Превышено время ожидания. Попробуйте позже';
-        }
+      if (err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK') {
+        errorMessage = 'Ошибка сети. Проверьте подключение к интернету';
+      } else if (err.message?.includes('timeout')) {
+        errorMessage = 'Превышено время ожидания. Попробуйте позже';
+      } else if (err.response?.status === 404) {
+        // 404 - это нормально, просто нет видео
+        setCurrentVideo(null);
+        return;
       }
       setError(errorMessage);
     } finally {
@@ -97,186 +96,104 @@ export const AdminHeroVideoManager: React.FC = () => {
 
   // Upload new hero video with progress tracking and retry logic
   const handleVideoUpload = async (file: File, onProgress?: (progress: number) => void) => {
-    return new Promise<void>((resolve, reject) => {
-      setUploading(true);
-      setError(null);
-      setSuccess(null);
-      setUploadProgress(0);
+    setUploading(true);
+    setError(null);
+    setSuccess(null);
+    setUploadProgress(0);
 
+    try {
       // Log upload attempt
-      console.log('Starting video upload:', {
+      console.log('[AdminHeroVideoManager] Starting video upload:', {
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
         timestamp: new Date().toISOString()
       });
+      
+      // Debug: проверяем наличие токена
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('admin-token='));
+      console.log('[AdminHeroVideoManager] Token exists for upload:', !!token);
 
       // Use compatibility service to create FormData
       const formData = fileUploadUtils.createFormData();
       formData.append('hero_video', file);
 
-      const xhr = new XMLHttpRequest();
-
-      // Check if we're using the polyfill and need special handling
-      const isPolyfill = !(formData instanceof FormData);
-
-      // Track upload progress
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          setUploadProgress(progress);
-          if (onProgress) {
-            onProgress(progress);
-          }
-        }
-      });
-
-      // Handle successful upload
-      xhr.addEventListener('load', async () => {
-        try {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            const data: ApiResponse = JSON.parse(xhr.responseText);
-
-            if (data.success) {
-              setSuccess('Видео успешно загружено!');
-              await fetchCurrentVideo();
-
-              // Clear success message after 3 seconds
-              setTimeout(() => setSuccess(null), 3000);
-              resolve();
-            } else {
-              const errorMessage = data.message || 'Ошибка при загрузке видео';
-              if (data.errors) {
-                const validationErrors = Object.entries(data.errors)
-                  .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-                  .join('; ');
-                setError(`${errorMessage}. ${validationErrors}`);
-              } else {
-                setError(errorMessage);
-              }
-              reject(new Error(errorMessage));
+      // Upload using apiClient with progress tracking
+      const axiosResponse = await apiClient.post('/api/home/hero-video', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent: any) => {
+          if (progressEvent.total) {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(progress);
+            if (onProgress) {
+              onProgress(progress);
             }
-          } else {
-            // Handle HTTP error status codes
-            let errorMessage = 'Ошибка при загрузке видео';
-
-            if (xhr.status === 413) {
-              errorMessage = 'Файл слишком большой. Максимальный размер: 50 MB';
-            } else if (xhr.status === 422) {
-              try {
-                const data: ApiResponse = JSON.parse(xhr.responseText);
-                errorMessage = data.message || 'Неверный формат файла';
-                if (data.errors) {
-                  const validationErrors = Object.entries(data.errors)
-                    .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
-                    .join('; ');
-                  errorMessage = `${errorMessage}. ${validationErrors}`;
-                }
-              } catch {
-                errorMessage = 'Ошибка валидации файла';
-              }
-            } else if (xhr.status >= 500) {
-              errorMessage = 'Ошибка сервера. Попробуйте позже';
-            }
-
-            setError(errorMessage);
-            reject(new Error(errorMessage));
           }
-        } catch (err) {
-          console.error('Error processing upload response:', err);
-          setError('Ошибка при обработке ответа сервера');
-          reject(err);
-        } finally {
-          setUploading(false);
-          setUploadProgress(0);
-        }
+        },
+        timeout: 300000, // 5 minutes timeout
       });
 
-      // Handle upload errors with retry logic
-      xhr.addEventListener('error', () => {
-        console.error('Upload error occurred');
+      // apiClient.post возвращает полный axios response, нужно взять data
+      const response: ApiResponse = axiosResponse.data;
+      
+      console.log('[AdminHeroVideoManager] Upload response:', response);
 
-        // Check if we should retry
-        if (retryAttempt < MAX_RETRY_ATTEMPTS) {
-          console.log(`Retrying upload (attempt ${retryAttempt + 1}/${MAX_RETRY_ATTEMPTS})`);
-          setRetryAttempt(prev => prev + 1);
+      if (response.success) {
+        setSuccess('Видео успешно загружено!');
+        await fetchCurrentVideo();
 
-          setTimeout(() => {
-            // Retry the upload
-            handleVideoUpload(file, onProgress).then(resolve).catch(reject);
-          }, RETRY_DELAY);
-          return;
-        }
-
-        console.error('Upload failed after maximum retry attempts');
-        setError('Ошибка сети при загрузке видео. Проверьте подключение к интернету');
-        setUploading(false);
-        setUploadProgress(0);
-        setRetryAttempt(0);
-        reject(new Error('Network error after retries'));
-      });
-
-      // Handle upload timeout with retry logic
-      xhr.addEventListener('timeout', () => {
-        console.error('Upload timeout occurred');
-
-        // Check if we should retry
-        if (retryAttempt < MAX_RETRY_ATTEMPTS) {
-          console.log(`Retrying upload after timeout (attempt ${retryAttempt + 1}/${MAX_RETRY_ATTEMPTS})`);
-          setRetryAttempt(prev => prev + 1);
-
-          setTimeout(() => {
-            // Retry the upload
-            handleVideoUpload(file, onProgress).then(resolve).catch(reject);
-          }, RETRY_DELAY);
-          return;
-        }
-
-        console.error('Upload timeout after maximum retry attempts');
-        setError('Превышено время ожидания загрузки. Попробуйте позже');
-        setUploading(false);
-        setUploadProgress(0);
-        setRetryAttempt(0);
-        reject(new Error('Upload timeout after retries'));
-      });
-
-      // Handle upload abort
-      xhr.addEventListener('abort', () => {
-        console.log('Upload aborted by user or system');
-        setError('Загрузка была отменена');
-        setUploading(false);
-        setUploadProgress(0);
-        setRetryAttempt(0);
-        reject(new Error('Upload aborted'));
-      });
-
-      // Configure and send request
-      xhr.open('POST', `${API_BASE_URL}/home/hero-video`);
-      xhr.setRequestHeader('Accept', 'application/json');
-      xhr.timeout = 300000; // 5 minutes timeout
-      xhr.withCredentials = true;
-
-      // Handle FormData polyfill case
-      if (isPolyfill) {
-        // For older browsers, we need to handle the polyfill differently
-        // This is a simplified approach - in production you might need more sophisticated handling
-        console.warn('Using FormData polyfill - some features may be limited');
-        
-        // Try to send as regular FormData if possible, otherwise fall back to basic approach
-        try {
-          xhr.send(formData as any);
-        } catch (polyfillError) {
-          console.error('FormData polyfill error:', polyfillError);
-          setError('Ваш браузер имеет ограниченную поддержку загрузки файлов. Попробуйте обновить браузер.');
-          setUploading(false);
-          setUploadProgress(0);
-          reject(new Error('FormData polyfill error'));
-          return;
-        }
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(null), 3000);
       } else {
-        xhr.send(formData);
+        const errorMessage = response.message || 'Ошибка при загрузке видео';
+        if (response.errors) {
+          const validationErrors = Object.entries(response.errors)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+            .join('; ');
+          setError(`${errorMessage}. ${validationErrors}`);
+        } else {
+          setError(errorMessage);
+        }
       }
-    });
+    } catch (err: any) {
+      console.error('[AdminHeroVideoManager] Upload error:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        message: err.message,
+        data: err.response?.data,
+        headers: err.response?.headers
+      });
+
+      // Handle HTTP error status codes
+      let errorMessage = 'Ошибка при загрузке видео';
+
+      if (err.response?.status === 413) {
+        errorMessage = 'Файл слишком большой. Максимальный размер: 50 MB';
+      } else if (err.response?.status === 422) {
+        const data = err.response.data;
+        errorMessage = data.message || 'Неверный формат файла';
+        if (data.errors) {
+          const validationErrors = Object.entries(data.errors)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+            .join('; ');
+          errorMessage = `${errorMessage}. ${validationErrors}`;
+        }
+      } else if (err.response?.status >= 500) {
+        errorMessage = 'Ошибка сервера. Попробуйте позже';
+      } else if (err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK') {
+        errorMessage = 'Ошибка сети при загрузке видео. Проверьте подключение к интернету';
+      } else if (err.message?.includes('timeout')) {
+        errorMessage = 'Превышено время ожидания загрузки. Попробуйте позже';
+      }
+
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
   };
 
   // Delete current hero video
@@ -286,15 +203,16 @@ export const AdminHeroVideoManager: React.FC = () => {
       setError(null);
       setSuccess(null);
 
-      const response = await fetch(`${API_BASE_URL}/home/hero-video`, {
-        method: 'DELETE',
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include'
-      });
+      console.log('[AdminHeroVideoManager] Starting video deletion');
+      
+      // Debug: проверяем наличие токена
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('admin-token='));
+      console.log('[AdminHeroVideoManager] Token exists for delete:', !!token);
 
-      const data: ApiResponse = await response.json();
+      const axiosResponse = await apiClient.delete('/api/home/hero-video');
+      const response: ApiResponse = axiosResponse.data;
 
-      if (response.ok && data.success) {
+      if (response.success) {
         setSuccess('Видео успешно удалено!');
         setCurrentVideo(null);
         setDeleteDialogOpen(false);
@@ -302,11 +220,17 @@ export const AdminHeroVideoManager: React.FC = () => {
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(null), 3000);
       } else {
-        setError(data.message || 'Ошибка при удалении видео');
+        setError(response.message || 'Ошибка при удалении видео');
       }
-    } catch (err) {
-      console.error('Delete error:', err);
-      setError('Произошла ошибка при удалении видео');
+    } catch (err: any) {
+      console.error('[AdminHeroVideoManager] Delete error:', {
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        message: err.message,
+        data: err.response?.data
+      });
+      const errorMessage = err.response?.data?.message || 'Произошла ошибка при удалении видео';
+      setError(errorMessage);
     } finally {
       setDeleting(false);
     }

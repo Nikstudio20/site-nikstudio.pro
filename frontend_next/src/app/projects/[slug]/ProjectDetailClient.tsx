@@ -35,18 +35,13 @@ function normalizePath(path: string, isVideo: boolean = false): string {
   // Если путь уже начинается с http, возвращаем как есть
   if (path.startsWith('http')) return path;
 
-  // Для видео файлов нужно использовать полный URL с API
+  // Для видео файлов используем /api/video/ для поддержки Range requests
   if (isVideo) {
-    // Если путь начинается с /storage/, добавляем apiUrl
-    if (path.startsWith('/storage/')) return `${apiUrl}${path}`;
-
-    // Если путь начинается с /, добавляем apiUrl/storage
-    if (path.startsWith('/')) return `${apiUrl}/storage${path}`;
-
-    // В остальных случаях добавляем apiUrl/storage/ префикс
-    return `${apiUrl}/storage/${path}`;
+    // Убираем /storage/ префикс если есть
+    const cleanPath = path.startsWith('/storage/') ? path.substring(9) : path.startsWith('/') ? path.substring(1) : path;
+    return `${apiUrl}/api/video/${cleanPath}`;
   }
-  // Для изображений используем полный URL с API, так как Next.js Image требует внешние домены в конфигурации
+  // Для изображений используем полный URL с API
   else {
     // Если путь начинается с /storage/, добавляем apiUrl
     if (path.startsWith('/storage/')) return `${apiUrl}${path}`;

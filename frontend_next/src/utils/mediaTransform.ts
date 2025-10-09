@@ -88,22 +88,26 @@ const transformMediaToSlides = (mediaArray: any[]) => {
   return mediaArray.map((mediaGroup: any) => {
     // Transform main media
     const mainMedia = mediaGroup.main;
-    const mainImage = addStoragePrefix(mainMedia?.src || '');
-    const mainPoster = mainMedia?.poster ? addStoragePrefix(mainMedia.poster) : null;
+    const mainType = mainMedia?.type || 'image';
+    const mainIsVideo = mainType === 'video';
+    const mainImage = addStoragePrefix(mainMedia?.src || '', mainIsVideo);
+    const mainPoster = mainMedia?.poster ? addStoragePrefix(mainMedia.poster, false) : null;
     
     // Transform secondary media (get first secondary item)
     const secondaryArray = mediaGroup.secondary || [];
     const firstSecondary = Array.isArray(secondaryArray) ? secondaryArray[0] : secondaryArray;
-    const secondaryImage = addStoragePrefix(firstSecondary?.src || '');
-    const secondaryPoster = firstSecondary?.poster ? addStoragePrefix(firstSecondary.poster) : null;
+    const secondaryType = firstSecondary?.type || 'image';
+    const secondaryIsVideo = secondaryType === 'video';
+    const secondaryImage = addStoragePrefix(firstSecondary?.src || '', secondaryIsVideo);
+    const secondaryPoster = firstSecondary?.poster ? addStoragePrefix(firstSecondary.poster, false) : null;
     
     return {
       mainImage,
       mainPoster,
-      mainType: mainMedia?.type || 'image',
+      mainType,
       secondaryImage,
       secondaryPoster,
-      secondaryType: firstSecondary?.type || 'image'
+      secondaryType
     };
   });
 };
@@ -111,27 +115,42 @@ const transformMediaToSlides = (mediaArray: any[]) => {
 /**
  * Add storage prefix to file paths for Laravel images
  */
-const addStoragePrefix = (filePath: string | null): string => {
+const addStoragePrefix = (filePath: string | null, isVideo: boolean = false): string => {
   if (!filePath) {
-    console.warn('⚠️ Пустой путь к изображению');
+    console.warn('⚠️ Пустой путь к файлу');
     return '';
   }
   
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  
   // Если уже полный URL, возвращаем как есть
   if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-    console.log('🔗 Полный URL изображения:', filePath);
+    console.log('🔗 Полный URL файла:', filePath);
     return filePath;
   }
   
-  // Если уже начинается с /storage/, добавляем только базовый URL
+  // Для видео используем /api/video/ для поддержки Range requests
+  if (isVideo) {
+    // Убираем /storage/ префикс если есть
+    const cleanPath = filePath.startsWith('/storage/') 
+      ? filePath.substring(9) 
+      : filePath.startsWith('/') 
+        ? filePath.substring(1) 
+        : filePath;
+    const videoUrl = `${apiUrl}/api/video/${cleanPath}`;
+    console.log('🎥 URL видео через API:', videoUrl);
+    return videoUrl;
+  }
+  
+  // Для изображений используем обычный /storage/ путь
   if (filePath.startsWith('/storage/')) {
-    const laravelStorageUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${filePath}`;
+    const laravelStorageUrl = `${apiUrl}${filePath}`;
     console.log('📁 URL с /storage/ префиксом:', laravelStorageUrl);
     return laravelStorageUrl;
   }
   
   // Добавляем Laravel storage URL с полным путем
-  const laravelStorageUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${filePath}`;
+  const laravelStorageUrl = `${apiUrl}/storage/${filePath}`;
   console.log('🖼️ Сформированный URL изображения:', laravelStorageUrl);
   return laravelStorageUrl;
 };

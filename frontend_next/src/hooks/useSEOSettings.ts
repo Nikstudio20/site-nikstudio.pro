@@ -15,7 +15,7 @@ interface SEOSettingsResponse {
  */
 const seoSettingsFetcher = async (): Promise<SEOSettings | null> => {
   try {
-    const response = await get<SEOSettingsResponse>('/seo/settings');
+    const response = await get<SEOSettingsResponse>('/api/seo/settings');
     return response.data || null;
   } catch (error) {
     console.error('Error fetching SEO settings:', error);
@@ -33,7 +33,7 @@ const seoSettingsFetcher = async (): Promise<SEOSettings | null> => {
  */
 export function useSEOSettings() {
   const { data, error, isLoading, mutate } = useSWR<SEOSettings | null>(
-    '/seo/settings',
+    '/api/seo/settings',
     seoSettingsFetcher,
     {
       // Кэширование на 10 минут (600000 мс) - SEO настройки меняются очень редко

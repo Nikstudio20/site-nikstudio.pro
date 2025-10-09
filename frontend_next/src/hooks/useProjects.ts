@@ -22,7 +22,7 @@ export interface Project {
  * Интерфейс ответа API для проектов
  */
 interface ProjectsResponse {
-  status: string;
+  success: boolean;
   data: Project[];
 }
 
@@ -49,9 +49,9 @@ function getImageUrl(imagePath: string | null): string {
  * Fetcher функция для SWR
  */
 const projectsFetcher = async (): Promise<Project[]> => {
-  const response = await get<ProjectsResponse>('/projects');
+  const response = await get<ProjectsResponse>('/api/projects');
   
-  if (response.status === 'success' && response.data) {
+  if (response.success && response.data) {
     // Корректировка URL изображений
     return response.data.map(project => ({
       ...project,
@@ -74,7 +74,7 @@ const projectsFetcher = async (): Promise<Project[]> => {
  */
 export function useProjects() {
   const { data, error, isLoading, mutate } = useSWR<Project[]>(
-    '/projects',
+    '/api/projects',
     projectsFetcher,
     {
       // Кэширование на 2 минуты (120000 мс) - проекты могут обновляться чаще

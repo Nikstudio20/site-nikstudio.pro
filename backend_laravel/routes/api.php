@@ -3,7 +3,13 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\VideoStreamController;
 use App\Http\Controllers\Api\BlogPostController;
+
+// Video streaming with Range support - ПЕРВЫЙ РОУТ
+Route::get('/video/{path}', [VideoStreamController::class, 'stream'])
+    ->where('path', '.*')
+    ->name('api.video.stream');
 use App\Http\Controllers\Api\BlogBlockController;
 use App\Http\Controllers\Api\ProjectCategoryController;
 use App\Http\Controllers\Api\ProjectController;

@@ -25,7 +25,7 @@ interface CategoriesResponse {
  * Fetcher функция для SWR
  */
 const categoriesFetcher = async (): Promise<ProjectCategory[]> => {
-  const response = await get<CategoriesResponse>('/project-categories');
+  const response = await get<CategoriesResponse>('/api/project-categories');
   
   if (response.status === 'success' && response.data) {
     // Сортировка по sort_order
@@ -49,7 +49,7 @@ const categoriesFetcher = async (): Promise<ProjectCategory[]> => {
  */
 export function useCategories() {
   const { data, error, isLoading, mutate } = useSWR<ProjectCategory[]>(
-    '/project-categories',
+    '/api/project-categories',
     categoriesFetcher,
     {
       // Кэширование на 5 минут (300000 мс)
