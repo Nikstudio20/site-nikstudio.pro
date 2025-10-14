@@ -16,8 +16,8 @@ interface ImageUploadProps {
 }
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-const ACCEPTED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'];
+const ACCEPTED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({
   currentImage,
@@ -57,12 +57,12 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     const fileName = file.name.toLowerCase();
     const hasValidExtension = ACCEPTED_IMAGE_EXTENSIONS.some(ext => fileName.endsWith(ext));
     if (!hasValidExtension) {
-      return `Неподдерживаемое расширение файла. Разрешены только: JPG, PNG, WEBP`;
+      return `Неподдерживаемое расширение файла. Разрешены только: JPG, PNG, WEBP, SVG`;
     }
 
     // Check MIME type
     if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      return `Неподдерживаемый тип файла. Разрешены только: JPG, PNG, WEBP`;
+      return `Неподдерживаемый тип файла. Разрешены только: JPG, PNG, WEBP, SVG`;
     }
 
     return null;
@@ -218,7 +218,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         </Button>
 
         <p className="text-sm text-muted-foreground text-center">
-          Максимальный размер: {formatFileSize(maxSize)}. Форматы: JPG, PNG, WEBP
+          Максимальный размер: {formatFileSize(maxSize)}. Форматы: JPG, PNG, WEBP, SVG
         </p>
       </div>
     </div>

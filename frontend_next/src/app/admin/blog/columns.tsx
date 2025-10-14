@@ -32,8 +32,9 @@ import {
 // import SEOEditor, { SEOData } from "@/components/SEOEditor"
 import { SEOData } from "@/components/SEOEditor"
 import { SEOSettings } from "@/lib/seo-metadata"
+import apiClient from "@/lib/api"
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+// const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 export type BlogPost = {
   id: number
@@ -101,13 +102,8 @@ const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
 
   const fetchGlobalSEOSettings = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/seo/settings`, { 
-        cache: 'no-cache', // Используем no-cache вместо no-store для админки
-        headers: { 'Accept': 'application/json' } 
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      _setGlobalSettings(data.data || null);
+      const response = await apiClient.get<{ success: boolean; data: any }>('/api/seo/settings');
+      _setGlobalSettings(response.data?.data || null);
     } catch (error) {
       console.error('Error fetching SEO settings:', error);
     }
@@ -119,19 +115,12 @@ const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
       const formData = new FormData();
       formData.append('image', file);
       
-      const response = await fetch(`${API_BASE_URL}/seo/upload-image`, {
-        method: 'POST',
-        body: formData,
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include',
-        mode: 'cors',
+      const response = await apiClient.post<{ success: boolean; data?: { url: string }; message?: string }>('/api/seo/upload-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
-      }
+      const result = response.data;
 
-      const result = await response.json();
       if (result.success && result.data?.url) {
         return result.data.url;
       } else {
@@ -183,27 +172,11 @@ const UpdateBlogPostCell = ({ post }: { post: BlogPost }) => {
         formData.append("seo_image", seoData.seo_image);
       }
 
-      const response = await fetch(`${API_BASE_URL}/blog-posts/update`, {
-        method: "POST",
-        body: formData,
-        headers: {
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        mode: 'cors',
+      const response = await apiClient.post<UpdatePostResponse>('/api/blog-posts/update', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      const result: UpdatePostResponse = await response.json();
-
-      if (!response.ok) {
-        if (result.errors) {
-          const errorMessages = Object.entries(result.errors)
-            .map(([field, errors]) => `${field}: ${errors.join(', ')}`)
-            .join('\n');
-          throw new Error(`Ошибка валидации:\n${errorMessages}`);
-        }
-        throw new Error(result.message || `Ошибка сервера: ${response.status}`);
-      }
+      const result = response.data;
 
       if (result?.status === "success") {
         setOpen(false);
@@ -288,22 +261,8 @@ const DeleteBlogPostCell = ({ post }: { post: BlogPost }) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/blog-posts/${post.id}`, {
-        method: "DELETE",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        mode: 'cors',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const response = await apiClient.delete<{ status: string; message?: string }>(`/api/blog-posts/${post.id}`);
+      const result = response.data;
 
       if (result?.status === "success") {
         window.location.reload();
@@ -366,23 +325,11 @@ const SortOrderCell = ({ post }: { post: BlogPost }) => {
     setIsUpdating(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/blog-posts/${post.id}/sort-order`, {
-        method: "PATCH",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sort_order: parseInt(sortOrder) }),
-        credentials: 'include',
-        mode: 'cors',
+      const response = await apiClient.patch<{ status: string; message?: string }>(`/api/blog-posts/${post.id}/sort-order`, {
+        sort_order: parseInt(sortOrder)
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = response.data;
 
       if (result?.status === "success") {
         setIsEditing(false);
@@ -470,23 +417,11 @@ const StatusSwitchCell = ({ post }: { post: BlogPost }) => {
     setIsUpdating(true);
     
     try {
-      const response = await fetch(`${API_BASE_URL}/blog-posts/${post.id}/status`, {
-        method: "PATCH",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: checked }),
-        credentials: 'include',
-        mode: 'cors',
+      const response = await apiClient.patch<{ status: string; message?: string }>(`/api/blog-posts/${post.id}/status`, {
+        status: checked
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = response.data;
 
       if (result?.status === "success") {
         setCurrentStatus(checked);

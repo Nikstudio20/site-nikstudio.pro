@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { get, post, put, del } from '@/lib/api';
 
 import { 
   Save, 
@@ -130,42 +131,38 @@ export function ServiceBlockDialog({ open, onOpenChange, service, onSave }: Serv
   // Load media items for service
   const loadMediaItems = async (serviceId: number) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/media-services/${serviceId}/media`);
+      const response = await get<{ success: boolean; data: any }>(`/api/media-services/${serviceId}/media`);
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          // Convert server response to MediaItem format
-          const mediaItems: MediaItem[] = [];
-          data.data.forEach((group: any) => {
-            if (group.main) {
-              mediaItems.push({
-                id: group.main.id,
-                group_id: group.group_id,
-                media_type: 'main',
-                file_type: group.main.file_type,
-                file_path: group.main.file_path,
-                poster_path: group.main.poster_path,
-                alt_text: group.main.alt_text,
-                order: group.order
-              });
-            }
-            if (group.secondary) {
-              mediaItems.push({
-                id: group.secondary.id,
-                group_id: group.group_id,
-                media_type: 'secondary',
-                file_type: group.secondary.file_type,
-                file_path: group.secondary.file_path,
-                poster_path: group.secondary.poster_path,
-                alt_text: group.secondary.alt_text,
-                order: group.order
-              });
-            }
-          });
-          return mediaItems;
-        }
+      if (response.success && response.data) {
+        // Convert server response to MediaItem format
+        const mediaItems: MediaItem[] = [];
+        response.data.forEach((group: any) => {
+          if (group.main) {
+            mediaItems.push({
+              id: group.main.id,
+              group_id: group.group_id,
+              media_type: 'main',
+              file_type: group.main.file_type,
+              file_path: group.main.file_path,
+              poster_path: group.main.poster_path,
+              alt_text: group.main.alt_text,
+              order: group.order
+            });
+          }
+          if (group.secondary) {
+            mediaItems.push({
+              id: group.secondary.id,
+              group_id: group.group_id,
+              media_type: 'secondary',
+              file_type: group.secondary.file_type,
+              file_path: group.secondary.file_path,
+              poster_path: group.secondary.poster_path,
+              alt_text: group.secondary.alt_text,
+              order: group.order
+            });
+          }
+        });
+        return mediaItems;
       }
     } catch (error) {
       console.error('Ошибка при загрузке медиа-элементов:', error);
@@ -198,105 +195,18 @@ export function ServiceBlockDialog({ open, onOpenChange, service, onSave }: Serv
     initializeFormData();
   }, [service, open]);
 
-  const _saveMediaForService = async (serviceId: number, mediaItems: MediaItem[] = []) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    const isEdit = service && service.id;
-    
-    // Сначала удаляем все существующие медиа-элементы для этой услуги (только при редактировании)
-    if (isEdit) {
-      try {
-        // Получаем существующие медиа-элементы
-        const existingResponse = await fetch(`${apiUrl}/api/media-services/${serviceId}/media`);
-        if (existingResponse.ok) {
-          const existingData = await existingResponse.json();
-          if (existingData.status === 'success' && existingData.data) {
-            // Удаляем каждый существующий медиа-элемент по group_id
-            const processedGroups = new Set<number>();
-            for (const existingMedia of existingData.data) {
-              if (!processedGroups.has(existingMedia.group_id)) {
-                await fetch(`${apiUrl}/api/media-services/${serviceId}/media/${existingMedia.group_id}`, {
-                  method: 'DELETE'
-                });
-                processedGroups.add(existingMedia.group_id);
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.warn('Ошибка при удалении существующих медиа-элементов:', error);
-      }
-    }
-    
-    // Группируем медиа-элементы по group_id
-    const mediaGroups = new Map<number, MediaItem[]>();
-    (mediaItems || []).forEach(item => {
-      if (!mediaGroups.has(item.group_id)) {
-        mediaGroups.set(item.group_id, []);
-      }
-      mediaGroups.get(item.group_id)!.push(item);
-    });
-    
-    // Создаем новые медиа-группы
-    let groupOrder = 1;
-    for (const [groupId, groupItems] of mediaGroups) {
-      try {
-        // Подготавливаем FormData для загрузки
-        const formData = new FormData();
-        
-        const mainItem = groupItems.find(item => item.media_type === 'main');
-        const secondaryItem = groupItems.find(item => item.media_type === 'secondary');
-        
-        if (mainItem) {
-          // Для новых файлов нужно будет добавить логику загрузки файлов
-          // Пока что отправляем только метаданные
-          formData.append('main_alt', mainItem.alt_text);
-          if (mainItem.file_type === 'video' && mainItem.poster_path) {
-            // Добавить логику для постера
-          }
-        }
-        
-        if (secondaryItem) {
-          formData.append('secondary_alt', secondaryItem.alt_text);
-        }
-        
-        formData.append('order', groupOrder.toString());
-        
-        const response = await fetch(`${apiUrl}/api/media-services/${serviceId}/media`, {
-          method: 'POST',
-          body: formData,
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || `Ошибка при сохранении медиа-группы ${groupId}`);
-        }
-        
-        groupOrder++;
-      } catch (error) {
-        console.error(`Ошибка при сохранении медиа-группы ${groupId}:`, error);
-        throw error;
-      }
-    }
-  };
-
   const saveFeaturesForService = async (serviceId: number, features: ServiceFeature[]) => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     const isEdit = service && service.id;
     
     // Сначала удаляем все существующие функции для этой услуги (только при редактировании)
     if (isEdit) {
       try {
         // Получаем существующие функции
-        const existingResponse = await fetch(`${apiUrl}/api/media-services/${serviceId}/features`);
-        if (existingResponse.ok) {
-          const existingData = await existingResponse.json();
-          if (existingData.status === 'success' && existingData.data) {
-            // Удаляем каждую существующую функцию
-            for (const existingFeature of existingData.data) {
-              await fetch(`${apiUrl}/api/media-services/${serviceId}/features/${existingFeature.id}`, {
-                method: 'DELETE'
-              });
-            }
+        const existingResponse = await get<{ status: string; data: any[] }>(`/api/media-services/${serviceId}/features`);
+        if (existingResponse.status === 'success' && existingResponse.data) {
+          // Удаляем каждую существующую функцию
+          for (const existingFeature of existingResponse.data) {
+            await del(`/api/media-services/${serviceId}/features/${existingFeature.id}`);
           }
         }
       } catch (error) {
@@ -308,22 +218,11 @@ export function ServiceBlockDialog({ open, onOpenChange, service, onSave }: Serv
     for (let i = 0; i < features.length; i++) {
       const feature = features[i];
       try {
-        const response = await fetch(`${apiUrl}/api/media-services/${serviceId}/features`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: feature.title,
-            description: feature.description,
-            order: i + 1
-          }),
+        await post(`/api/media-services/${serviceId}/features`, {
+          title: feature.title,
+          description: feature.description,
+          order: i + 1
         });
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || `Ошибка при сохранении функции "${feature.title}"`);
-        }
       } catch (error) {
         console.error(`Ошибка при сохранении функции "${feature.title}":`, error);
         throw error;
@@ -343,45 +242,18 @@ export function ServiceBlockDialog({ open, onOpenChange, service, onSave }: Serv
       const url = isEdit 
         ? `${apiUrl}/api/media-services/${service.id}`
         : `${apiUrl}/api/media-services`;
-      
-      const method = isEdit ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.description,
-          dark_background: formData.dark_background
-        }),
-      });
-
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        // Если ответ не JSON (например, HTML страница ошибки)
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('API endpoint не найден. Убедитесь, что Laravel сервер запущен на http://localhost:8000');
-          } else if (response.status >= 500) {
-            throw new Error('Ошибка сервера. Проверьте логи Laravel');
-          } else {
-            throw new Error(`HTTP ${response.status}: Ошибка при сохранении блока услуги`);
-          }
-        }
-        throw new Error('Неверный формат ответа от сервера');
-      }
-
-      if (!response.ok) {
-        if (response.status === 422 && data.errors) {
-          const errorMessages = Object.values(data.errors).flat().join(', ');
-          throw new Error(errorMessages);
-        }
-        throw new Error(data.message || 'Ошибка при сохранении блока услуги');
-      }
+      const data = isEdit
+        ? await put<any>(url, {
+            title: formData.title,
+            description: formData.description,
+            dark_background: formData.dark_background
+          })
+        : await post<any>(url, {
+            title: formData.title,
+            description: formData.description,
+            dark_background: formData.dark_background
+          });
 
       if (data.status === 'success') {
         const savedService = data.data;
@@ -421,9 +293,10 @@ export function ServiceBlockDialog({ open, onOpenChange, service, onSave }: Serv
       } else {
         throw new Error(data.message || 'Ошибка при сохранении блока услуги');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при сохранении блока услуги:', err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

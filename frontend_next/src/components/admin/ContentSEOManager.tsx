@@ -22,6 +22,7 @@ import {
   Search,
   Filter
 } from "lucide-react";
+import { get, post } from '@/lib/api';
 
 interface ContentSEOManagerProps {
   stats?: {
@@ -97,12 +98,10 @@ export function ContentSEOManager({ stats, onUpdate }: ContentSEOManagerProps) {
 
   const fetchProjects = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/projects`);
-      const data = await response.json();
+      const result = await get<{ success: boolean; data: ContentItem[] }>('/api/projects');
       
-      if (data.success) {
-        setProjects(data.data);
+      if (result?.success) {
+        setProjects(result.data);
       }
     } catch (err) {
       console.error('Ошибка при загрузке проектов:', err);
@@ -111,18 +110,16 @@ export function ContentSEOManager({ stats, onUpdate }: ContentSEOManagerProps) {
 
   const fetchBlogPosts = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/blog-posts`);
-      const data = await response.json();
+      const result = await get<{ status?: string; success?: boolean; data: ContentItem[] }>('/api/blog-posts');
       
-      console.log('Blog posts response:', data);
+      console.log('Blog posts response:', result);
       
       // API блога возвращает status вместо success
-      if (data.status === 'success' || data.success) {
-        console.log('Setting blog posts:', data.data);
-        setBlogPosts(data.data);
+      if (result?.status === 'success' || result?.success) {
+        console.log('Setting blog posts:', result.data);
+        setBlogPosts(result.data);
       } else {
-        console.error('Неожиданный формат ответа API блога:', data);
+        console.error('Неожиданный формат ответа API блога:', result);
       }
     } catch (err) {
       console.error('Ошибка при загрузке постов блога:', err);
@@ -195,6 +192,13 @@ export function ContentSEOManager({ stats, onUpdate }: ContentSEOManagerProps) {
       setError(null);
       setSuccess(null);
 
+      // Debug: проверяем наличие токена
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('admin-token='));
+      console.log('[ContentSEOManager] Token exists:', !!token);
+      if (!token) {
+        throw new Error('Токен авторизации не найден. Пожалуйста, войдите в систему.');
+      }
+
       const formData = new FormData();
       formData.append('seo_title', seoFormData.seo_title);
       formData.append('seo_description', seoFormData.seo_description);
@@ -203,23 +207,15 @@ export function ContentSEOManager({ stats, onUpdate }: ContentSEOManagerProps) {
         formData.append('seo_image', seoFormData.seo_image);
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const endpoint = editingType === 'project' 
-        ? `${apiUrl}/api/seo/projects/${editingItem.slug}`
-        : `${apiUrl}/api/seo/blog/${editingItem.slug}`;
-        
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        body: formData,
-      });
+        ? `/api/seo/projects/${editingItem.slug}`
+        : `/api/seo/blog/${editingItem.slug}`;
+      
+      console.log('[ContentSEOManager] Отправка запроса на:', endpoint);
+      const result = await post<{ success: boolean; message?: string }>(endpoint, formData);
+      console.log('[ContentSEOManager] Ответ получен:', result);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Ошибка при сохранении SEO-данных');
-      }
-
-      if (data.success) {
+      if (result?.success) {
         setSuccess(`SEO-данные для "${editingItem.title || editingItem.main_title}" успешно сохранены`);
         setEditDialogOpen(false);
         
@@ -234,11 +230,12 @@ export function ContentSEOManager({ stats, onUpdate }: ContentSEOManagerProps) {
           onUpdate();
         }
       } else {
-        throw new Error(data.message || 'Ошибка при сохранении SEO-данных');
+        throw new Error(result?.message || 'Ошибка при сохранении SEO-данных');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при сохранении SEO-данных:', err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

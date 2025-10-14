@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 // import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import apiClient from '@/lib/api';
 import { 
   Plus,
   Trash2,
@@ -284,37 +285,14 @@ function MediaGroupEditForm({
       setLoading(true);
       setError(null);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      
       // Отправляем данные на сервер
-      const response = await fetch(`${apiUrl}/api/media-services/${serviceId}/media`, {
-        method: 'POST',
-        body: formData,
+      const response = await apiClient.post<{ success: boolean; message?: string; data?: any }>(`/api/media-services/${serviceId}/media`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('API endpoint не найден. Убедитесь, что Laravel сервер запущен на http://localhost:8000');
-          } else if (response.status >= 500) {
-            throw new Error('Ошибка сервера. Проверьте логи Laravel');
-          } else {
-            throw new Error(`HTTP ${response.status}: Ошибка при загрузке медиа-файлов`);
-          }
-        }
-        throw new Error('Неверный формат ответа от сервера');
-      }
-
-      if (!response.ok) {
-        if (response.status === 422 && data.errors) {
-          const errorMessages = Object.values(data.errors).flat().join(', ');
-          throw new Error(errorMessages);
-        }
-        throw new Error(data.message || 'Ошибка при загрузке медиа-файлов');
-      }
+      const data = response.data;
 
       if (data.success) {
         // Обновляем локальное состояние с данными от сервера
@@ -401,6 +379,7 @@ export function ServiceMediaManager({
 }: ServiceMediaManagerProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const mediaGroups = groupMediaItems(mediaItems);
 
@@ -438,31 +417,19 @@ export function ServiceMediaManager({
       return;
     }
 
-    // Подтверждение удаления
-    if (!confirm('Вы уверены, что хотите удалить эту медиа-группу?')) {
-      return;
-    }
-
     // Если группа имеет ID (существует в базе данных), удаляем с сервера
     if (_serviceId && (groupToDelete.main?.id || groupToDelete.secondary?.id)) {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/api/media-services/${_serviceId}/media/${groupToDelete.group_id}`, {
-          method: 'DELETE',
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || 'Ошибка при удалении медиа-группы с сервера');
-        }
-
-        const data = await response.json();
-        if (!data.success) {
+        const response = await apiClient.delete<{ status?: string; success?: boolean; message?: string }>(`/api/media-services/${_serviceId}/media/${groupToDelete.group_id}`);
+        const data = response.data;
+        
+        if (data.status !== 'success' && !data.success) {
           throw new Error(data.message || 'Ошибка при удалении медиа-группы с сервера');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Ошибка при удалении медиа-группы с сервера:', error);
-        alert(`Ошибка при удалении медиа-группы: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+        const errorMessage = error.response?.data?.message || error.message || 'Неизвестная ошибка';
+        setError(`Ошибка при удалении медиа-группы: ${errorMessage}`);
         return; // Не удаляем из локального состояния, если не удалось удалить с сервера
       }
     }
@@ -527,6 +494,13 @@ export function ServiceMediaManager({
 
   return (
     <div className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Медиа-файлы блока услуги</h3>
         <Button

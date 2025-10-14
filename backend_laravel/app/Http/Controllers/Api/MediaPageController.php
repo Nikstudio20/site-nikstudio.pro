@@ -116,7 +116,11 @@ class MediaPageController extends Controller
             ]);
 
             // Clear public cache
-            MediaPagePublicController::clearCache();
+            try {
+                MediaPagePublicController::clearCache();
+            } catch (Exception $e) {
+                Log::warning('Failed to clear cache: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
@@ -199,7 +203,11 @@ class MediaPageController extends Controller
             ]);
 
             // Clear public cache
-            MediaPagePublicController::clearCache();
+            try {
+                MediaPagePublicController::clearCache();
+            } catch (Exception $e) {
+                Log::warning('Failed to clear cache: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
@@ -282,7 +290,11 @@ class MediaPageController extends Controller
             ]);
 
             // Clear public cache
-            MediaPagePublicController::clearCache();
+            try {
+                MediaPagePublicController::clearCache();
+            } catch (Exception $e) {
+                Log::warning('Failed to clear cache: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,

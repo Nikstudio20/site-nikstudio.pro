@@ -41,6 +41,13 @@ class SEOController extends Controller
     public function updateGlobalSettings(Request $request): JsonResponse
     {
         try {
+            \Log::info('[SEOController] updateGlobalSettings called', [
+                'user' => $request->user() ? $request->user()->id : 'not authenticated',
+                'has_bearer_token' => $request->bearerToken() ? 'yes' : 'no',
+                'token_preview' => $request->bearerToken() ? substr($request->bearerToken(), 0, 20) . '...' : 'none',
+                'headers' => $request->headers->all()
+            ]);
+            
             $validator = Validator::make($request->all(), [
                 'site_title' => 'required|string|max:255',
                 'site_description' => 'required|string|max:500',
@@ -120,6 +127,12 @@ class SEOController extends Controller
     public function updatePageSettings(Request $request, string $pageType): JsonResponse
     {
         try {
+            \Log::info('[SEOController] updatePageSettings called', [
+                'page_type' => $pageType,
+                'user' => $request->user() ? $request->user()->id : 'not authenticated',
+                'has_bearer_token' => $request->bearerToken() ? 'yes' : 'no'
+            ]);
+            
             if (!array_key_exists($pageType, PageSeoSetting::PAGE_TYPES)) {
                 return response()->json([
                     'success' => false,

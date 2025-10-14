@@ -26,6 +26,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'api/*',
         ]);
+        
+        // Configure authentication redirects for API
+        $middleware->redirectGuestsTo(function ($request) {
+            // For API requests, return 401 instead of redirecting
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return null;
+            }
+            return route('login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -291,9 +291,9 @@ export async function uploadHomepageImage(file: File): Promise<string> {
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'];
     if (!allowedTypes.includes(file.type)) {
-      throw new Error('Разрешены только файлы форматов: JPG, PNG, WEBP');
+      throw new Error('Разрешены только файлы форматов: JPG, PNG, WEBP, SVG');
     }
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;

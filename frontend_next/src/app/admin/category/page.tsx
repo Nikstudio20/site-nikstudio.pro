@@ -41,7 +41,7 @@ const CreateCategoryDialog = ({ onUpdate }: { onUpdate: () => Promise<void> }) =
         throw new Error("Название категории обязательно для заполнения")
       }
 
-      const result = await post<{ status: string; message?: string }>('/project-categories', {
+      const result = await post<{ status: string; message?: string }>('/api/project-categories', {
         name: name.trim(),
       });
 
@@ -140,7 +140,7 @@ const EditCategoryDialog = ({ category, onUpdate }: { category: ProjectCategory;
   
         console.log('Обновление категории:', { id: category.id, name: name.trim() })
   
-        const result = await put<{ status: string; message?: string }>(`/project-categories/${category.id}`, {
+        const result = await put<{ status: string; message?: string }>(`/api/project-categories/${category.id}`, {
           name: name.trim(),
         });
   
@@ -235,7 +235,7 @@ const DeleteCategoryDialog = ({ category, onDelete }: { category: ProjectCategor
         throw new Error("ID категории не найден")
       }
 
-      const result = await del<{ status: string; message?: string }>(`/project-categories/${category.id}`);
+      const result = await del<{ status: string; message?: string }>(`/api/project-categories/${category.id}`);
 
       if (result?.status === "success") {
         onDelete()
@@ -310,7 +310,7 @@ export default function ProjectCategoriesPage() {
   // Функция для обновления порядка сортировки
   const updateSortOrder = async (categoryId: number, newOrder: number) => {
     try {
-      const result = await put<{ status: string; message?: string }>(`/project-categories/${categoryId}/sort-order`, {
+      const result = await put<{ status: string; message?: string }>(`/api/project-categories/${categoryId}/sort-order`, {
         sort_order: newOrder,
       });
       

@@ -21,6 +21,7 @@ import {
   // Trash2,
   Image
 } from "lucide-react";
+import { post } from '@/lib/api';
 
 interface PageSEOSettingsProps {
   pageTypes: Record<string, string>;
@@ -176,6 +177,13 @@ export function PageSEOSettings({ pageTypes, initialSettings, onUpdate }: PageSE
       setError(null);
       setSuccess(null);
 
+      // Debug: проверяем наличие токена
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('admin-token='));
+      console.log('[PageSEOSettings] Token exists:', !!token);
+      if (!token) {
+        throw new Error('Токен авторизации не найден. Пожалуйста, войдите в систему.');
+      }
+
       const formData = new FormData();
       formData.append('seo_title', pageData.seo_title);
       formData.append('seo_description', pageData.seo_description);
@@ -191,9 +199,8 @@ export function PageSEOSettings({ pageTypes, initialSettings, onUpdate }: PageSE
         formData.append('seo_image', pageData.seo_image);
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      console.log('Отправка данных на:', `${apiUrl}/api/seo/pages/${selectedPageType}`);
-      console.log('FormData содержит:', {
+      console.log('[PageSEOSettings] Отправка данных на:', `/api/seo/pages/${selectedPageType}`);
+      console.log('[PageSEOSettings] FormData содержит:', {
         seo_title: pageData.seo_title,
         seo_description: pageData.seo_description,
         canonical_url: pageData.canonical_url,
@@ -202,30 +209,21 @@ export function PageSEOSettings({ pageTypes, initialSettings, onUpdate }: PageSE
         has_image: !!pageData.seo_image
       });
       
-      const response = await fetch(`${apiUrl}/api/seo/pages/${selectedPageType}`, {
-        method: 'POST',
-        body: formData,
-      });
+      const result = await post<{ success: boolean; message?: string }>(`/api/seo/pages/${selectedPageType}`, formData);
+      console.log('[PageSEOSettings] Ответ получен:', result);
 
-      const data = await response.json();
-      console.log('Ответ сервера:', data);
-
-      if (!response.ok) {
-        console.error('Ошибка валидации:', data);
-        throw new Error(data.message || 'Ошибка при сохранении настроек');
-      }
-
-      if (data.success) {
+      if (result?.success) {
         setSuccess(`SEO-настройки для страницы "${pageTypes[selectedPageType]}" успешно сохранены`);
         if (onUpdate) {
           onUpdate();
         }
       } else {
-        throw new Error(data.message || 'Ошибка при сохранении настроек');
+        throw new Error(result?.message || 'Ошибка при сохранении настроек');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при сохранении SEO-настроек страницы:', err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

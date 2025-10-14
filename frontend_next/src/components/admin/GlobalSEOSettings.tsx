@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Globe, Save, Upload, X, AlertCircle, CheckCircle } from "lucide-react";
+import { post } from '@/lib/api';
 
 interface GlobalSEOSettingsProps {
   initialSettings?: any;
@@ -121,6 +122,13 @@ export function GlobalSEOSettings({ initialSettings, onUpdate }: GlobalSEOSettin
       setError(null);
       setSuccess(null);
 
+      // Debug: проверяем наличие токена
+      const token = document.cookie.split(';').find(c => c.trim().startsWith('admin-token='));
+      console.log('[GlobalSEOSettings] Token exists:', !!token);
+      if (!token) {
+        throw new Error('Токен авторизации не найден. Пожалуйста, войдите в систему.');
+      }
+
       const formData = new FormData();
       formData.append('site_title', settings.site_title);
       formData.append('site_description', settings.site_description);
@@ -131,29 +139,26 @@ export function GlobalSEOSettings({ initialSettings, onUpdate }: GlobalSEOSettin
         formData.append('default_image', settings.default_image);
       }
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/seo/settings`, {
-        method: 'POST',
-        body: formData,
-      });
+      console.log('[GlobalSEOSettings] Отправка запроса на /api/seo/settings');
+      const result = await post<{ success: boolean; message?: string; data?: any }>('/api/seo/settings', formData);
+      console.log('[GlobalSEOSettings] Ответ получен:', result);
+      console.log('[GlobalSEOSettings] result?.success:', result?.success);
+      console.log('[GlobalSEOSettings] typeof result:', typeof result);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Ошибка при сохранении настроек');
-      }
-
-      if (data.success) {
+      if (result?.success) {
+        console.log('[GlobalSEOSettings] Успех! Устанавливаем success message');
         setSuccess('Глобальные SEO-настройки успешно сохранены');
         if (onUpdate) {
           onUpdate();
         }
       } else {
-        throw new Error(data.message || 'Ошибка при сохранении настроек');
+        console.log('[GlobalSEOSettings] Ошибка! result:', result);
+        throw new Error(result?.message || 'Ошибка при сохранении настроек');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при сохранении глобальных SEO-настроек:', err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

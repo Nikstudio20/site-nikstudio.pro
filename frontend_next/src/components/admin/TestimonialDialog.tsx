@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import apiClient from '@/lib/api';
 import { 
   Save, 
   AlertCircle, 
@@ -208,26 +209,13 @@ export function TestimonialDialog({
         formDataToSend.append('_method', 'PUT');
       }
 
-      const response = await fetch(url, {
-        method: testimonial ? 'POST' : 'POST', // Always POST for FormData with Laravel
-        body: formDataToSend,
+      const response = await apiClient.post<{ status: string; message?: string; data?: any }>(url, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
-      const data = await response.json();
-
-      if (response.status === 413) {
-        setError('Размер изображения превышает 2MB');
-        return;
-      }
-
-      if (!response.ok) {
-        if (data.errors) {
-          setFieldErrors(data.errors);
-        } else {
-          throw new Error(data.message || 'Ошибка при сохранении отзыва');
-        }
-        return;
-      }
+      const data = response.data;
 
       if (data.status === 'success') {
         onSave();
@@ -235,7 +223,16 @@ export function TestimonialDialog({
       } else {
         throw new Error(data.message || 'Ошибка при сохранении отзыва');
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err.response?.status === 413) {
+        setError('Размер изображения превышает 2MB');
+        return;
+      }
+      
+      if (err.response?.data?.errors) {
+        setFieldErrors(err.response.data.errors);
+        return;
+      }
       console.error('Ошибка при сохранении отзыва:', err);
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
     } finally {

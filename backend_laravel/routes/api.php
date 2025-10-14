@@ -220,6 +220,21 @@ Route::prefix('seo')->group(function () {
     Route::get('/overview', [SEOController::class, 'getSeoOverview']);
     Route::get('/test', [SEOController::class, 'test']);
     
+    // Тестовый эндпоинт для проверки авторизации
+    Route::middleware(['auth:sanctum'])->post('/test-auth', function (Request $request) {
+        \Log::info('[SEO Test Auth] Request received', [
+            'user' => $request->user() ? $request->user()->id : 'not authenticated',
+            'bearer_token' => $request->bearerToken() ? substr($request->bearerToken(), 0, 20) . '...' : 'none',
+            'headers' => $request->headers->all()
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Authenticated successfully',
+            'user' => $request->user()
+        ]);
+    });
+    
     Route::middleware(['auth:sanctum', 'refresh.token'])->group(function () {
         Route::post('/settings', [SEOController::class, 'updateGlobalSettings']);
         Route::post('/pages/{pageType}', [SEOController::class, 'updatePageSettings']);

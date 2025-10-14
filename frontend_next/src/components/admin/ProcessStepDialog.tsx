@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import apiClient from '@/lib/api';
 import { 
   Save, 
   AlertCircle, 
@@ -160,6 +161,10 @@ export function ProcessStepDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('[ProcessStepDialog] ===== handleSubmit STARTED =====');
+    console.log('[ProcessStepDialog] processStep:', processStep);
+    console.log('[ProcessStepDialog] formData:', formData);
+    
     // Client-side validation
     const errors: Record<string, string> = {};
     
@@ -230,26 +235,21 @@ export function ProcessStepDialog({
         formDataToSend.append('_method', 'PUT');
       }
 
-      const response = await fetch(url, {
-        method: 'POST', // Always POST for FormData with Laravel
-        body: formDataToSend,
+      // Логирование для отладки
+      console.log('[ProcessStepDialog] URL:', url);
+      console.log('[ProcessStepDialog] apiClient:', apiClient);
+      console.log('[ProcessStepDialog] Cookies:', document.cookie);
+      console.log('[ProcessStepDialog] FormData entries:', Array.from(formDataToSend.entries()).map(([k, v]) => [k, v instanceof File ? `File: ${v.name}` : v]));
+
+      const response = await apiClient.post<{ success: boolean; message?: string; data?: any }>(url, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
+      
+      console.log('[ProcessStepDialog] Response:', response);
 
-      const data = await response.json();
-
-      if (response.status === 413) {
-        setError('Размер изображения превышает 2MB');
-        return;
-      }
-
-      if (!response.ok) {
-        if (data.errors) {
-          setFieldErrors(data.errors);
-        } else {
-          throw new Error(data.message || 'Ошибка при сохранении шага процесса');
-        }
-        return;
-      }
+      const data = response.data;
 
       if (data.success) {
         onSave();
@@ -257,9 +257,20 @@ export function ProcessStepDialog({
       } else {
         throw new Error(data.message || 'Ошибка при сохранении шага процесса');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при сохранении шага процесса:', err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      
+      if (err.response?.status === 413) {
+        setError('Размер изображения превышает 2MB');
+        return;
+      }
+      
+      if (err.response?.data?.errors) {
+        setFieldErrors(err.response.data.errors);
+        return;
+      }
+      
+      setError(err.response?.data?.message || err.message || 'Неизвестная ошибка');
     } finally {
       setLoading(false);
     }

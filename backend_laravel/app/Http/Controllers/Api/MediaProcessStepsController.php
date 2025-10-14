@@ -56,6 +56,14 @@ class MediaProcessStepsController extends Controller
      */
     public function store(Request $request)
     {
+        Log::info('=== MediaProcessStepsController::store START ===');
+        Log::info('Request headers:', $request->headers->all());
+        Log::info('Request method:', [$request->method()]);
+        Log::info('Request all data:', $request->all());
+        Log::info('Request files:', $request->allFiles());
+        Log::info('Auth check:', [auth()->check()]);
+        Log::info('Auth user:', [auth()->user()]);
+        
         try {
             $validator = Validator::make($request->all(), [
                 'step_number' => 'required|integer|min:1',

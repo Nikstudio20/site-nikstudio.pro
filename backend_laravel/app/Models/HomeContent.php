@@ -132,6 +132,9 @@ class HomeContent extends Model
             'image/png',
             'image/gif',
             'image/webp',
+            'image/svg+xml',
+            'text/xml', // Some SVG files
+            'application/xml', // Some SVG files
         ];
     }
 
@@ -143,8 +146,8 @@ class HomeContent extends Model
      */
     public static function cleanupOldVideo(?string $oldVideoPath): void
     {
-        if ($oldVideoPath && Storage::exists($oldVideoPath)) {
-            Storage::delete($oldVideoPath);
+        if ($oldVideoPath && Storage::disk('public')->exists($oldVideoPath)) {
+            Storage::disk('public')->delete($oldVideoPath);
         }
     }
 
@@ -156,8 +159,8 @@ class HomeContent extends Model
      */
     public static function cleanupOldImage(?string $oldImagePath): void
     {
-        if ($oldImagePath && Storage::exists($oldImagePath)) {
-            Storage::delete($oldImagePath);
+        if ($oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
+            Storage::disk('public')->delete($oldImagePath);
         }
     }
 
@@ -382,7 +385,7 @@ class HomeContent extends Model
         }
         
         if ($expectedType === 'image') {
-            $validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            $validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
             return in_array($extension, $validExtensions);
         }
         
@@ -421,6 +424,9 @@ class HomeContent extends Model
             'image/png' => ['png'],
             'image/gif' => ['gif'],
             'image/webp' => ['webp'],
+            'image/svg+xml' => ['svg'],
+            'text/xml' => ['svg'], // Some SVG files
+            'application/xml' => ['svg'], // Some SVG files
         ];
 
         if (isset($mimeExtensionMap[$mimeType])) {
@@ -428,7 +434,10 @@ class HomeContent extends Model
                 $issues[] = "MIME type ({$mimeType}) doesn't match file extension ({$extension})";
             }
         } else {
-            $issues[] = "Unknown or unsupported MIME type: {$mimeType}";
+            // Don't report error for SVG with XML MIME types
+            if ($extension !== 'svg') {
+                $issues[] = "Unknown or unsupported MIME type: {$mimeType}";
+            }
         }
 
         return empty($issues) ? null : $issues;
@@ -461,7 +470,7 @@ class HomeContent extends Model
         if (!static::validateFileExtension($file, $type)) {
             $validExtensions = $type === 'video' 
                 ? ['MP4', 'MOV', 'AVI', 'WebM', 'OGG']
-                : ['JPG', 'JPEG', 'PNG', 'GIF', 'WebP'];
+                : ['JPG', 'JPEG', 'PNG', 'GIF', 'WebP', 'SVG'];
             $errors[] = "Invalid file extension. Allowed: " . implode(', ', $validExtensions);
         }
 

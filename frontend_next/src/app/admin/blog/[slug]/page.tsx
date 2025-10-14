@@ -23,6 +23,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import apiClient from "@/lib/api"
 
 interface Block {
   id: number
@@ -51,7 +52,7 @@ interface ApiResponse {
   message?: string
 }
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`
+// const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`
 
 // Функция для формирования корректного URL изображения
 function getImageUrl(imagePath: string | null): string {
@@ -90,28 +91,14 @@ const EditBlockDialog = ({ block, onUpdate }: { block: Block; onUpdate: () => vo
         throw new Error("Заголовок и первый параграф обязательны для заполнения")
       }
 
-      const response = await fetch(`${API_BASE_URL}/blog-posts/blocks/${block.id}`, {
-        method: "PUT",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: title.trim(),
-          paragraph_1: paragraph1.trim(),
-          paragraph_2: paragraph2.trim() || null,
-          paragraph_3: paragraph3.trim() || null,
-        }),
-        credentials: 'include',
-        mode: 'cors',
-      })
+      const response = await apiClient.put<{ status: string; message?: string }>(`/api/blog-posts/blocks/${block.id}`, {
+        title: title.trim(),
+        paragraph_1: paragraph1.trim(),
+        paragraph_2: paragraph2.trim() || null,
+        paragraph_3: paragraph3.trim() || null,
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || `Ошибка сервера: ${response.status}`)
-      }
-
-      const result = await response.json()
+      const result = response.data;
 
       if (result?.status === "success") {
         setOpen(false)
@@ -222,22 +209,8 @@ const DeleteBlockDialog = ({ block, onDelete }: { block: Block; onDelete: () => 
   const handleDelete = async () => {
     setIsDeleting(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/blog-posts/blocks/${block.id}`, {
-        method: "DELETE",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        mode: 'cors',
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || `Ошибка сервера: ${response.status}`)
-      }
-
-      const result = await response.json()
+      const response = await apiClient.delete<{ status: string; message?: string }>(`/api/blog-posts/blocks/${block.id}`);
+      const result = response.data;
 
       if (result?.status === "success") {
         onDelete()
@@ -309,19 +282,8 @@ export default function BlogPostViewPage() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`${API_BASE_URL}/blog-posts/${postSlug}`, {
-        headers: {
-          'Accept': 'application/json',
-        },
-        credentials: 'include',
-        mode: 'cors',
-      })
-
-      if (!response.ok) {
-        throw new Error(`Ошибка загрузки поста: ${response.status}`)
-      }
-
-      const data: ApiResponse = await response.json()
+      const response = await apiClient.get<ApiResponse>(`/api/blog-posts/${postSlug}`);
+      const data = response.data;
 
       if (data.status === 'success' && data.data) {
         const postWithCorrectImage: BlogPost = {
@@ -353,61 +315,16 @@ export default function BlogPostViewPage() {
         paragraph_3: blockParagraph3
       })
 
-      const response = await fetch(`${API_BASE_URL}/blog-posts/${post?.slug}/blocks`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          title: blockTitle,
-          paragraph_1: blockParagraph1,
-          paragraph_2: blockParagraph2 || null,
-          paragraph_3: blockParagraph3 || null
-        })
-      })
+      const response = await apiClient.post(`/api/blog-posts/${post?.slug}/blocks`, {
+        title: blockTitle,
+        paragraph_1: blockParagraph1,
+        paragraph_2: blockParagraph2 || null,
+        paragraph_3: blockParagraph3 || null
+      });
 
-      console.log('Статус ответа:', response.status)
-      console.log('Заголовки ответа:', response.headers)
+      const result = response.data;
 
-      // Получаем текст ответа для отладки
-      const responseText = await response.text()
-      console.log('Текст ответа:', responseText)
-
-      if (!response.ok) {
-        let errorMessage = 'Ошибка при создании блока'
-        
-        try {
-          const errorData = JSON.parse(responseText)
-          console.log('Данные ошибки:', errorData)
-          
-          if (errorData.message) {
-            errorMessage = errorData.message
-          } else if (errorData.error) {
-            errorMessage = errorData.error
-          } else if (errorData.errors) {
-            // Обработка ошибок валидации Laravel
-            const validationErrors = Object.values(errorData.errors).flat()
-            errorMessage = validationErrors.join(', ')
-          }
-        } catch (parseError) {
-          console.log('Не удалось парсить JSON ошибки:', parseError)
-          errorMessage = `Ошибка сервера: ${response.status} - ${responseText}`
-        }
-        
-        throw new Error(errorMessage)
-      }
-
-      // Парсим успешный ответ
-      let result
-      try {
-        result = JSON.parse(responseText)
-        console.log('Результат создания блока:', result)
-      } catch (parseError) {
-        console.log('Не удалось парсить JSON ответа:', parseError)
-        throw new Error('Некорректный ответ от сервера')
-      }
+      console.log('Результат создания блока:', result)
 
       // Обновляем пост после успешного создания
       await fetchPost()

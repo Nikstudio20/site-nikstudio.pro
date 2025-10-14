@@ -28,6 +28,7 @@ import {
   SUCCESS_MESSAGES,
   ERROR_MESSAGES
 } from "@/lib/utils"
+import apiClient from "@/lib/api"
 
 interface ProjectDetailPageProps {
   params: Promise<{
@@ -455,8 +456,8 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
   const fetchProjectDetail = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch(`${apiUrl}/api/projects/${resolvedParams.slug}`)
-      const data = await response.json()
+      const response = await apiClient.get<{ success: boolean; data: any }>(`/api/projects/${resolvedParams.slug}`)
+      const data = response.data
 
       if (data.success && data.data.detail) {
         const detail = data.data.detail
@@ -497,15 +498,9 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
       // Project ID is available but not used in this request
       // const projectId = projectDetail.project_id || projectDetail.id
 
-      const response = await fetch(`${apiUrl}/api/projects/${resolvedParams.slug}/detail`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
+      const response = await apiClient.put<{ success: boolean; message?: string; data?: any }>(`/api/projects/${resolvedParams.slug}/detail`, formData)
 
-      const data = await response.json()
+      const data = response.data
 
       if (data.success) {
         setSuccess(SUCCESS_MESSAGES.PROJECT_UPDATED)
@@ -539,15 +534,9 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
       setSaving(true)
       setError(null)
 
-      const response = await fetch(`${apiUrl}/api/projects/${resolvedParams.slug}/detail`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
+      const response = await apiClient.post<{ success: boolean; message?: string; data?: any }>(`/api/projects/${resolvedParams.slug}/detail`, formData)
 
-      const data = await response.json()
+      const data = response.data
 
       if (data.success) {
         setSuccess(SUCCESS_MESSAGES.PROJECT_CREATED)
@@ -758,30 +747,21 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
         }
       })
 
-      console.log('🚀 [DEBUG] Sending FormData to API:', `${apiUrl}/api/projects/${resolvedParams.slug}/detail/update-media`);
+      console.log('🚀 [DEBUG] Sending FormData to API:', `/api/projects/${resolvedParams.slug}/detail/update-media`);
 
-      const response = await fetch(`${apiUrl}/api/projects/${resolvedParams.slug}/detail/update-media`, {
-        method: 'POST',
-        body: formData
+      const response = await apiClient.post<{ success: boolean; message?: string; data?: any }>(`/api/projects/${resolvedParams.slug}/detail/update-media`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
 
       console.log('📥 [DEBUG] Hero API Response received:', {
         status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
+        statusText: response.statusText
       });
 
-      if (response.status === 413) {
-        console.error('❌ [ERROR] File size too large (413)');
-        setError('Размер одного или нескольких файлов превышает максимально допустимый лимит 2 MB. Пожалуйста, выберите файлы меньшего размера.')
-        return
-      }
-
-      const data = await response.json()
+      const data = response.data;
       console.log('📥 [DEBUG] Hero API Response data:', data);
 
-      if (response.ok && data.success) {
+      if (data.success) {
         console.log('✅ [SUCCESS] Hero media updated successfully');
         setSuccess(SUCCESS_MESSAGES.HERO_MEDIA_UPDATED)
 
@@ -963,30 +943,21 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
         }
       });
 
-      console.log('🚀 [DEBUG] Sending FormData to API for new Hero group:', `${apiUrl}/api/projects/${resolvedParams.slug}/detail/update-media`);
+      console.log('🚀 [DEBUG] Sending FormData to API for new Hero group:', `/api/projects/${resolvedParams.slug}/detail/update-media`);
 
-      const response = await fetch(`${apiUrl}/api/projects/${resolvedParams.slug}/detail/update-media`, {
-        method: 'POST',
-        body: formData,
+      const response = await apiClient.post<{ success: boolean; message?: string; data?: any }>(`/api/projects/${resolvedParams.slug}/detail/update-media`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       console.log('📥 [DEBUG] New Hero API Response received:', {
         status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
+        statusText: response.statusText
       });
 
-      if (response.status === 413) {
-        console.error('❌ [ERROR] File size too large (413) for new Hero group');
-        setError('Размер одного или нескольких файлов превышает максимально допустимый лимит.');
-        return;
-      }
-
-      const data = await response.json();
+      const data = response.data;
       console.log('📥 [DEBUG] New Hero API Response data:', data);
 
-      if (response.ok && data.success) {
+      if (data.success) {
         console.log('✅ [SUCCESS] New Hero group created successfully');
         if (data.data && data.data.hero_media_items) {
           console.log('📋 [DEBUG] Created Hero media items:', data.data.hero_media_items);
@@ -997,11 +968,8 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
         resetHeroCreateForm();
         setTimeout(() => setSuccess(null), 3000);
       } else {
-        console.error('❌ [ERROR] New Hero API request failed:', {
-          status: response.status,
-          data
-        });
-        setError(data.message || `Ошибка при создании группы: ${response.status}`);
+        console.error('❌ [ERROR] New Hero API request failed:', data);
+        setError(data.message || 'Ошибка при создании группы');
       }
 
     } catch (error) {
@@ -1024,18 +992,16 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
     setSaving(true);
     setError(null);
     try {
-      const response = await fetch(`${apiUrl}/api/projects/${resolvedParams.slug}/detail/hero-media/${groupToDelete.id}`, {
-        method: 'DELETE',
-      });
+      const response = await apiClient.delete<{ success: boolean; message?: string }>(`/api/projects/${resolvedParams.slug}/detail/hero-media/${groupToDelete.id}`);
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok && data.success) {
+      if (data.success) {
         setSuccess(SUCCESS_MESSAGES.HERO_MEDIA_DELETED);
         await fetchProjectDetail(); // Обновляем список
         setTimeout(() => setSuccess(null), 3000);
       } else {
-        setError(data.message || `Ошибка при удалении группы: ${response.status}`);
+        setError(data.message || 'Ошибка при удалении группы');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ошибка при удалении группы Hero медиа');
@@ -1082,13 +1048,9 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
     setSaving(true);
     setError(null);
     try {
-      const response = await fetch(`${apiUrl}/api/projects/${resolvedParams.slug}/blocks`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newBlockFormData),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Не удалось создать блок.');
+      const response = await apiClient.post<{ success: boolean; message?: string; data?: any }>(`/api/projects/${resolvedParams.slug}/blocks`, newBlockFormData);
+      const data = response.data;
+      if (!data.success) throw new Error(data.message || 'Не удалось создать блок.');
       setSuccess(SUCCESS_MESSAGES.BLOCK_CREATED);
       await fetchProjectDetail();
       setCreateBlockDialogOpen(false);
@@ -1120,14 +1082,11 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
     setError(null);
 
     try {
-      const response = await fetch(
-        `${apiUrl}/api/projects/${resolvedParams.slug}/blocks/${blockToDelete.id}`,
-        { method: 'DELETE' }
-      );
+      const response = await apiClient.delete<{ success: boolean; message?: string }>(`/api/projects/${resolvedParams.slug}/blocks/${blockToDelete.id}`);
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok && data.success) {
+      if (data.success) {
         setSuccess(SUCCESS_MESSAGES.BLOCK_DELETED);
         await fetchProjectDetail();
         setTimeout(() => setSuccess(null), 3000);
@@ -1148,13 +1107,9 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
     setSaving(true);
     setError(null);
     try {
-      const response = await fetch(`${apiUrl}/api/projects/${resolvedParams.slug}/blocks/${blockToEditText.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify(blockTextFormData),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Не удалось сохранить блок.');
+      const response = await apiClient.put<{ success: boolean; message?: string; data?: any }>(`/api/projects/${resolvedParams.slug}/blocks/${blockToEditText.id}`, blockTextFormData);
+      const data = response.data;
+      if (!data.success) throw new Error(data.message || 'Не удалось сохранить блок.');
       setSuccess(SUCCESS_MESSAGES.BLOCK_UPDATED);
       await fetchProjectDetail();
       setBlockTextDialogOpen(false);
@@ -1403,11 +1358,10 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
 
     try {
       const url = isCreating
-        ? `${apiUrl}/api/projects/${resolvedParams.slug}/blocks/${parentBlockId}/media`
-        : `${apiUrl}/api/projects/${resolvedParams.slug}/blocks/${parentBlockId}/media/${groupId}`;
+        ? `/api/projects/${resolvedParams.slug}/blocks/${parentBlockId}/media`
+        : `/api/projects/${resolvedParams.slug}/blocks/${parentBlockId}/media/${groupId}`;
 
       console.log('🌐 [DEBUG] Request URL:', url);
-      console.log('🌐 [DEBUG] Request method: POST');
 
       if (!isCreating) {
         formData.append('_method', 'PUT');
@@ -1415,24 +1369,20 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
       }
 
       console.log('🌐 [DEBUG] Sending request...');
-      const response = await fetch(url, { method: 'POST', body: formData });
+      const response = await apiClient.post<{ success: boolean; message?: string; data?: any }>(url, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
       console.log('📥 [DEBUG] Response received:', {
         status: response.status,
-        statusText: response.statusText,
-        ok: response.ok,
-        headers: Object.fromEntries(response.headers.entries())
+        statusText: response.statusText
       });
 
-      const data = await response.json();
+      const data = response.data;
       console.log('📥 [DEBUG] Response data:', data);
 
-      if (!response.ok) {
-        console.error('❌ [ERROR] Request failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          data
-        });
+      if (!data.success) {
+        console.error('❌ [ERROR] Request failed:', data);
         throw new Error(data.message || 'Не удалось сохранить медиа.');
       }
 
@@ -1460,10 +1410,9 @@ const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({ params }) => {
     setSaving(true);
     setError(null);
     try {
-      const response = await fetch(`${apiUrl}/api/projects/${resolvedParams.slug}/blocks/${parentBlockId}/media/${blockMediaGroupToDelete.id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) { const data = await response.json(); throw new Error(data.message || 'Не удалось удалить медиа-группу.'); }
+      const response = await apiClient.delete<{ success: boolean; message?: string }>(`/api/projects/${resolvedParams.slug}/blocks/${parentBlockId}/media/${blockMediaGroupToDelete.id}`);
+      const data = response.data;
+      if (!data.success) throw new Error(data.message || 'Не удалось удалить медиа-группу.');
       setSuccess('Медиа группа успешно удалена.');
       await fetchProjectDetail();
       setBlockMediaDeleteOpen(false);

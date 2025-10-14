@@ -34,6 +34,7 @@ import {
   ChevronDown,
   Loader2
 } from "lucide-react";
+import { get, put, post, del } from '@/lib/api';
 
 // Lazy load admin dialog components with loading states
 const ServiceBlockDialog = dynamic(
@@ -204,89 +205,44 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
   const loadMediaPageContent = async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/admin/media-page`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          console.warn('API endpoint для медиа-страницы не найден, используем значения по умолчанию');
-          // Устанавливаем значения по умолчанию
-          setHeroContent({
-            title: 'МЕДИА',
-            description: 'Создаём проекты комплексно и выполняем отдельные задачи'
-          });
-          
-          setTestimonialsHeader({
-            title: 'говорят о нас',
-            subtitle: 'Команда NIKstudio закрывает целый ряд задач с энтузиазмом и полной ответственностью'
-          });
-          
-          setProcessHeader({
-            title: 'процесс',
-            subtitle: 'Процесс работы строится на взаимодействии всех специалистов под единым руководством'
-          });
-          return;
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: Ошибка при загрузке данных`);
-      }
-
-      const data = await response.json();
+      const data = await get<{ success: boolean; data: any }>('/api/admin/media-page');
       
       if (data.success && data.data) {
         setHeroContent({
-          title: data.data.hero_title || 'МЕДИА',
-          description: data.data.hero_description || 'Создаём проекты комплексно и выполняем отдельные задачи'
+          title: data.data.hero_title || '',
+          description: data.data.hero_description || ''
         });
         
         setTestimonialsHeader({
-          title: data.data.testimonials_title || 'говорят о нас',
-          subtitle: data.data.testimonials_subtitle || 'Команда NIKstudio закрывает целый ряд задач с энтузиазмом и полной ответственностью'
+          title: data.data.testimonials_title || '',
+          subtitle: data.data.testimonials_subtitle || ''
         });
         
         setProcessHeader({
-          title: data.data.process_title || 'процесс',
-          subtitle: data.data.process_subtitle || 'Процесс работы строится на взаимодействии всех специалистов под единым руководством'
-        });
-      } else {
-        // Если данные не получены, используем значения по умолчанию
-        setHeroContent({
-          title: 'МЕДИА',
-          description: 'Создаём проекты комплексно и выполняем отдельные задачи'
-        });
-        
-        setTestimonialsHeader({
-          title: 'говорят о нас',
-          subtitle: 'Команда NIKstudio закрывает целый ряд задач с энтузиазмом и полной ответственностью'
-        });
-        
-        setProcessHeader({
-          title: 'процесс',
-          subtitle: 'Процесс работы строится на взаимодействии всех специалистов под единым руководством'
+          title: data.data.process_title || '',
+          subtitle: data.data.process_subtitle || ''
         });
       }
-    } catch (err) {
-      console.error('Ошибка при загрузке контента медиа-страницы:', err);
-      if (err instanceof TypeError && err.message.includes('fetch')) {
-        console.warn('Не удается подключиться к серверу, используем значения по умолчанию');
-        // Устанавливаем значения по умолчанию при ошибке подключения
-        setHeroContent({
-          title: 'МЕДИА',
-          description: 'Создаём проекты комплексно и выполняем отдельные задачи'
-        });
-        
-        setTestimonialsHeader({
-          title: 'говорят о нас',
-          subtitle: 'Команда NIKstudio закрывает целый ряд задач с энтузиазмом и полной ответственностью'
-        });
-        
-        setProcessHeader({
-          title: 'процесс',
-          subtitle: 'Процесс работы строится на взаимодействии всех специалистов под единым руководством'
-        });
-      } else {
-        setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+    } catch (error: any) {
+      console.error('Ошибка при загрузке контента медиа-страницы:', error);
+      if (error.response?.status === 404) {
+        console.warn('API endpoint для медиа-страницы не найден, используем значения по умолчанию');
       }
+      // Устанавливаем значения по умолчанию при любой ошибке
+      setHeroContent({
+        title: 'МЕДИА',
+        description: 'Создаём проекты комплексно и выполняем отдельные задачи'
+      });
+      
+      setTestimonialsHeader({
+        title: 'говорят о нас',
+        subtitle: 'Команда NIKstudio закрывает целый ряд задач с энтузиазмом и полной ответственностью'
+      });
+      
+      setProcessHeader({
+        title: 'процесс',
+        subtitle: 'Процесс работы строится на взаимодействии всех специалистов под единым руководством'
+      });
     } finally {
       setLoading(false);
     }
@@ -294,45 +250,20 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
 
   const loadServices = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/media-services`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          console.warn('API endpoint не найден, возможно сервер не запущен');
-          setServices([]);
-          return;
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: Ошибка при загрузке услуг`);
-      }
-
-      const data = await response.json();
+      const data = await get<{ status: string; data: any[] }>('/api/media-services');
       
       if (data.status === 'success' && data.data) {
-        console.log('Загруженные услуги:', data.data);
-        
         // Трансформируем данные для соответствия интерфейсу
         const transformedServices = data.data.map((service: any) => ({
           ...service,
           mediaItems: service.media_items || service.mediaItems || []
         }));
         
-        transformedServices.forEach((service: any, index: number) => {
-          console.log(`Услуга ${index + 1} (${service.title}):`, {
-            id: service.id,
-            mediaItems: service.mediaItems,
-            mediaItemsLength: service.mediaItems?.length || 0,
-            uniqueGroupIds: service.mediaItems ? [...new Set(service.mediaItems.map((item: any) => item.group_id))] : [],
-            mediaGroupsCount: service.mediaItems ? new Set(service.mediaItems.map((item: any) => item.group_id)).size : 0
-          });
-        });
-        
         setServices(transformedServices);
       } else {
         setServices([]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при загрузке услуг:', err);
       if (err instanceof TypeError && err.message.includes('fetch')) {
         setError('Не удается подключиться к серверу. Убедитесь, что Laravel сервер запущен на http://localhost:8000');
@@ -354,22 +285,9 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
   };
 
   const handleDeleteService = async (serviceId: number) => {
-    if (!confirm('Вы уверены, что хотите удалить этот блок услуги?')) {
-      return;
-    }
-
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/media-services/${serviceId}`, {
-        method: 'DELETE',
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Ошибка при удалении блока услуги');
-      }
+      const data = await del<{ status: string; message?: string }>(`/api/media-services/${serviceId}`);
 
       if (data.status === 'success') {
         setSuccess('Блок услуги успешно удалён');
@@ -377,9 +295,10 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
       } else {
         throw new Error(data.message || 'Ошибка при удалении блока услуги');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при удалении блока услуги:', err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -388,25 +307,17 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
   const handleMoveService = async (serviceId: number, direction: 'up' | 'down') => {
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/media-services/${serviceId}/move-${direction}`, {
-        method: 'PUT',
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || `Ошибка при перемещении блока услуги ${direction === 'up' ? 'вверх' : 'вниз'}`);
-      }
+      const data = await put<{ status: string; message?: string }>(`/api/media-services/${serviceId}/move-${direction}`);
 
       if (data.status === 'success') {
         loadServices();
       } else {
         throw new Error(data.message || `Ошибка при перемещении блока услуги ${direction === 'up' ? 'вверх' : 'вниз'}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(`Ошибка при перемещении блока услуги ${direction === 'up' ? 'вверх' : 'вниз'}:`, err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -418,35 +329,19 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
 
   const loadTestimonials = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/admin/media-testimonials`);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          console.warn('API endpoint для отзывов не найден, возможно сервер не запущен');
-          setTestimonials([]);
-          return;
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: Ошибка при загрузке отзывов`);
-      }
-
-      const data = await response.json();
+      const data = await get<{ status: string; data: any[] }>('/api/admin/media-testimonials');
       
       if (data.status === 'success' && data.data) {
         setTestimonials(data.data);
       } else {
         setTestimonials([]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при загрузке отзывов:', err);
-      if (err instanceof TypeError && err.message.includes('fetch')) {
-        console.warn('Не удается подключиться к серверу для загрузки отзывов');
-        setTestimonials([]);
-      } else {
-        setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
-        setTestimonials([]);
+      if (err.response?.status === 404) {
+        console.warn('API endpoint для отзывов не найден');
       }
+      setTestimonials([]);
     }
   };
 
@@ -461,22 +356,9 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
   };
 
   const handleDeleteTestimonial = async (testimonialId: number) => {
-    if (!confirm('Вы уверены, что хотите удалить этот отзыв?')) {
-      return;
-    }
-
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/admin/media-testimonials/${testimonialId}`, {
-        method: 'DELETE',
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Ошибка при удалении отзыва');
-      }
+      const data = await del<{ status: string; message?: string }>(`/api/admin/media-testimonials/${testimonialId}`);
 
       if (data.status === 'success') {
         setSuccess('Отзыв успешно удалён');
@@ -513,31 +395,19 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
 
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/admin/media-testimonials/reorder`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          testimonials: reorderedTestimonials
-        }),
+      const data = await post<{ status: string; message?: string }>('/api/admin/media-testimonials/reorder', {
+        testimonials: reorderedTestimonials
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || `Ошибка при перемещении отзыва ${direction === 'up' ? 'вверх' : 'вниз'}`);
-      }
 
       if (data.status === 'success') {
         loadTestimonials();
       } else {
-        throw new Error(data.message || `Ошибка при перемещении отзыва ${direction === 'up' ? 'вверх' : 'вниз'}`);
+        throw new Error(data.message || 'Ошибка при изменении порядка отзывов');
       }
-    } catch (err) {
-      console.error(`Ошибка при перемещении отзыва ${direction === 'up' ? 'вверх' : 'вниз'}:`, err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+    } catch (err: any) {
+      console.error('Ошибка при изменении порядка отзывов:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -549,35 +419,19 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
 
   const loadProcessSteps = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/admin/media-process-steps`);
+      const data = await get<{ success?: boolean; status?: string; data: any[] }>('/api/admin/media-process-steps');
       
-      if (!response.ok) {
-        if (response.status === 404) {
-          console.warn('API endpoint для шагов процесса не найден, возможно сервер не запущен');
-          setProcessSteps([]);
-          return;
-        }
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}: Ошибка при загрузке шагов процесса`);
-      }
-
-      const data = await response.json();
-      
-      if (data.success && data.data) {
+      if ((data.success || data.status === 'success') && data.data) {
         setProcessSteps(data.data);
       } else {
         setProcessSteps([]);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при загрузке шагов процесса:', err);
-      if (err instanceof TypeError && err.message.includes('fetch')) {
-        console.warn('Не удается подключиться к серверу для загрузки шагов процесса');
-        setProcessSteps([]);
-      } else {
-        setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
-        setProcessSteps([]);
+      if (err.response?.status === 404) {
+        console.warn('API endpoint для шагов процесса не найден');
       }
+      setProcessSteps([]);
     }
   };
 
@@ -592,24 +446,11 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
   };
 
   const handleDeleteProcessStep = async (processStepId: number) => {
-    if (!confirm('Вы уверены, что хотите удалить этот шаг процесса?')) {
-      return;
-    }
-
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/admin/media-process-steps/${processStepId}`, {
-        method: 'DELETE',
-      });
+      const data = await del<{ success: boolean; message?: string }>(`/api/admin/media-process-steps/${processStepId}`);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Ошибка при удалении шага процесса');
-      }
-
-      if (data.status === 'success') {
+      if (data.success) {
         setSuccess('Шаг процесса успешно удалён');
         loadProcessSteps();
       } else {
@@ -644,31 +485,19 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
 
     try {
       setLoading(true);
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/admin/media-process-steps/reorder`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          processSteps: reorderedProcessSteps
-        }),
+      const data = await post<{ status: string; message?: string }>('/api/admin/media-process-steps/reorder', {
+        steps: reorderedProcessSteps
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || `Ошибка при перемещении шага процесса ${direction === 'up' ? 'вверх' : 'вниз'}`);
-      }
 
       if (data.status === 'success') {
         loadProcessSteps();
       } else {
-        throw new Error(data.message || `Ошибка при перемещении шага процесса ${direction === 'up' ? 'вверх' : 'вниз'}`);
+        throw new Error(data.message || 'Ошибка при изменении порядка шагов процесса');
       }
-    } catch (err) {
-      console.error(`Ошибка при перемещении шага процесса ${direction === 'up' ? 'вверх' : 'вниз'}:`, err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+    } catch (err: any) {
+      console.error('Ошибка при изменении порядка шагов процесса:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -686,32 +515,29 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
       setError(null);
       setSuccess(null);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/admin/media-page/hero`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          hero_title: heroContent.title,
-          hero_description: heroContent.description
-        }),
+      const data = await put<{ success: boolean; message?: string }>('/api/admin/media-page/hero', {
+        hero_title: heroContent.title,
+        hero_description: heroContent.description
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Ошибка при сохранении Hero');
-      }
+      console.log('[Hero Submit] Получен ответ:', data);
 
       if (data.success) {
         setSuccess('Контент Hero успешно сохранён');
       } else {
         throw new Error(data.message || 'Ошибка при сохранении Hero');
       }
-    } catch (err) {
-      console.error('Ошибка при сохранении Hero:', err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+    } catch (err: any) {
+      console.error('[Hero Submit] Ошибка:', err);
+      console.error('[Hero Submit] Детали ошибки:', {
+        response: err.response,
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
+      
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -725,32 +551,20 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
       setError(null);
       setSuccess(null);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/admin/media-page/testimonials-header`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          testimonials_title: testimonialsHeader.title,
-          testimonials_subtitle: testimonialsHeader.subtitle
-        }),
+      const data = await put<{ success: boolean; message?: string }>('/api/admin/media-page/testimonials-header', {
+        testimonials_title: testimonialsHeader.title,
+        testimonials_subtitle: testimonialsHeader.subtitle
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Ошибка при сохранении заголовка отзывов');
-      }
 
       if (data.success) {
         setSuccess('Заголовок отзывов успешно сохранён');
       } else {
         throw new Error(data.message || 'Ошибка при сохранении заголовка отзывов');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при сохранении заголовка отзывов:', err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -764,32 +578,20 @@ export function MediaPageAdmin({ onBack }: MediaPageAdminProps) {
       setError(null);
       setSuccess(null);
 
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/api/admin/media-page/process-header`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          process_title: processHeader.title,
-          process_subtitle: processHeader.subtitle
-        }),
+      const data = await put<{ success: boolean; message?: string }>('/api/admin/media-page/process-header', {
+        process_title: processHeader.title,
+        process_subtitle: processHeader.subtitle
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Ошибка при сохранении заголовка процесса');
-      }
 
       if (data.success) {
         setSuccess('Заголовок процесса успешно сохранён');
       } else {
         throw new Error(data.message || 'Ошибка при сохранении заголовка процесса');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Ошибка при сохранении заголовка процесса:', err);
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      const errorMessage = err.response?.data?.message || err.message || 'Неизвестная ошибка';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -260,7 +260,7 @@ const UpdateProjectCell = ({ project }: { project: Project }) => {
         formData.append("seo_image", seoData.seo_image);
       }
 
-      await apiClient.post(`/projects/${project.id}`, formData, {
+      await apiClient.post(`/api/projects/${project.id}`, formData, {
         headers: { 
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json' 
@@ -450,7 +450,7 @@ const DeleteProjectCell = ({ project }: { project: Project }) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await apiClient.delete(`/projects/${project.id}`);
+      await apiClient.delete(`/api/projects/${project.id}`);
       toast("Проект успешно удален");
       window.location.reload();
     } catch (error: any) {

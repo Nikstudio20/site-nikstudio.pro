@@ -23,6 +23,7 @@ import { toast } from "sonner"
 // import SEOEditor, { SEOData } from "@/components/SEOEditor"
 import { SEOData } from "@/components/SEOEditor"
 import { SEOSettings } from "@/lib/seo-metadata"
+import apiClient from "@/lib/api"
 
 // Интерфейс для ответа API
 interface ApiResponse {
@@ -39,7 +40,7 @@ interface CreatePostResponse {
 }
 
 // API URL
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+// const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 // Функция для формирования корректного URL изображения
 function getImageUrl(imagePath: string | null): string {
@@ -81,26 +82,21 @@ function getImageUrl(imagePath: string | null): string {
 // Функция для загрузки постов с API
 async function getData(): Promise<BlogPost[]> {
   try {
-    const res = await fetch(`${API_BASE_URL}/blog-posts`, {
-      cache: 'no-store',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
-
-    if (!res.ok) throw new Error(`Failed to fetch blog posts: ${res.status}`);
-
-    const data: ApiResponse = await res.json();
+    const response = await apiClient.get<ApiResponse>('/api/blog-posts');
+    
+    // apiClient возвращает axios response, данные в response.data
+    const apiResponse = response.data;
+    const posts: BlogPost[] = apiResponse.data || [];
     
     // Обрабатываем URL изображений перед отображением
-    const postsWithCorrectImageUrls = data.data?.map(post => ({
+    const postsWithCorrectImageUrls = posts.map(post => ({
       ...post,
       image: getImageUrl(post.image),
       // Убедимся, что status существует, если нет - устанавливаем по умолчанию
       status: post.status !== undefined ? post.status : true,
       // Убедимся, что sort_order существует, если нет - устанавливаем по умолчанию
       sort_order: post.sort_order !== undefined ? post.sort_order : 0
-    })) || [];
+    }));
     
     return postsWithCorrectImageUrls;
   } catch (error) {
@@ -111,13 +107,8 @@ async function getData(): Promise<BlogPost[]> {
 
 async function getGlobalSEOSettings(): Promise<SEOSettings | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/seo/settings`, { 
-      cache: 'no-cache', // Используем no-cache вместо no-store для админки
-      headers: { 'Accept': 'application/json' } 
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.data || null;
+    const response = await apiClient.get<{ success: boolean; data: SEOSettings }>('/api/seo/settings');
+    return response.data?.data || null;
   } catch (error) {
     console.error('Error fetching SEO settings:', error);
     return null;
@@ -154,29 +145,8 @@ export default function AdminBlogPageWrapper() {
   const checkApiConnection = async () => {
     try {
       setApiStatus('Проверка соединения...');
-      const res = await fetch(`${API_BASE_URL}/blog-posts`, {
-        method: 'GET', // Используем GET вместо HEAD для более надежной проверки
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-      
-      console.log('Проверка API:', res);
-
-      if (res.ok) {
-        // Проверяем, что ответ правильно парсится как JSON
-        try {
-          const data = await res.json();
-          setApiStatus('API доступен и возвращает корректный JSON');
-          console.log('API доступен, статус:', res.status, 'данные:', data);
-        } catch (jsonError) {
-          setApiStatus(`API доступен, но возвращает невалидный JSON: ${jsonError instanceof Error ? jsonError.message : 'Неизвестная ошибка'}`);
-          console.error('API возвращает невалидный JSON:', jsonError);
-        }
-      } else {
-        setApiStatus(`Ошибка API: ${res.status} - ${res.statusText}`);
-        console.error('API недоступен, статус:', res.status, res.statusText);
-      }
+      await apiClient.get('/api/blog-posts');
+      setApiStatus('API доступен и возвращает корректный JSON');
     } catch (error) {
       setApiStatus(`Ошибка соединения: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
       console.error('Ошибка соединения с API:', error);
@@ -199,19 +169,12 @@ export default function AdminBlogPageWrapper() {
       const formData = new FormData();
       formData.append('image', file);
       
-      const response = await fetch(`${API_BASE_URL}/seo/upload-image`, {
-        method: 'POST',
-        body: formData,
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include',
-        mode: 'cors',
+      const response = await apiClient.post<{ success: boolean; data?: { url: string }; message?: string }>('/api/seo/upload-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status}`);
-      }
+      const result = response.data;
 
-      const result = await response.json();
       if (result.success && result.data?.url) {
         return result.data.url;
       } else {
@@ -272,69 +235,13 @@ export default function AdminBlogPageWrapper() {
         imageFileName: image?.name || "нет"
       });
       
-      // Проверяем все поля formData перед отправкой
-      console.log("FormData содержит:");
-      for (const [key, value] of formData.entries()) {
-        console.log(`${key}: ${value instanceof File ? 'File: ' + value.name : value}`);
-      }
+      const response = await apiClient.post<CreatePostResponse>('/api/blog-posts', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       
+      const result = response.data;
       
-      // URL API-эндпоинта для создания поста (обновлен в соответствии с изменениями на бэкенде)
-      const API_URL = `${API_BASE_URL}/blog-posts`;
-      console.log("Отправка запроса на:", API_URL);
-      
-      const response = await fetch(API_URL, {
-        method: "POST",
-        body: formData,
-        headers: {
-          'Accept': 'application/json',
-          // Не указываем Content-Type для FormData, браузер сам установит это с правильным boundary
-        },
-        credentials: 'include', // Для передачи cookies, если требуется
-        mode: 'cors', // Явно указываем режим CORS
-      })
-      
-      console.log("Ответ сервера:", response.status, response.statusText);
-      console.log("Заголовки ответа:", Object.fromEntries([...response.headers.entries()]));
-      
-      // Проверяем статус ответа
-      if (!response.ok) {
-        const contentType = response.headers.get("content-type");
-        console.log("Тип контента ответа:", contentType);
-        
-        if (contentType && contentType.includes("application/json")) {
-          // Если ответ в формате JSON
-          try {
-            const errorData = await response.json();
-            console.error("JSON ошибка:", errorData);
-            // Проверяем, не пустой ли объект JSON
-            if (errorData && Object.keys(errorData).length > 0) {
-              throw new Error(errorData.message || `Ошибка сервера: ${response.status}`);
-            } else {
-              // Если JSON пустой, возвращаем стандартную ошибку
-              throw new Error(`Сервер вернул пустой JSON. Код ошибки: ${response.status}`);
-            }
-          } catch (jsonError) {
-            console.error("Ошибка при разборе JSON:", jsonError);
-            throw new Error(`Не удалось обработать ответ сервера: ${response.status}`);
-          }
-        } else {
-          // Пытаемся получить текст ошибки
-          const errorText = await response.text();
-          console.error("Текст ошибки:", errorText);
-          throw new Error(`Ошибка сервера: ${response.status}, ${response.statusText}`);
-        }
-      }
-      
-      // Получаем данные ответа
-      let result: CreatePostResponse;
-      try {
-        result = await response.json();
-        console.log("Результат запроса:", result);
-      } catch (jsonError) {
-        console.error("Ошибка при разборе ответа:", jsonError);
-        throw new Error("Не удалось обработать ответ сервера (невалидный JSON)");
-      }
+      console.log("Результат запроса:", result);
       
       if (result && result.status === "success") {
         // Обновляем список постов

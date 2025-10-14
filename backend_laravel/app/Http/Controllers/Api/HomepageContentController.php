@@ -303,9 +303,39 @@ class HomepageContentController extends Controller
             }
             
             // Validate the request
+            // Note: 'image' rule doesn't support SVG, so we use 'file' with mimes
             $validator = Validator::make($request->all(), [
-                'image' => 'required|image|mimes:jpeg,jpg,png,webp|max:2048'
+                'image' => 'required|file|mimes:jpeg,jpg,png,webp,svg|max:2048'
             ]);
+            
+            // Additional validation for SVG and other image types
+            $validator->after(function ($validator) use ($request) {
+                if ($request->hasFile('image')) {
+                    $file = $request->file('image');
+                    $mimeType = $file->getMimeType();
+                    $extension = strtolower($file->getClientOriginalExtension());
+                    
+                    // Allowed MIME types
+                    $allowedMimes = [
+                        'image/jpeg',
+                        'image/jpg', 
+                        'image/png',
+                        'image/webp',
+                        'image/svg+xml',
+                        'text/xml', // Some SVG files have this MIME type
+                        'application/xml' // Some SVG files have this MIME type
+                    ];
+                    
+                    // For SVG files, check extension if MIME type is XML-based
+                    if (in_array($mimeType, ['text/xml', 'application/xml'])) {
+                        if ($extension !== 'svg') {
+                            $validator->errors()->add('image', 'Недопустимый тип файла. Разрешены: JPG, PNG, WEBP, SVG');
+                        }
+                    } elseif (!in_array($mimeType, $allowedMimes)) {
+                        $validator->errors()->add('image', 'Недопустимый тип файла. Разрешены: JPG, PNG, WEBP, SVG');
+                    }
+                }
+            });
             
             if ($validator->fails()) {
                 Log::warning('Homepage image upload validation failed', [
@@ -325,7 +355,9 @@ class HomepageContentController extends Controller
             
             // Sanitize filename to prevent directory traversal
             $originalName = $file->getClientOriginalName();
-            $sanitizedName = Str::slug(pathinfo($originalName, PATHINFO_FILENAME));
+            $fileNameWithoutExt = pathinfo($originalName, PATHINFO_FILENAME);
+            // Sanitize: remove special characters, replace spaces with hyphens
+            $sanitizedName = preg_replace('/[^a-zA-Z0-9_-]/', '', str_replace(' ', '-', $fileNameWithoutExt));
             $extension = strtolower($file->getClientOriginalExtension());
             
             // Generate a unique filename

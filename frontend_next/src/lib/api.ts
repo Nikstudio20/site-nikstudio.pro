@@ -11,9 +11,11 @@ const getTokenFromCookie = (): string | null => {
   
   const cookies = document.cookie.split(';');
   for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
+    const [name, ...valueParts] = cookie.trim().split('=');
     if (name === 'admin-token') {
-      return value;
+      // Join back in case token contains '=' characters
+      const value = valueParts.join('=');
+      return decodeURIComponent(value);
     }
   }
   return null;
@@ -54,11 +56,21 @@ apiClient.interceptors.request.use(
       url: config.url,
       method: config.method,
       hasToken: !!token,
-      tokenPreview: token ? token.substring(0, 20) + '...' : 'NO TOKEN'
+      tokenPreview: token ? `${token.substring(0, 20)}...` : 'none',
+      isFormData: config.data instanceof FormData
     });
     
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('[API Client] Authorization header added');
+    } else if (!token) {
+      console.warn('[API Client] No token found in cookies!');
+    }
+    
+    // Для FormData удаляем Content-Type, чтобы браузер установил правильный boundary
+    if (config.data instanceof FormData && config.headers) {
+      delete config.headers['Content-Type'];
+      console.log('[API Client] Content-Type removed for FormData');
     }
     
     return config;
@@ -72,11 +84,6 @@ apiClient.interceptors.request.use(
 // Response interceptor - обработка ответов и ошибок
 apiClient.interceptors.response.use(
   (response: any) => {
-    console.log('[API Client] Response received:', {
-      url: response.config.url,
-      status: response.status,
-      hasNewToken: !!response.headers['x-new-token']
-    });
     
     // Проверяем наличие нового токена в заголовке X-New-Token
     const newToken = response.headers['x-new-token'];

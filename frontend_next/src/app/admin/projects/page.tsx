@@ -149,7 +149,7 @@ export default function AdminProjectsPageWrapper() {
         formData.append("seo_image", seoData.seo_image);
       }
 
-      const response = await apiClient.post<CreateProjectResponse>('/projects', formData, {
+      const response = await apiClient.post<CreateProjectResponse>('/api/projects', formData, {
         headers: { 
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json' 
